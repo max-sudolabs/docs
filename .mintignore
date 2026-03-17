@@ -1,3 +1,4 @@
+.git/
+node_modules/
 sdk-reference-generator/
-
 scripts/

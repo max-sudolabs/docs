@@ -3902,17 +3902,17 @@
     },
     {
       "source": "/docs/api-reference/python-sdk/v1.0.4/exceptions",
-      "destination": "/docs/sdk-reference/python-sdk/v1.0.4/exceptions",
+      "destination": "https://e2b.dev/docs/sdk-reference/python-sdk/v1.0.4/exceptions",
       "permanent": true
     },
     {
       "source": "/docs/api-reference/python-sdk/v1.0.4/sandbox_async",
-      "destination": "/docs/sdk-reference/python-sdk/v1.0.4/sandbox_async",
+      "destination": "https://e2b.dev/docs/sdk-reference/python-sdk/v1.0.4/sandbox_async",
       "permanent": true
     },
     {
       "source": "/docs/api-reference/python-sdk/v1.0.4/sandbox_sync",
-      "destination": "/docs/sdk-reference/python-sdk/v1.0.4/sandbox_sync",
+      "destination": "https://e2b.dev/docs/sdk-reference/python-sdk/v1.0.4/sandbox_sync",
       "permanent": true
     },
     {
