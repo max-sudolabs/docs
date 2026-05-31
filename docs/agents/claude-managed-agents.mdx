@@ -1,13 +1,17 @@
 ---
-title: "Anthropic Managed Agents"
-description: "Use E2B as the sandbox runtime for Anthropic Managed Agents self-hosted environments."
+title: "Claude Managed Agents"
+description: "Use E2B as the sandbox runtime for Claude Managed Agents self-hosted environments."
 icon: "/images/icons/claude-code.svg"
 ---
 
-[Anthropic Managed Agents](https://platform.claude.com/docs/en/managed-agents/overview) can use a self-hosted environment when you want to run tool calls in your own infrastructure. E2B provides a reusable `E2B/claude-managed-agents-webhooks` template that receives Anthropic webhooks and routes each Managed Agents session to a persistent E2B worker sandbox.
+[Claude Managed Agents](https://platform.claude.com/docs/en/managed-agents/overview) can use a self-hosted environment when you want tool calls to run in your own infrastructure. Claude runs the agentic loop and reasoning process with Anthropic; E2B provides isolated sandbox infrastructure for the environment where tool calls execute. The reusable `E2B/claude-managed-agents-webhooks` template receives Anthropic webhooks and routes each Claude Managed Agents session to a persistent E2B worker sandbox.
 
 <Info>
-For the full source, local setup scripts, and app-owned routing examples, see the [Anthropic Managed Agents cookbook](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/anthropic-managed-agents).
+This separation is intentional for security: Claude decides what work to do, while the sandbox contains the execution environment, filesystem, tools, network access, and runtime logs.
+</Info>
+
+<Info>
+For the full source, local setup scripts, and app-owned routing examples, see the [Claude Managed Agents cookbook](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/anthropic-managed-agents).
 </Info>
 
 ## Install dependencies
@@ -143,15 +147,15 @@ sandbox.files.write(
 ```
 </CodeGroup>
 
-## Send work to the agent
+## Send work to Claude
 
-Create or select a Managed Agents agent in the [Anthropic Console](https://platform.claude.com/workspaces/default/agents), then create a session with that agent and the same `ANTHROPIC_ENVIRONMENT_ID` you wrote into the webhook sandbox. Creating the session does not start work; the `user.message` event does.
+Create or select a Claude Managed Agents agent in the [Anthropic Console](https://platform.claude.com/workspaces/default/agents), then create a session with that agent and the same `ANTHROPIC_ENVIRONMENT_ID` you wrote into the webhook sandbox. Creating the session does not start work; the `user.message` event does.
 
 ```bash
 export ANTHROPIC_AGENT_ID="agent_..."
 ```
 
-Use a small sandbox task for the first smoke test:
+Use a small shell task for the first smoke test:
 
 ```text
 Use bash to echo webhook-smoke-ok. Answer only with that text.
@@ -262,7 +266,7 @@ A healthy run has:
 - Router logs showing `routing work` and `assigned session`.
 - A session-to-sandbox assignment in the router's assignment store.
 - The assigned worker sandbox's `worker.log` showing claimed work, tool execution, and successful results posted back to Anthropic.
-- The Anthropic session returning to `session.status_idle`.
+- The Claude Managed Agents session returning to `session.status_idle`.
 
 The assignment store records the worker sandbox ID for each routed session. Connect to that sandbox and check `/opt/anthropic-managed-agents-js/worker.log` when you need the tool execution logs.
 
@@ -270,13 +274,13 @@ If the session stays at `requires_action`, check `/opt/anthropic-managed-agents-
 
 ## Runtime behavior
 
-The worker runs with `/mnt/session` as its workdir. File tools are constrained to that workdir, skills are downloaded under `/mnt/session/skills/<name>/`, and generated artifacts should be written under `/mnt/session/outputs`.
+The worker sandbox runs tool calls with `/mnt/session` as its workdir. File tools are constrained to that workdir, skills are downloaded under `/mnt/session/skills/<name>/`, and generated artifacts should be written under `/mnt/session/outputs`.
 
 The webhook sandbox is the router. It keeps a session-to-sandbox assignment store and starts worker sandboxes with E2B auto-resume and pause-on-timeout settings.
 
 ## Session-scoped sandboxes
 
-By default, the public webhook template gives each Managed Agents session its own E2B worker sandbox. Follow-up turns for the same session reconnect to the same worker and reuse its `/mnt/session` filesystem.
+By default, the public webhook template gives each Claude Managed Agents session its own E2B worker sandbox. Follow-up turns for the same session reconnect to the same worker and reuse its `/mnt/session` filesystem. The sandbox is the isolated execution environment, not the place where Claude's reasoning loop runs.
 
 Use [cloud buckets](/docs/storage/cloud-buckets), [Archil](/docs/storage/archil), or [volumes](/docs/volumes) when files need to outlive a sandbox or be shared across many sandboxes.
 

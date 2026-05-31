@@ -52,11 +52,11 @@
             ]
           },
           {
-            "group": "Agents in sandbox",
+            "group": "Agent environments",
             "pages": [
-              "docs/agents/anthropic-managed-agents",
               "docs/agents/amp",
               "docs/agents/claude-code",
+              "docs/agents/claude-managed-agents",
               "docs/agents/codex",
               "docs/agents/devin",
               "docs/agents/openai-agents-sdk",
@@ -3727,6 +3727,11 @@
     }
   },
   "redirects": [
+    {
+      "source": "/docs/agents/anthropic-managed-agents",
+      "destination": "/docs/agents/claude-managed-agents",
+      "permanent": true
+    },
     {
       "source": "/docs/troubleshooting/pip-install-error",
       "destination": "/docs/faq/pip-install-error",
