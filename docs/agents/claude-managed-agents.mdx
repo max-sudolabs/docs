@@ -147,7 +147,7 @@ sandbox.files.write(
 ```
 </CodeGroup>
 
-## Send work to Claude
+## Run an end-to-end smoke test
 
 Create or select a Claude Managed Agents agent in the [Anthropic Console](https://platform.claude.com/workspaces/default/agents), then create a session with that agent and the same `ANTHROPIC_ENVIRONMENT_ID` you wrote into the webhook sandbox. Creating the session does not start work; the `user.message` event does.
 
@@ -223,6 +223,12 @@ print(f"Session ID: {session.id}")
 ```
 </CodeGroup>
 
+Claude should answer:
+
+```text
+webhook-smoke-ok
+```
+
 Then check the webhook sandbox:
 
 <CodeGroup>
@@ -265,7 +271,7 @@ A healthy run has:
 - `/health` returning `ok: true`.
 - Router logs showing `routing work` and `assigned session`.
 - A session-to-sandbox assignment in the router's assignment store.
-- The assigned worker sandbox's `worker.log` showing claimed work, tool execution, and successful results posted back to Anthropic.
+- The assigned worker sandbox's `worker.log` showing the shell tool execution and successful results posted back to Anthropic.
 - The Claude Managed Agents session returning to `session.status_idle`.
 
 The assignment store records the worker sandbox ID for each routed session. Connect to that sandbox and check `/opt/anthropic-managed-agents-js/worker.log` when you need the tool execution logs.
