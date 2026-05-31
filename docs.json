@@ -52,7 +52,7 @@
             ]
           },
           {
-            "group": "Agent environments",
+            "group": "Agents in sandbox",
             "pages": [
               "docs/agents/amp",
               "docs/agents/claude-code",
