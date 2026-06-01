@@ -4,7 +4,7 @@ description: "Use E2B as the sandbox runtime for Claude Managed Agents self-host
 icon: "/images/icons/claude-code.svg"
 ---
 
-[Claude Managed Agents](https://platform.claude.com/docs/en/managed-agents/overview) can use a self-hosted environment when you want tool calls to run in your own infrastructure. Claude runs the agentic loop and reasoning process with Anthropic; E2B provides isolated sandbox infrastructure for the environment where tool calls execute. The reusable `E2B/claude-managed-agents-webhooks` template receives Anthropic webhooks and routes each Claude Managed Agents session to a persistent E2B worker sandbox.
+[Claude Managed Agents](https://platform.claude.com/docs/en/managed-agents/overview) can use a self-hosted environment when you want tool calls to run in your own infrastructure. Claude runs the agentic loop and reasoning process; E2B provides isolated sandbox infrastructure for the environment where tool calls execute. The reusable `E2B/claude-managed-agents-webhooks` template receives webhooks and routes each Claude Managed Agents session to a persistent E2B worker sandbox.
 
 <Info>
 This separation is intentional for security: Claude decides what work to do, while the sandbox contains the execution environment, filesystem, tools, network access, and runtime logs.
@@ -32,20 +32,20 @@ Export the values you will pass to the webhook sandbox:
 # E2B dashboard API keys: https://e2b.dev/dashboard?tab=keys
 export E2B_API_KEY="..."
 
-# Anthropic Console API keys: https://console.anthropic.com/settings/keys
+# Claude Console API keys: https://console.anthropic.com/settings/keys
 export ANTHROPIC_API_KEY="..."
 
-# Anthropic Console environments: https://platform.claude.com/workspaces/default/environments
+# Claude Console environments: https://platform.claude.com/workspaces/default/environments
 export ANTHROPIC_ENVIRONMENT_ID="..."
 
-# Open the self-hosted environment in the Anthropic Console and click Generate environment key.
+# Open the self-hosted environment in the Claude Console and click Generate environment key.
 export ANTHROPIC_ENVIRONMENT_KEY="..."
 ```
 
 ## Start the webhook sandbox
 
 Start the public template with auto-resume enabled. The template starts a webhook server on port `8000`.
-Because Anthropic only shows the webhook signing key after you register an endpoint, write the router config now and add the signing key to the same sandbox after registration.
+Because the signing key only appears after you register a webhook endpoint, write the router config now and add the signing key to the same sandbox after registration.
 
 <CodeGroup>
 ```typescript JavaScript & TypeScript
@@ -113,7 +113,7 @@ At this point `/health` returns `200`, but `/webhook` returns `503` until the si
 
 ## Register the webhook
 
-In the [Anthropic Console webhooks settings](https://platform.claude.com/settings/workspaces/default/webhooks), create a webhook endpoint using the printed URL:
+In the [Claude Console webhooks settings](https://platform.claude.com/settings/workspaces/default/webhooks), create a webhook endpoint using the printed URL:
 
 ```text
 https://<sandbox-host>/webhook
@@ -149,7 +149,7 @@ sandbox.files.write(
 
 ## Run an end-to-end smoke test
 
-Create or select a Claude Managed Agents agent in the [Anthropic Console](https://platform.claude.com/workspaces/default/agents), then create a session with that agent and the same `ANTHROPIC_ENVIRONMENT_ID` you wrote into the webhook sandbox. Creating the session does not start work; the `user.message` event does.
+Create or select a Claude Managed Agents agent in the [Claude Console](https://platform.claude.com/workspaces/default/agents), then create a session with that agent and the same `ANTHROPIC_ENVIRONMENT_ID` you wrote into the webhook sandbox. Creating the session does not start work; the `user.message` event does.
 
 ```bash
 export ANTHROPIC_AGENT_ID="agent_..."
@@ -163,9 +163,9 @@ Use bash to echo webhook-smoke-ok. Answer only with that text.
 
 <CodeGroup>
 ```typescript JavaScript & TypeScript
-import Anthropic from '@anthropic-ai/sdk'
+import Claude from '@anthropic-ai/sdk'
 
-const client = new Anthropic({
+const client = new Claude({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
@@ -194,9 +194,9 @@ console.log(`Session ID: ${session.id}`)
 
 ```python Python
 import os
-import anthropic
+from anthropic import Anthropic as Claude
 
-client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+client = Claude(api_key=os.environ["ANTHROPIC_API_KEY"])
 
 session = client.beta.sessions.create(
     agent=os.environ["ANTHROPIC_AGENT_ID"],
@@ -271,7 +271,7 @@ A healthy run has:
 - `/health` returning `ok: true`.
 - Router logs showing `routing work` and `assigned session`.
 - A session-to-sandbox assignment in the router's assignment store.
-- The assigned worker sandbox's `worker.log` showing the shell tool execution and successful results posted back to Anthropic.
+- The assigned worker sandbox's `worker.log` showing the shell tool execution and successful results posted back to Claude.
 - The Claude Managed Agents session returning to `session.status_idle`.
 
 The assignment store records the worker sandbox ID for each routed session. Connect to that sandbox and check `/opt/anthropic-managed-agents-js/worker.log` when you need the tool execution logs.
@@ -290,11 +290,11 @@ By default, the public webhook template gives each Claude Managed Agents session
 
 Use [cloud buckets](/docs/storage/cloud-buckets), [Archil](/docs/storage/archil), or [volumes](/docs/volumes) when files need to outlive a sandbox or be shared across many sandboxes.
 
-If you want to run that router in your own service instead of in E2B, use the cookbook's [`app-webhooks/` example](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/anthropic-managed-agents/javascript/app-webhooks). It receives Anthropic webhooks in your app, claims work there, and routes each session to its own E2B sandbox by default.
+If you want to run that router in your own service instead of in E2B, use the cookbook's [`app-webhooks/` example](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/anthropic-managed-agents/javascript/app-webhooks). It receives webhooks in your app, claims work there, and routes each session to its own E2B sandbox by default.
 
 ## Clean up
 
-Remove the webhook endpoint in the Anthropic Console before deleting the router sandbox. Then kill the router sandbox and any assigned worker sandboxes you no longer need.
+Remove the webhook endpoint in the Claude Console before deleting the router sandbox. Then kill the router sandbox and any assigned worker sandboxes you no longer need.
 
 ## Related guides
 
