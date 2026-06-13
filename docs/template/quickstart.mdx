@@ -239,6 +239,44 @@ sbx = Sandbox(template="template-tag")
 The template name is the identifier that can be used to create a new Sandbox.
 </Note>
 
+## Creating many templates
+
+There is no practical limit on how many templates you can have. It's perfectly fine to create **tens or hundreds of thousands of templates** — for example, one template per customer, per project, or per agent run.
+
+The template build environment is a full sandbox environment, so you can do anything during the build that you can do inside a running sandbox, including running Docker containers as part of the setup.
+
+Compared to [snapshots](/docs/sandbox/snapshots), templates start faster and use fewer resources because the guest OS is restarted before the long-running process is captured and prefetching is significantly more effective. If your workload involves spinning up many per-customer or per-project environments, prefer templates over snapshots.
+
+### Layering templates with `fromTemplate`
+
+When you build many similar templates (e.g. a customer-specific template per customer that all share the same base setup), use [`fromTemplate`](/docs/sdk-reference/js-sdk/v2.29.1/template#fromtemplate) to start from an existing template instead of rebuilding the shared layers from scratch each time. This keeps per-customer builds fast and reuses the cached base.
+
+<CodeGroup>
+
+```typescript JavaScript & TypeScript
+import { Template } from 'e2b'
+
+// Per-customer template built on top of a shared base template
+export const template = Template()
+  .fromTemplate('my-base-template')
+  .copyDirectory('./customers/acme', '/app/config')
+  .setEnvs({ CUSTOMER_ID: 'acme' })
+```
+
+```python Python
+from e2b import Template
+
+# Per-customer template built on top of a shared base template
+template = (
+    Template()
+    .from_template("my-base-template")
+    .copy_directory("./customers/acme", "/app/config")
+    .set_envs({"CUSTOMER_ID": "acme"})
+)
+```
+
+</CodeGroup>
+
 ## Build limits
 
 Template builds are subject to the following limits:
