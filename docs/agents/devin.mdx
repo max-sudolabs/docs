@@ -95,6 +95,10 @@ The Devin API key and the Outposts worker token are different credentials.
 Do not bake these credentials into a public template. Pass them as runtime
 environment variables or use your own secret store.
 
+If your backend proxies Devin API calls for a browser app, the Devin API key
+should still be user-provided and user-scoped. The backend should not use one
+shared Devin key for all users.
+
 ### Template
 
 Build an E2B template that installs the Devin CLI and any project dependencies
@@ -159,8 +163,8 @@ tail -200 /home/user/devin-worker.log
 
 ### Create or message a Devin session
 
-Use the Devin API from your backend to create a session in the organization that
-should use this worker pool.
+Use the Devin API with the user's Devin API key to create a session in the
+organization that should use this worker pool.
 
 ```bash
 curl --request POST \
