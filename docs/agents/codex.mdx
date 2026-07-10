@@ -22,7 +22,11 @@ codex
 
 ## Run headless
 
-Use `codex exec` for non-interactive mode and `--full-auto` to auto-approve tool calls (safe inside E2B sandboxes). Pass `--skip-git-repo-check` to bypass git directory ownership checks inside the sandbox. Pass `CODEX_API_KEY` as an environment variable.
+Use `codex exec` for non-interactive mode and `--full-auto` to auto-approve tool calls. The sandbox isolates the agent from your host machine, but sandboxes can reach the open internet by default — restrict outbound traffic with [network rules](/docs/network/internet-access). Pass `--skip-git-repo-check` to bypass git directory ownership checks inside the sandbox. Pass `CODEX_API_KEY` as an environment variable.
+
+<Note>
+Auto-approving tool calls is contained by the sandbox: the agent cannot touch your host machine, local files, or credentials. It can still make outbound network requests — internet access is enabled by default. To limit where an auto-approved agent can connect, configure [outbound network rules](/docs/network/internet-access) (`allowInternetAccess`, plus allow/deny lists by CIDR or hostname). Hostname rules apply to HTTP(S) traffic only; use CIDR rules for other protocols.
+</Note>
 
 <CodeGroup>
 ```typescript JavaScript & TypeScript

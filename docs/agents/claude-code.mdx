@@ -22,7 +22,11 @@ claude
 
 ## Run headless
 
-Use `-p` for non-interactive mode and `--dangerously-skip-permissions` to auto-approve all tool calls (safe inside E2B sandboxes).
+Use `-p` for non-interactive mode and `--dangerously-skip-permissions` to auto-approve all tool calls. The sandbox isolates the agent from your host machine, but sandboxes can reach the open internet by default — restrict outbound traffic with [network rules](/docs/network/internet-access) if the agent processes untrusted input or handles secrets.
+
+<Note>
+Auto-approving tool calls is contained by the sandbox: the agent cannot touch your host machine, local files, or credentials. It can still make outbound network requests — internet access is enabled by default. To limit where an auto-approved agent can connect, configure [outbound network rules](/docs/network/internet-access) (`allowInternetAccess`, plus allow/deny lists by CIDR or hostname). Hostname rules apply to HTTP(S) traffic only; use CIDR rules for other protocols.
+</Note>
 
 <CodeGroup>
 ```typescript JavaScript & TypeScript

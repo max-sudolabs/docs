@@ -25,6 +25,10 @@ source /home/user/.bashrc
 
 After installation and login, use `devin -p` for non-interactive mode and `--permission-mode dangerous` to auto-approve tool calls.
 
+<Note>
+Auto-approving tool calls is contained by the sandbox: the agent cannot touch your host machine, local files, or credentials. It can still make outbound network requests — internet access is enabled by default. To limit where an auto-approved agent can connect, configure [outbound network rules](/docs/network/internet-access) (`allowInternetAccess`, plus allow/deny lists by CIDR or hostname). Hostname rules apply to HTTP(S) traffic only; use CIDR rules for other protocols.
+</Note>
+
 ```bash
 mkdir -p /home/user/project
 cd /home/user/project
