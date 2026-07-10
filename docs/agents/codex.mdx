@@ -244,6 +244,70 @@ sandbox.kill()
 ```
 </CodeGroup>
 
+## Resume a session
+
+Codex persists sessions (rollout files under `~/.codex/sessions` in the sandbox) that can be resumed with follow-up tasks using `codex exec resume`. Run the first task with `--json` and capture the `thread_id` from the `thread.started` event.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('codex', {
+  envs: { CODEX_API_KEY: process.env.CODEX_API_KEY },
+  timeoutMs: 600_000,
+})
+
+// Start a new session
+const initial = await sandbox.commands.run(
+  `codex exec --full-auto --skip-git-repo-check --json "Create plan.md with a 3-step plan for a TODO CLI app"`
+)
+
+// The first --json event is thread.started
+const threadId = JSON.parse(initial.stdout.trim().split('\n')[0]).thread_id
+
+// Continue in the same session
+await sandbox.commands.run(
+  `codex exec resume ${threadId} --full-auto --skip-git-repo-check "Now implement step 1 of the plan"`,
+  { onStdout: (data) => process.stdout.write(data) }
+)
+
+const plan = await sandbox.commands.run('cat /home/user/plan.md')
+console.log(plan.stdout)
+
+await sandbox.kill()
+```
+```python Python
+import os
+import json
+from e2b import Sandbox
+
+sandbox = Sandbox.create("codex", envs={
+    "CODEX_API_KEY": os.environ["CODEX_API_KEY"],
+}, timeout=600)
+
+# Start a new session
+initial = sandbox.commands.run(
+    'codex exec --full-auto --skip-git-repo-check --json "Create plan.md with a 3-step plan for a TODO CLI app"',
+)
+
+# The first --json event is thread.started
+thread_id = json.loads(initial.stdout.strip().splitlines()[0])["thread_id"]
+
+# Continue in the same session
+sandbox.commands.run(
+    f'codex exec resume {thread_id} --full-auto --skip-git-repo-check "Now implement step 1 of the plan"',
+    on_stdout=lambda data: print(data, end=""),
+)
+
+plan = sandbox.commands.run("cat /home/user/plan.md")
+print(plan.stdout)
+
+sandbox.kill()
+```
+</CodeGroup>
+
+To simply continue the most recent session in the working directory, use `codex exec resume --last "follow-up task"` — no thread ID needed. When working in a cloned repo, pass `-C` before the `resume` subcommand (`codex exec -C /home/user/repo resume <thread_id> "..."`); it is not accepted after it.
+
 ## Image input
 
 Pass screenshots or design mockups with `--image` to give Codex visual context alongside the prompt.
