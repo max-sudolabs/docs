@@ -64,7 +64,7 @@ The immutable template ID is `myw11k4t1jtjbr7ckvz8`.
 ### Open the setup UI
 
 When the terminal connects, it prints the exact setup URL for that sandbox and
-the command that reads its one-time control token. The URL has this shape:
+the command that reads its sandbox-local control token. The URL has this shape:
 
 ```text
 https://3000-<sandbox-id>.<e2b-domain>
@@ -80,8 +80,9 @@ Read the setup token inside the sandbox:
 cat /home/user/.config/devin-outposts/control-token
 ```
 
-Enter it in the setup UI. The token is stored in an HTTP-only session cookie,
-not in browser local storage.
+Enter it in the setup UI. A successful exchange issues a signed, HTTP-only
+session cookie valid for 12 hours. The control token remains reusable inside
+that sandbox and is not stored in browser local storage.
 
 ### Configure the worker
 
@@ -104,7 +105,9 @@ organization:
 </Warning>
 
 Save the configuration and start the worker. The status view shows whether the
-worker is listening and displays recent worker output for troubleshooting.
+worker process is running and displays recent worker output for troubleshooting.
+Confirm the pool appears in Devin's virtual-environment menu before sending a
+task; process state alone does not prove pool registration.
 
 ### Send a task to the Outposts worker
 
@@ -117,6 +120,9 @@ worker is listening and displays recent worker output for troubleshooting.
 The task prompt tells Devin to work in `/mnt/repos`. If Devin reports a
 different workspace, such as `/home/ubuntu/repos`, the session is running on a
 managed Devin machine instead of the selected Outposts environment.
+
+The task is passed to Devin in the browser URL. Do not include credentials or
+other secrets in the task field.
 
 <Note>
   Creating a session through the public Devin v3 API does not currently select
@@ -137,8 +143,8 @@ tail -200 /home/user/devin-worker.log
 ```
 
 Successful claim logs may contain either `serving session <session-id>` or a
-structured `session_id` field. Once attached, the setup UI streams the session
-history and shows tool activity alongside Devin's messages.
+structured `session_id` field. Once attached, the setup UI polls the session
+history and renders Devin's messages as they become available.
 
 ### How the integration works
 
