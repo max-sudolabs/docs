@@ -111,15 +111,62 @@ task; process state alone does not prove pool registration.
 
 ### Send a task to the Outposts worker
 
-1. Select **New task** in the setup UI. It opens Devin with a prepared prompt.
-2. In Devin, open **Configuration**, then **Virtual environment**.
-3. Select the Outposts environment that matches the configured pool.
-4. Send the task.
-5. Return to the setup UI and attach the session after the worker claims it.
+<Steps>
+  <Step title="Wait for the worker process">
+    The template UI header should say **Process running**. This means the local
+    worker process is alive. Before sending work, also verify that the pool is
+    available in Devin; process state alone does not prove registration.
+  </Step>
+
+  <Step title="Open the prepared task">
+    Enter the task in the template UI and select **Open task in Devin**. A new
+    Devin composer opens with the task already filled in. Do not start another
+    session or replace the environment preamble.
+  </Step>
+
+  <Step title="Open Configuration in Devin">
+    Look directly below the prompt. Select the **Configuration** button beside
+    the attachment and effort controls, then open **Virtual environment**.
+
+    ```text
+    ┌──────────────────────────────────────────────┐
+    │ Prepared task                               │
+    │                                              │
+    └──────────────────────────────────────────────┘
+      Attach   [ Configuration ]   Normal     Send
+                       └─ Virtual environment
+    ```
+  </Step>
+
+  <Step title="Select the Outposts pool">
+    Choose the virtual environment whose name exactly matches the pool shown in
+    the template UI. Devin labels registered pools as Outpost environments.
+    Do this before selecting **Send**.
+  </Step>
+
+  <Step title="Send and attach the session">
+    Send the prepared task in Devin. Return to the template UI, select
+    **Refresh** under **Recent sessions**, and attach the new session after this
+    worker claims it. You can then read history and send follow-up messages from
+    the template UI.
+  </Step>
+</Steps>
 
 The task prompt tells Devin to work in `/mnt/repos`. If Devin reports a
 different workspace, such as `/home/ubuntu/repos`, the session is running on a
 managed Devin machine instead of the selected Outposts environment.
+
+<Check>
+  The session is routed correctly when Devin works in `/mnt/repos`, does not ask
+  you to choose a repository path, and the session appears in the template UI
+  after the worker claims it.
+</Check>
+
+<Warning>
+  If Devin says `/mnt/repos` is missing or reports `/home/ubuntu/repos`, stop
+  that session. Open the task again and select the Outposts pool under
+  **Configuration** → **Virtual environment** before sending it.
+</Warning>
 
 The task is passed to Devin in the browser URL. Do not include credentials or
 other secrets in the task field.
