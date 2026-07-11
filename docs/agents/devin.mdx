@@ -4,27 +4,17 @@ description: "Run Devin in or against secure E2B sandboxes."
 icon: "/images/icons/devin.svg"
 ---
 
-[Devin](https://devin.ai) is Cognition's coding agent. E2B can be used in two
-ways with Devin:
+[Devin](https://devin.ai) is Cognition's coding agent. You can use E2B with
+Devin in two ways:
 
-- run Devin for Terminal directly inside an E2B sandbox
-- run a Devin Outposts worker inside an E2B sandbox, so Devin can route work to
-  an isolated runtime that can create and inspect other E2B sandboxes
+- run Devin for Terminal directly inside an isolated E2B sandbox
+- run a Devin Outposts worker in an E2B sandbox and route Devin sessions to it
 
-<Note>
-  The Outposts worker flow below is a rough integration pattern. It assumes you
-  already have Devin API and Outposts credentials from Cognition.
-</Note>
+## Run Devin for Terminal
 
-## Run Devin for Terminal inside a sandbox
-
-[Devin for Terminal](https://devin.ai/terminal) works directly from a terminal.
-You can install it in an E2B sandbox and use the sandbox as an isolated
-workspace for agent tasks.
-
-### Installation
-
-Use a PTY for install and login because Devin's setup is interactive. You can create a Devin account during sign up if you don't have one.
+[Devin for Terminal](https://devin.ai/terminal) runs directly from a terminal.
+Install it in a sandbox to give Devin an isolated workspace without access to
+your local machine.
 
 ```bash
 e2b sandbox create base
@@ -33,24 +23,11 @@ e2b sandbox create base
 # Inside the sandbox
 ###
 curl -fsSL https://cli.devin.ai/install.sh | bash
-
 source /home/user/.bashrc
 ```
 
-### Usage
-
-After installation and login, use `devin -p` for non-interactive mode and `--permission-mode dangerous` to auto-approve tool calls.
-
-```bash
-mkdir -p /home/user/project
-cd /home/user/project
-
-devin --permission-mode dangerous -p "Create a hello world HTTP server in Go"
-```
-
-### Example: work on a cloned repository
-
-After installing Devin for Terminal and signing in, clone a repository and run Devin from the project directory.
+After completing Devin's interactive sign-in, run a task from the project
+directory:
 
 ```bash
 git clone https://github.com/your-org/your-repo.git /home/user/repo
@@ -59,132 +36,99 @@ cd /home/user/repo
 devin --permission-mode dangerous -p "Add error handling to all API endpoints"
 ```
 
-Devin can edit files, run commands, and work on code inside the sandbox without accessing your local machine.
+## Run Devin Outposts in E2B
 
-## Run a Devin Outposts worker in a sandbox
+Use the public `devin-outposts` template to run an Outposts worker and its setup
+UI inside an E2B sandbox. The template includes the Devin CLI, starts the setup
+UI on port `3000`, and reserves `/mnt/repos` as the worker workspace.
 
-For development and higher-isolation workflows, you can run a Devin Outposts
-worker inside an E2B sandbox. In this shape, the Devin session is created by
-your app or by Devin, while the worker process runs in the sandbox and joins an
-Outposts pool.
+<Card
+  title="Open the Devin Outposts template"
+  icon="terminal"
+  href="https://e2b.dev/dashboard/terminal?template=aiengineer-d56d/devin-outposts"
+>
+  Start the template in the E2B dashboard and open its terminal.
+</Card>
 
-```mermaid
-flowchart LR
-  App["Your app"] -->|"Create or message Devin session"| Devin["Devin API"]
-  Devin -->|"Route work to pool"| Pool["Devin Outposts pool"]
-  Pool -->|"Worker claim"| Worker["devin worker in E2B sandbox"]
-  Worker -->|"Run commands / edit files"| Workspace["Sandbox workspace"]
-  Worker -->|"Optional: create inner sandboxes"| E2B["E2B API or local dev harness"]
-```
-
-This lets you keep the agent runtime isolated from the developer machine while
-still giving it command execution, filesystem access, preview URLs, and any
-credentials you explicitly pass into the sandbox.
-
-### Credentials
-
-The Devin API key and the Outposts worker token are different credentials.
-
-| Credential | Used by | Purpose |
-| --- | --- | --- |
-| Devin API key | Your backend or app | Create and message Devin sessions through the Devin API |
-| Devin organization ID | Your backend or app | Select the Devin organization that owns the session |
-| Outposts pool ID | Sandbox worker launcher | Select the pool the worker should join |
-| Outposts worker token | `devin worker start` | Authenticate the worker to the pool |
-
-Do not bake these credentials into a public template. Pass them as runtime
-environment variables or use your own secret store.
-
-If your backend proxies Devin API calls for a browser app, the Devin API key
-should still be user-provided and user-scoped. The backend should not use one
-shared Devin key for all users.
-
-### Template
-
-Build an E2B template that installs the Devin CLI and any project dependencies
-the worker should have available.
-
-```dockerfile
-FROM e2bdev/base
-
-RUN curl -fsSL https://cli.devin.ai/install.sh -o /tmp/devin-install.sh \
-  && bash /tmp/devin-install.sh </dev/null || true \
-  && test -x /home/user/.local/bin/devin \
-  && sudo ln -sf /home/user/.local/bin/devin /usr/local/bin/devin \
-  && rm -f /tmp/devin-install.sh
-
-WORKDIR /mnt/repos
-```
-
-If your worker needs a long-running app or local control plane, add a readiness
-script to the template and have the worker launcher wait for it before starting
-Devin.
-
-### Start the worker
-
-Start a sandbox from the template, pass the Outposts credentials at runtime, and
-start the worker in the sandbox.
+You can also start it with the SDK:
 
 ```ts
 import { Sandbox } from "e2b"
 
-const sandbox = await Sandbox.create("devin-worker-template", {
-  envs: {
-    DEVIN_API_URL: "https://api.devin.ai",
-    DEVIN_ACCEPTOR_ID: crypto.randomUUID(),
-    DEVIN_OUTPOST_POOL_ID: process.env.DEVIN_OUTPOST_POOL_ID!,
-    DEVIN_OUTPOSTS_TOKEN: process.env.DEVIN_OUTPOSTS_TOKEN!,
-    DEVIN_REMOTE_STATE_DIR: "/home/user/.devin/worker/state",
-  },
-  lifecycle: {
-    onTimeout: "pause",
-    autoResume: true,
-  },
-})
-
-await sandbox.commands.run(`
-set -eu
-export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
-sudo install -d -o user -g user /mnt/repos "$DEVIN_REMOTE_STATE_DIR"
-cd /mnt/repos
-nohup devin worker start \
-  --api-url="$DEVIN_API_URL" \
-  --pool="$DEVIN_OUTPOST_POOL_ID" \
-  --acceptor-id="$DEVIN_ACCEPTOR_ID" \
-  >/home/user/devin-worker.log 2>&1 &
-`)
+const sandbox = await Sandbox.create("aiengineer-d56d/devin-outposts")
+console.log(sandbox.sandboxId)
 ```
 
-The worker log is the first place to check startup failures:
+The immutable template ID is `myw11k4t1jtjbr7ckvz8`.
+
+### Open the setup UI
+
+When the terminal connects, it prints the exact setup URL for that sandbox and
+the command that reads its one-time control token. The URL has this shape:
+
+```text
+https://3000-<sandbox-id>.<e2b-domain>
+```
+
+The sandbox receives its runtime ID as `E2B_SANDBOX_ID`. A self-hosted E2B
+deployment must configure its own E2B domain when building the template; the
+sandbox cannot infer that public domain from its runtime ID.
+
+Read the setup token inside the sandbox:
 
 ```bash
-tail -200 /home/user/devin-worker.log
+cat /home/user/.config/devin-outposts/control-token
 ```
 
-### Create or message a Devin session
+Enter it in the setup UI. The token is stored in an HTTP-only session cookie,
+not in browser local storage.
 
-Use the Devin API with the user's Devin API key to create a session in the
-organization that should use this worker pool.
+### Configure the worker
 
-```bash
-curl --request POST \
-  --url "https://api.devin.ai/v3/organizations/$DEVIN_ORG_ID/sessions" \
-  --header "Authorization: Bearer $DEVIN_API_KEY" \
-  --header "Content-Type: application/json" \
-  --data '{
-    "prompt": "Use the E2B sandbox worker to inspect the repository and run tests.",
-    "title": "E2B sandbox worker test",
-    "tags": ["e2b"]
-  }'
-```
+The setup UI asks for credentials and routing information from your Devin
+organization:
 
-Then configure the Devin workflow or Outposts setup so the session routes work
-to the same pool the sandbox worker joined.
+| Value | Purpose |
+| --- | --- |
+| Devin API key | List and message sessions after this worker claims them |
+| Devin API URL | API endpoint for your Devin deployment |
+| Devin web URL | Browser origin used to open the Devin task composer |
+| Organization | Organization that owns the sessions |
+| Outposts pool ID | Virtual environment the worker joins |
+| Outposts worker token | Authenticates the worker to that pool |
 
-### Verify the worker sandbox
+<Warning>
+  Do not put these credentials in a public template. The setup UI stores them
+  only in the running sandbox with file mode `0600`. Treat a snapshot of a
+  configured sandbox as secret-bearing.
+</Warning>
 
-Use E2B command execution or a terminal connection to verify that the worker has
-the expected runtime:
+Save the configuration and start the worker. The status view shows whether the
+worker is listening and displays recent worker output for troubleshooting.
+
+### Send a task to the Outposts worker
+
+1. Select **New task** in the setup UI. It opens Devin with a prepared prompt.
+2. In Devin, open **Configuration**, then **Virtual environment**.
+3. Select the Outposts environment that matches the configured pool.
+4. Send the task.
+5. Return to the setup UI and attach the session after the worker claims it.
+
+The task prompt tells Devin to work in `/mnt/repos`. If Devin reports a
+different workspace, such as `/home/ubuntu/repos`, the session is running on a
+managed Devin machine instead of the selected Outposts environment.
+
+<Note>
+  Creating a session through the public Devin v3 API does not currently select
+  an Outposts pool. The initial task is therefore sent from Devin's web UI,
+  where the virtual environment can be selected. After the worker claims the
+  session, the template UI can display its history and send follow-up messages
+  through the API.
+</Note>
+
+### Verify the worker
+
+The worker log is the first place to check startup and claim failures:
 
 ```bash
 devin --version
@@ -192,18 +136,31 @@ test -d /mnt/repos
 tail -200 /home/user/devin-worker.log
 ```
 
-If the worker creates or runs a web app, expose the app on a sandbox port and
-open the preview URL returned by E2B.
+Successful claim logs may contain either `serving session <session-id>` or a
+structured `session_id` field. Once attached, the setup UI streams the session
+history and shows tool activity alongside Devin's messages.
 
-## Notes and limitations
+### How the integration works
 
-- The Devin API key is not enough to start an Outposts worker. You also need a
+```mermaid
+flowchart LR
+  UI["Setup UI in E2B sandbox"] -->|"Open prepared task"| DevinWeb["Devin web UI"]
+  DevinWeb -->|"Route selected environment"| Pool["Devin Outposts pool"]
+  Pool -->|"Worker claim"| Worker["Devin worker in E2B sandbox"]
+  Worker -->|"Edit files and run commands"| Workspace["/mnt/repos"]
+  UI -->|"History and follow-ups"| DevinAPI["Devin API"]
+```
+
+The worker, setup UI, credentials, and workspace stay inside the sandbox. The
+browser talks to the setup UI, and the setup UI makes authenticated Devin API
+requests on behalf of the user.
+
+## Limitations
+
+- A Devin API key does not start an Outposts worker. The worker also needs a
   pool ID and worker token.
-- Organization-scoped Devin API calls require a Devin organization ID.
-- Keep worker tokens short-lived or scoped when possible.
-- For browser-based tools, collect the Devin API key, organization ID, pool ID,
-  and worker token from the user and store them only in user-scoped storage such
-  as an encrypted session cookie or your application's secret store.
-- This page intentionally keeps the E2B side generic. If you are running a
-  local development control plane inside the sandbox, wait for its readiness
-  script before starting the Devin worker.
+- Existing Devin sessions remain assigned to the worker that claimed them. Do
+  not assume a follow-up will migrate an old session to a replacement worker.
+- Use scoped, short-lived Outposts worker tokens when available.
+- Web apps started by Devin can be opened through their E2B sandbox preview
+  URLs.
