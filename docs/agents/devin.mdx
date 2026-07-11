@@ -167,6 +167,9 @@ requests on behalf of the user.
   pool ID and worker token.
 - Existing Devin sessions remain assigned to the worker that claimed them. Do
   not assume a follow-up will migrate an old session to a replacement worker.
+- Devin can assign a new task to any available worker in the selected pool.
+  Use a dedicated pool, or stop stale workers, when validating a specific
+  sandbox or template build.
 - Use scoped, short-lived Outposts worker tokens when available.
 - Web apps started by Devin can be opened through their E2B sandbox preview
   URLs.
