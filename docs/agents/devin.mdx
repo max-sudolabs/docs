@@ -93,7 +93,7 @@ organization:
 | --- | --- |
 | Devin API key | List and message sessions after this worker claims them |
 | Devin API URL | API endpoint for your Devin deployment |
-| Devin web URL | Browser origin used to open the Devin task composer |
+| Devin organization URL | Full `/org/<slug>` page used to open the task composer in the same organization as the API selection |
 | Organization | Organization that owns the sessions |
 | Outposts pool ID | Virtual environment the worker joins |
 | Outposts worker token | Authenticates the worker to that pool |
@@ -109,6 +109,24 @@ worker process is running and displays recent worker output for troubleshooting.
 Confirm the pool appears in Devin's virtual-environment menu before sending a
 task; process state alone does not prove pool registration.
 
+If the template reports that no Outposts pools are available, the API key cannot
+see a pool that this worker can join. Create or assign the pool in Devin, then
+run **Check Devin account** again before saving the connection.
+
+Copy the organization URL from Devin while that organization is open. For
+example:
+
+```text
+https://app.devin.ai/org/your-org
+```
+
+The organization selected in the template UI controls API session listing and
+follow-ups. The `/org/<slug>` URL controls where Devin creates the browser
+session. These must refer to the same organization; an origin-only URL such as
+`https://app.devin.ai` is rejected because it would inherit the browser's last
+selected organization. Confirm the pairing in the setup form after selecting
+the API organization. Changing either value requires confirmation again.
+
 ### Send a task to the Outposts worker
 
 <Steps>
@@ -118,12 +136,15 @@ task; process state alone does not prove pool registration.
     available in Devin; process state alone does not prove registration.
   </Step>
 
-  <Step title="Open the prepared task">
-    Enter the task in the template UI and select **Open task in Devin**. A new
-    Devin composer opens with the task already filled in. Do not start another
-    session or replace the environment preamble.
+  <Step title="Describe the task">
+    Enter what Devin should build, change, or investigate. The template adds
+    instructions to use `/mnt/repos` and to stop when the wrong virtual
+    environment was selected. Nothing is sent while you type.
   </Step>
-
+  <Step title="Open Devin with the prepared task">
+    Choose **Open Devin with this task**. A new Devin page opens with the prompt
+    pre-filled, but the task is not sent yet.
+  </Step>
   <Step title="Open Configuration in Devin">
     Look directly below the prompt. Select the **Configuration** button beside
     the attachment and effort controls, then open **Virtual environment**.
@@ -146,7 +167,7 @@ task; process state alone does not prove pool registration.
 
   <Step title="Send and attach the session">
     Send the prepared task in Devin. Return to the template UI, select
-    **Refresh** under **Recent sessions**, and attach the new session after this
+    **Refresh** under **Sessions claimed by this worker**, and attach the new session after this
     worker claims it. You can then read history and send follow-up messages from
     the template UI.
   </Step>
