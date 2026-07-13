@@ -66,6 +66,7 @@
               "docs/agents/grok",
               "docs/agents/deep-agents",
               "docs/agents/open-swe",
+              "docs/agents/google-adk",
               "docs/agents/openai-agents-sdk",
               {
                 "group": "OpenClaw",
