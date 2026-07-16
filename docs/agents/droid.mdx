@@ -1,0 +1,185 @@
+---
+title: "Droid"
+description: "Run Factory's Droid in a secure E2B sandbox with full filesystem, terminal, and git access."
+icon: "/images/icons/droid.svg"
+---
+
+[Droid](https://factory.ai/product/cli) is Factory's coding agent and CLI. E2B provides a pre-built `droid` template with Droid already installed.
+
+## CLI
+
+Create a sandbox with the [E2B CLI](/docs/cli).
+
+```bash
+e2b sbx create droid
+```
+
+Once inside the sandbox, start Droid.
+
+```bash
+droid
+```
+
+## Run headless
+
+Use `droid exec` for non-interactive mode and `--auto low` to let Droid make safe file edits and run non-destructive commands inside the isolated sandbox. Droid authenticates with an API key from [Factory settings](https://app.factory.ai/settings/api-keys) via the `FACTORY_API_KEY` environment variable.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('droid', {
+  envs: { FACTORY_API_KEY: process.env.FACTORY_API_KEY },
+})
+
+const result = await sandbox.commands.run(
+  `droid exec --auto low "Create a hello world HTTP server in Go"`
+)
+
+console.log(result.stdout)
+await sandbox.kill()
+```
+```python Python
+import os
+from e2b import Sandbox
+
+sandbox = Sandbox.create("droid", envs={
+    "FACTORY_API_KEY": os.environ["FACTORY_API_KEY"],
+})
+
+result = sandbox.commands.run(
+    'droid exec --auto low "Create a hello world HTTP server in Go"',
+)
+
+print(result.stdout)
+sandbox.kill()
+```
+</CodeGroup>
+
+### Example: work on a cloned repository
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('droid', {
+  envs: { FACTORY_API_KEY: process.env.FACTORY_API_KEY },
+  timeoutMs: 600_000,
+})
+
+await sandbox.git.clone('https://github.com/your-org/your-repo.git', {
+  path: '/home/user/repo',
+  username: 'x-access-token',
+  password: process.env.GITHUB_TOKEN,
+  depth: 1,
+})
+
+const result = await sandbox.commands.run(
+  `cd /home/user/repo && droid exec --auto low "Add error handling to all API endpoints"`,
+  { onStdout: (data) => process.stdout.write(data) }
+)
+
+const diff = await sandbox.commands.run('cd /home/user/repo && git diff')
+console.log(diff.stdout)
+
+await sandbox.kill()
+```
+```python Python
+import os
+from e2b import Sandbox
+
+sandbox = Sandbox.create("droid", envs={
+    "FACTORY_API_KEY": os.environ["FACTORY_API_KEY"],
+}, timeout=600)
+
+sandbox.git.clone("https://github.com/your-org/your-repo.git",
+    path="/home/user/repo",
+    username="x-access-token",
+    password=os.environ["GITHUB_TOKEN"],
+    depth=1,
+)
+
+result = sandbox.commands.run(
+    'cd /home/user/repo && droid exec --auto low "Add error handling to all API endpoints"',
+    on_stdout=lambda data: print(data, end=""),
+)
+
+diff = sandbox.commands.run("cd /home/user/repo && git diff")
+print(diff.stdout)
+
+sandbox.kill()
+```
+</CodeGroup>
+
+## Build a custom template
+
+If you need to customize the environment (e.g. pre-install dependencies, add config files), build your own template on top of the pre-built `droid` template.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+// template.ts
+import { Template } from 'e2b'
+
+export const template = Template()
+  .fromTemplate('droid')
+```
+```python Python
+# template.py
+from e2b import Template
+
+template = (
+    Template()
+    .from_template("droid")
+)
+```
+</CodeGroup>
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+// build.ts
+import { Template, defaultBuildLogger } from 'e2b'
+import { template as droidTemplate } from './template'
+
+await Template.build(droidTemplate, 'my-droid', {
+  cpuCount: 2,
+  memoryMB: 2048,
+  onBuildLogs: defaultBuildLogger(),
+})
+```
+```python Python
+# build.py
+from e2b import Template, default_build_logger
+from template import template as droid_template
+
+Template.build(droid_template, "my-droid",
+    cpu_count=2,
+    memory_mb=2048,
+    on_build_logs=default_build_logger(),
+)
+```
+</CodeGroup>
+
+Run the build script to create the template.
+
+<CodeGroup>
+```bash JavaScript & TypeScript
+npx tsx build.ts
+```
+```bash Python
+python build.py
+```
+</CodeGroup>
+
+## Related guides
+
+<CardGroup cols={3}>
+  <Card title="Sandbox persistence" icon="clock" href="/docs/sandbox/persistence">
+    Auto-pause, resume, and manage sandbox lifecycle
+  </Card>
+  <Card title="Git integration" icon="code-branch" href="/docs/sandbox/git-integration">
+    Clone repos, manage branches, and push changes
+  </Card>
+  <Card title="SSH access" icon="terminal" href="/docs/sandbox/ssh-access">
+    Connect to the sandbox via SSH for interactive sessions
+  </Card>
+</CardGroup>

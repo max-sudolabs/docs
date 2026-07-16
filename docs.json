@@ -63,6 +63,7 @@
               "docs/agents/codex",
               "docs/agents/crabbox",
               "docs/agents/devin",
+              "docs/agents/droid",
               "docs/agents/grok",
               "docs/agents/deep-agents",
               "docs/agents/open-swe",
