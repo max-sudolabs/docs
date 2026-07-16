@@ -6,11 +6,67 @@ icon: "/images/icons/google-adk.svg"
 
 [Google ADK](https://google.github.io/adk-docs/) (Agent Development Kit) is
 Google's framework for building agents, with Gemini as the default model. The
-[`e2b-adk`](https://github.com/e2b-dev/e2b-adk-plugin) plugin adds a set of tools
-your agent can call to generate and run code, execute shell commands, and manage
-files — each backed by the [E2B Code Interpreter](/docs) running in an isolated
-sandbox. The model's code executes in a real Python kernel instead of being
-trusted blind.
+[E2B](https://e2b.dev/) integration gives ADK workloads an isolated remote
+workspace for running code and commands instead of executing them on your host.
+
+## Choose an integration
+
+<CardGroup cols={2}>
+  <Card title="Native ADK environment" icon="box" href="#native-google-adk-environment">
+    Use Google's built-in E2B environment for direct shell and file operations
+  </Card>
+  <Card title="Advanced E2B plugin" icon="plug" href="#advanced-e2b-plugin">
+    Give an ADK agent ready-made code, command, file, and background-process tools
+  </Card>
+</CardGroup>
+
+Choose the **native environment** when your application directly controls the
+sandbox. Choose the **advanced plugin** when the agent itself should decide when
+to run code, manage files, or start a service.
+
+## Native: Google ADK environment
+
+Google ADK includes the experimental
+[`E2BEnvironment`](https://github.com/google/adk-python/tree/main/src/google/adk/integrations/e2b)
+for direct command execution and file access through ADK's environment API. No
+additional integration package is required.
+
+```bash
+pip install "google-adk[e2b]>=2.3.0"
+```
+
+Create and close the environment explicitly in your application:
+
+```python
+import asyncio
+
+from google.adk.integrations.e2b import E2BEnvironment
+
+
+async def main() -> None:
+    env = E2BEnvironment()
+    await env.initialize()
+    try:
+        await env.write_file("hello.py", 'print("Hello from E2B")\n')
+        result = await env.execute("python hello.py")
+        print(result.stdout)
+    finally:
+        await env.close()
+
+
+asyncio.run(main())
+```
+
+This path exposes the sandbox as a low-level workspace: your application calls
+`execute`, `read_file`, and `write_file` itself.
+
+## Advanced: E2B plugin
+
+The [`e2b-adk`](https://pypi.org/project/e2b-adk/) plugin exposes sandbox
+operations as tools the model can call. It adds stateful code execution, shell
+commands, file management, and background processes backed by the
+[E2B Code Interpreter](/docs). The plugin creates one sandbox lazily, shares it
+across tool calls, and closes it with the ADK runner.
 
 To use E2B with ADK:
 
@@ -19,7 +75,7 @@ To use E2B with ADK:
 3. Run the agent — every tool call executes inside the sandbox, and the plugin
    creates and tears the sandbox down for you.
 
-## Install the dependencies
+### Install the dependencies
 
 Install the plugin. It pulls in Google ADK and the E2B Code Interpreter SDK.
 
