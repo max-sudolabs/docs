@@ -185,6 +185,15 @@ Both snapshots and [templates](/docs/template/quickstart) create reusable starti
 Use templates when every sandbox should start from an identical, known state — pre-installed tools, fixed configurations, consistent environments.
 Use snapshots when you need to capture or fork live runtime state that depends on what happened during execution.
 
+### Performance
+
+For workloads where either approach would work, **templates are faster and more resource-efficient** than snapshots:
+
+- **Compact memory.** During a template build, the guest OS is restarted before the long-running process is captured. Memory is compact and any setup-time processes that aren't needed at runtime are gone, so sandboxes start with less memory pressure and fewer resources.
+- **More effective prefetching.** E2B optimistically prefetches data needed to start a sandbox. For templates this prefetching is highly effective; for snapshots its effectiveness is significantly lower due to memory fragmentation and general memory pressure from the captured live state.
+
+If you can express the state you need as a declarative template build, you'll generally get faster cold starts and lower overhead than capturing the equivalent state as a snapshot. Creating many templates is a supported pattern, so this doesn't need to discourage you from using templates per-customer or per-project. See [Scaling templates](/docs/template/quickstart#scaling-templates).
+
 ## Use cases
 
 - **Checkpointing agent work** — an AI agent has loaded data and produced partial results in memory. Snapshot it so you can resume or fork from that point later.
