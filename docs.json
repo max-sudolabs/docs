@@ -64,6 +64,7 @@
               "docs/agents/crabbox",
               "docs/agents/devin",
               "docs/agents/grok",
+              "docs/agents/pi",
               "docs/agents/deep-agents",
               "docs/agents/open-swe",
               "docs/agents/openai-agents-sdk",

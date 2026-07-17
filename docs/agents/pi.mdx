@@ -1,0 +1,193 @@
+---
+title: "Pi"
+description: "Run Pi in a secure E2B sandbox with full filesystem, terminal, and git access."
+icon: "/images/icons/pi.svg"
+---
+
+[Pi](https://pi.dev) is a minimal terminal coding agent that can be extended with TypeScript extensions, skills, prompt templates, and themes. E2B provides a pre-built `pi` template with Pi already installed.
+
+## CLI
+
+Create a sandbox with the [E2B CLI](/docs/cli).
+
+```bash
+e2b sbx create pi
+```
+
+Once inside the sandbox, start Pi.
+
+```bash
+pi
+```
+
+Use `/login` to authenticate with a supported subscription provider, or provide an API key through an environment variable.
+
+## Run headless
+
+Use `-p` for non-interactive print mode. Pi does not show permission prompts for its built-in tools, so no auto-approval flag is needed. The sandbox isolates Pi from your host machine, but sandboxes can reach the open internet by default — restrict outbound traffic with [network rules](/docs/network/internet-access).
+
+Pi supports multiple model providers. The examples below use Anthropic through the `ANTHROPIC_API_KEY` environment variable.
+
+<Note>
+Pi can read and modify files and run shell commands directly. E2B contains those operations inside the sandbox, so Pi cannot access your host files or credentials. It can still make outbound network requests — use [outbound network rules](/docs/network/internet-access) to limit access by CIDR or hostname. Hostname rules apply to HTTP(S) traffic only; use CIDR rules for other protocols.
+</Note>
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('pi', {
+  envs: { ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY },
+})
+
+const result = await sandbox.commands.run(
+  `pi -p "Create a hello world HTTP server in Go"`
+)
+
+console.log(result.stdout)
+await sandbox.kill()
+```
+```python Python
+import os
+from e2b import Sandbox
+
+sandbox = Sandbox.create("pi", envs={
+    "ANTHROPIC_API_KEY": os.environ["ANTHROPIC_API_KEY"],
+})
+
+result = sandbox.commands.run(
+    'pi -p "Create a hello world HTTP server in Go"',
+)
+
+print(result.stdout)
+sandbox.kill()
+```
+</CodeGroup>
+
+### Example: work on a cloned repository
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('pi', {
+  envs: { ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY },
+  timeoutMs: 600_000,
+})
+
+await sandbox.git.clone('https://github.com/your-org/your-repo.git', {
+  path: '/home/user/repo',
+  username: 'x-access-token',
+  password: process.env.GITHUB_TOKEN,
+  depth: 1,
+})
+
+const result = await sandbox.commands.run(
+  `cd /home/user/repo && pi -p "Add error handling to all API endpoints"`,
+  { onStdout: (data) => process.stdout.write(data) }
+)
+
+const diff = await sandbox.commands.run('cd /home/user/repo && git diff')
+console.log(diff.stdout)
+
+await sandbox.kill()
+```
+```python Python
+import os
+from e2b import Sandbox
+
+sandbox = Sandbox.create("pi", envs={
+    "ANTHROPIC_API_KEY": os.environ["ANTHROPIC_API_KEY"],
+}, timeout=600)
+
+sandbox.git.clone("https://github.com/your-org/your-repo.git",
+    path="/home/user/repo",
+    username="x-access-token",
+    password=os.environ["GITHUB_TOKEN"],
+    depth=1,
+)
+
+result = sandbox.commands.run(
+    'cd /home/user/repo && pi -p "Add error handling to all API endpoints"',
+    on_stdout=lambda data: print(data, end=""),
+)
+
+diff = sandbox.commands.run("cd /home/user/repo && git diff")
+print(diff.stdout)
+
+sandbox.kill()
+```
+</CodeGroup>
+
+## Build a custom template
+
+If you need to customize the environment (e.g. pre-install dependencies, add config files), build your own template on top of the pre-built `pi` template.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+// template.ts
+import { Template } from 'e2b'
+
+export const template = Template()
+  .fromTemplate('pi')
+```
+```python Python
+# template.py
+from e2b import Template
+
+template = (
+    Template()
+    .from_template("pi")
+)
+```
+</CodeGroup>
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+// build.ts
+import { Template, defaultBuildLogger } from 'e2b'
+import { template as piTemplate } from './template'
+
+await Template.build(piTemplate, 'my-pi', {
+  cpuCount: 2,
+  memoryMB: 2048,
+  onBuildLogs: defaultBuildLogger(),
+})
+```
+```python Python
+# build.py
+from e2b import Template, default_build_logger
+from template import template as pi_template
+
+Template.build(pi_template, "my-pi",
+    cpu_count=2,
+    memory_mb=2048,
+    on_build_logs=default_build_logger(),
+)
+```
+</CodeGroup>
+
+Run the build script to create the template.
+
+<CodeGroup>
+```bash JavaScript & TypeScript
+npx tsx build.ts
+```
+```bash Python
+python build.py
+```
+</CodeGroup>
+
+## Related guides
+
+<CardGroup cols={3}>
+  <Card title="Sandbox persistence" icon="clock" href="/docs/sandbox/persistence">
+    Auto-pause, resume, and manage sandbox lifecycle
+  </Card>
+  <Card title="Git integration" icon="code-branch" href="/docs/sandbox/git-integration">
+    Clone repos, manage branches, and push changes
+  </Card>
+  <Card title="SSH access" icon="terminal" href="/docs/sandbox/ssh-access">
+    Connect to the sandbox via SSH for interactive sessions
+  </Card>
+</CardGroup>
