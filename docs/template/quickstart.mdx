@@ -239,6 +239,44 @@ sbx = Sandbox(template="template-tag")
 The template name is the identifier that can be used to create a new Sandbox.
 </Note>
 
+## Scaling templates
+
+You can create a large number of templates with low overhead, for example one template per customer, per project, or per agent run. There's currently no limit on the number of templates, though pricing for total storage used by templates may be introduced in the future.
+
+The template build environment is a full sandbox environment, so you can do anything during the build that you can do inside a running sandbox, including running Docker containers as part of the setup.
+
+Compared to [snapshots](/docs/sandbox/snapshots), templates start faster and use fewer resources because the guest OS is restarted before the long-running process is captured and prefetching is significantly more effective. If your workload involves spinning up many per-customer or per-project environments, prefer templates over snapshots.
+
+### Layering templates with `fromTemplate`
+
+When you build many similar templates (e.g. a customer-specific template per customer that all share the same base setup), use [`fromTemplate`](/docs/sdk-reference/js-sdk/latest/template#fromtemplate) to start from an existing template instead of rebuilding the shared layers from scratch each time. This keeps per-customer builds fast and reuses the cached base.
+
+<CodeGroup>
+
+```typescript JavaScript & TypeScript
+import { Template } from 'e2b'
+
+// Per-customer template built on top of a shared base template
+export const template = Template()
+  .fromTemplate('my-base-template')
+  .copy('./customers/acme', '/app/config')
+  .setEnvs({ CUSTOMER_ID: 'acme' })
+```
+
+```python Python
+from e2b import Template
+
+# Per-customer template built on top of a shared base template
+template = (
+    Template()
+    .from_template("my-base-template")
+    .copy("./customers/acme", "/app/config")
+    .set_envs({"CUSTOMER_ID": "acme"})
+)
+```
+
+</CodeGroup>
+
 ## Build limits
 
 Template builds are subject to the following limits:

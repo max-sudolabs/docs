@@ -1,0 +1,126 @@
+---
+title: "Devin Outposts"
+description: "Run Devin sessions in isolated E2B sandboxes."
+icon: "/images/icons/devin.svg"
+---
+
+The public `devin-outposts` template runs a dispatcher in E2B. The dispatcher
+watches one Devin outpost and creates a dedicated `devin-outposts-worker`
+sandbox for each session.
+
+Create the dispatcher and connect to its terminal with the E2B CLI:
+
+```bash
+e2b sbx create devin-outposts
+```
+
+When the dispatcher is ready, the terminal prints its authenticated Outposts UI
+URL. You can also launch it directly from the
+[E2B dashboard](https://e2b.dev/dashboard/terminal?template=devin-outposts), or
+from TypeScript:
+
+```ts
+import { Sandbox } from "e2b"
+
+const sandbox = await Sandbox.create("devin-outposts", {
+  timeoutMs: 60 * 60_000,
+  lifecycle: { onTimeout: "pause", autoResume: true },
+})
+
+const { stdout } = await sandbox.commands.run(
+  'node /opt/devin-outposts/create-launch-url.mjs "$E2B_DOMAIN"',
+  { envs: { E2B_DOMAIN: process.env.E2B_DOMAIN ?? "e2b.app" } },
+)
+
+console.log(stdout.trim())
+```
+
+## Prerequisites
+
+- an E2B API key
+- a Devin Enterprise organization
+- a Devin v3 service-user token beginning with `cog_`
+
+Give the primary service user both **Use outpost machine** and **Manage
+outposts**. Create it under **Settings → Devin API → Service users**, then copy
+the token when Devin displays it. If you configure a separate worker token, it
+only needs **Use outpost machine**.
+
+See [Cognition's Outposts guide](https://docs.devin.ai/cloud/outposts/overview)
+for the current permission and token flow.
+
+## Set up the dispatcher
+
+<Steps>
+  <Step title="Launch the template">
+    Run the SDK example or open the dashboard link above. Open the exact
+    setup URL printed by the sandbox. Its token works once and expires after 10
+    minutes. Treat the URL as a credential until it has been used: do not share
+    it or leave it in shared logs.
+  </Step>
+  <Step title="Connect Devin">
+    Enter the primary service-user token and choose **Check Devin account**.
+    Select the organization and enter its full browser URL, including
+    `/org/<organization-slug>`, if it was not detected.
+  </Step>
+  <Step title="Choose the outpost">
+    Select an existing outpost or create one. Keep `devin-outposts-worker` as
+    the worker template unless you have prepared a custom template or snapshot.
+  </Step>
+  <Step title="Connect E2B">
+    Enter the E2B API key that should create the worker sandboxes.
+  </Step>
+  <Step title="Start the dispatcher">
+    Choose **Save and start dispatcher**. Wait until its status shows that it is
+    listening before sending a task.
+  </Step>
+</Steps>
+
+## Run a session
+
+1. Under **Tasks**, enter the task and choose **Review task in Devin**.
+2. In Devin, open **Configuration → Virtual environment** and select the
+   configured outpost.
+3. Send the task.
+4. Return to **Tasks** in the dispatcher to follow the session. Use **View in
+   Devin** to open the original conversation.
+
+The virtual environment must be selected before sending. A session sent to the
+wrong environment cannot be moved; start a new session with the correct
+outpost.
+
+Each Devin session gets its own E2B worker sandbox and writable `/mnt/repos`
+workspace. The dispatcher removes the worker after the session finishes.
+
+## Lifecycle
+
+Do not pause the dispatcher while it needs to accept sessions. Devin queue
+traffic cannot wake it. With `lifecycle.autoResume` (JavaScript) /
+`lifecycle.auto_resume` (Python) enabled, opening its E2B URL resumes it manually.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The outpost is missing in Devin">
+    Confirm that Devin is using the organization selected during setup and that
+    the primary service user has both required permissions.
+  </Accordion>
+  <Accordion title="The session is waiting for a machine">
+    Confirm that the dispatcher is listening and that the task was sent to the
+    same outpost.
+  </Accordion>
+  <Accordion title="The worker template is unavailable">
+    Confirm that the E2B API key can create the public
+    `devin-outposts-worker` template. A custom template must be visible to the
+    same E2B team as the key.
+  </Accordion>
+  <Accordion title="Inspect the dispatcher">
+    Open its terminal and run:
+
+    ```bash
+    tail -200 /home/user/devin-supervisor.log
+    jq '{state, detail, activeCount, provisioningCount}' \
+      /home/user/.config/devin-outposts/worker-status.json
+    ```
+  </Accordion>
+</AccordionGroup>
