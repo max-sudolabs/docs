@@ -52,6 +52,7 @@
               "docs/use-cases/coding-agents",
               "docs/use-cases/computer-use",
               "docs/use-cases/ci-cd",
+              "docs/use-cases/k3s",
               "docs/use-cases/remote-browser"
             ]
           },

@@ -4,6 +4,40 @@ description: "Weekly updates on what shipped in E2B"
 rss: true
 ---
 
+<Update label="July 27, 2026" description="Projects rename, symlink support, Python SDK transport" tags={["SDK", "CLI", "API"]} rss={{ title: "Projects Rename, Symlink Support & Python SDK Transport", description: "This week improves the CLI and SDKs with the team-to-project rename, symlink listing in filesystem calls, and a rebuilt Python transport layer." }}>
+
+## Projects Rename, Symlink Support & Python SDK Transport
+
+This week improves the CLI and SDKs with the team-to-project rename, symlink listing in filesystem calls, and a rebuilt Python transport layer.
+
+### Team-to-project rename in the CLI
+
+The CLI now uses "project" wording in terminal output, replaces the `--team` flag with `--project`, and adds an `E2B_PROJECT_ID` environment variable, matching the platform-wide switch to [projects](/docs/projects). The renamed CLI configuration file at `~/.e2b/config.json` migrates on first use, and the previous team-named flags and variables continue to work. ([#1570](https://github.com/e2b-dev/E2B/pull/1570), [#1577](https://github.com/e2b-dev/E2B/pull/1577), [#1580](https://github.com/e2b-dev/E2B/pull/1580))
+
+### Symlinks in filesystem listings
+
+The JavaScript and Python SDKs now surface symbolic links from `files.list()` and `files.getInfo()` with a dedicated `FileType.SYMLINK` type and a `symlinkTarget` or `symlink_target` field carrying the link destination, so agents can traverse and inspect linked files instead of skipping them. See [file and directory metadata](/docs/filesystem/info). ([#1564](https://github.com/e2b-dev/E2B/pull/1564))
+
+### Python SDK transport rebuild
+
+The Python SDK ships a rebuilt transport for sandbox commands, filesystem, and PTY calls in version 2.35.0, replacing its vendored client. The rebuild removes the direct `protobuf` package dependency and normalizes error handling, so `CommandResult.error` is now `None` on success instead of an empty string. ([#1558](https://github.com/e2b-dev/E2B/pull/1558))
+
+### Cloudflare Workers and edge runtime compatibility
+
+The JavaScript SDK now imports cleanly under Cloudflare Workers and other edge runtimes, removing bare `require` calls that crashed at module load and dropping a `new Function` shim rejected by strict content-security policies. ([#1583](https://github.com/e2b-dev/E2B/pull/1583), [#1607](https://github.com/e2b-dev/E2B/pull/1607))
+
+### Fixes
+
+- The API now includes the exhaustion reason in "node exhausted" placement warnings, so capacity errors identify which resource ran out. ([#3279](https://github.com/e2b-dev/infra/pull/3279))
+- The API now exposes pagination headers through CORS, so browser clients can read `x-total-count` and cursor headers on paginated list endpoints. ([#3388](https://github.com/e2b-dev/infra/pull/3388))
+- Deleting an API key now invalidates the authentication cache immediately, so a revoked key stops working without waiting for the previous cache window to expire. ([#3324](https://github.com/e2b-dev/infra/pull/3324))
+- Volume operations now return the correct HTTP status codes for not-found and conflict cases instead of a generic 500. ([#3371](https://github.com/e2b-dev/infra/pull/3371))
+- The CLI now sorts `e2b sandbox list` output by sandbox start timestamp rather than the locale-formatted date string, so entries appear in true chronological order. ([#1573](https://github.com/e2b-dev/E2B/pull/1573))
+- The JavaScript SDK now selects stack-trace frames by SDK boundary, so error stacks point at user code even when the SDK internals change depth. ([#1599](https://github.com/e2b-dev/E2B/pull/1599))
+- Reliability and security hardening across platform services, including dependency and base image CVE patches.
+
+</Update>
+
 <Update label="July 14, 2026" description="Storage, sandbox reliability, and template build fixes" tags={["Sandboxes", "Templates", "Self-hosted"]}>
 
 ## New features

@@ -1,0 +1,280 @@
+---
+title: "Run Kubernetes with k3s"
+description: "Create a disposable Kubernetes cluster for agents, CI, previews, and integration testing."
+icon: "dharmachakra"
+---
+
+The `e2b/k3s` template turns an E2B Sandbox into a preconfigured, single-node [k3s](https://k3s.io) cluster. `kubectl`, cluster DNS, networking, storage, and the default k8s components are configured when the sandbox starts.
+
+Use it when an agent or CI job needs a single-node Kubernetes cluster without provisioning or sharing a permanent cluster.
+
+<Warning>
+The k3s template is in preview and is not yet battle-tested across every Kubernetes workload. It is intended for ephemeral development and testing workflows, not as a highly available environment for hosting production traffic.
+</Warning>
+
+<Warning>
+**Service load balancing is not supported yet.** The current sandbox kernel does not ship the netfilter random-selection extensions that kube-proxy needs to distribute traffic, so a Service with several ready endpoints sends all traffic to a single Pod. Endpoints, DNS, ClusterIP routing, and failover to another Pod all work; only the distribution across Pods does not.
+
+Deploy and test multi-replica workloads with this in mind, and do not use the template to measure load distribution or per-replica behavior. The E2B team is testing and releasing a new kernel that fully supports iptables, Service load balancing, and additional CNIs.
+</Warning>
+
+## Quickstart
+
+Create and connect to a k3s sandbox from the CLI:
+
+```bash
+e2b sbx create e2b/k3s
+```
+
+`kubectl` is already configured. On a fresh or resumed sandbox, wait for the node and cluster DNS objects to appear and become ready before deploying:
+
+```bash
+timeout 120s sh -c 'until kubectl get node -o name | grep -q .; do sleep 1; done'
+kubectl wait --for=condition=Ready node --all --timeout=120s
+timeout 120s sh -c 'until kubectl get pod --namespace=kube-system --selector=k8s-app=kube-dns -o name | grep -q .; do sleep 1; done'
+kubectl wait --for=condition=Ready pod \
+  --namespace=kube-system \
+  --selector=k8s-app=kube-dns \
+  --timeout=120s
+kubectl get nodes
+kubectl get pods --all-namespaces
+```
+
+You can also create the sandbox with the standard E2B SDK:
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+// One timeout for the sandbox and for every command run inside it.
+const TIMEOUT_MS = 15 * 60_000
+
+const sandbox = await Sandbox.create('e2b/k3s', {
+  timeoutMs: TIMEOUT_MS,
+})
+
+try {
+  await sandbox.commands.run(
+    `
+      set -euo pipefail
+      timeout 120s sh -c 'until kubectl get node -o name | grep -q .; do sleep 1; done'
+      kubectl wait --for=condition=Ready node --all --timeout=120s
+      timeout 120s sh -c 'until kubectl get pod --namespace=kube-system --selector=k8s-app=kube-dns -o name | grep -q .; do sleep 1; done'
+      kubectl wait --for=condition=Ready pod \
+        --namespace=kube-system \
+        --selector=k8s-app=kube-dns \
+        --timeout=120s
+    `,
+    { timeoutMs: TIMEOUT_MS },
+  )
+
+  const nodes = await sandbox.commands.run('kubectl get nodes -o wide', {
+    timeoutMs: TIMEOUT_MS,
+  })
+  console.log(nodes.stdout)
+} finally {
+  await sandbox.kill()
+}
+```
+
+```python Python
+from e2b import Sandbox
+
+# One timeout for the sandbox and for every command run inside it.
+TIMEOUT = 15 * 60
+
+sandbox = Sandbox.create("e2b/k3s", timeout=TIMEOUT)
+
+try:
+    sandbox.commands.run(
+        """
+        set -euo pipefail
+        timeout 120s sh -c 'until kubectl get node -o name | grep -q .; do sleep 1; done'
+        kubectl wait --for=condition=Ready node --all --timeout=120s
+        timeout 120s sh -c 'until kubectl get pod --namespace=kube-system --selector=k8s-app=kube-dns -o name | grep -q .; do sleep 1; done'
+        kubectl wait --for=condition=Ready pod \
+          --namespace=kube-system \
+          --selector=k8s-app=kube-dns \
+          --timeout=120s
+        """,
+        timeout=TIMEOUT,
+    )
+
+    nodes = sandbox.commands.run("kubectl get nodes -o wide", timeout=TIMEOUT)
+    print(nodes.stdout)
+finally:
+    sandbox.kill()
+```
+</CodeGroup>
+
+## Deploy and preview an application
+
+This example creates an nginx Deployment and Service, forwards the Service to a sandbox port, and prints an E2B URL that you can open in a browser.
+
+Every command that has to stay alive for the whole session uses the same timeout as the sandbox, including the background port-forward. A command started with a shorter timeout is terminated when that timeout expires, which would close the forwarded port while the sandbox is still running.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+// One timeout for the sandbox and for every command run inside it,
+// including the background port-forward that serves the preview URL.
+const TIMEOUT_MS = 15 * 60_000
+
+const sandbox = await Sandbox.create('e2b/k3s', {
+  timeoutMs: TIMEOUT_MS,
+})
+
+await sandbox.commands.run(
+  `
+    set -euo pipefail
+    timeout 120s sh -c 'until kubectl get node -o name | grep -q .; do sleep 1; done'
+    kubectl wait --for=condition=Ready node --all --timeout=120s
+    timeout 120s sh -c 'until kubectl get pod --namespace=kube-system --selector=k8s-app=kube-dns -o name | grep -q .; do sleep 1; done'
+    kubectl wait --for=condition=Ready pod \
+      --namespace=kube-system \
+      --selector=k8s-app=kube-dns \
+      --timeout=120s
+    kubectl create deployment web --image=nginx:alpine
+    kubectl scale deployment web --replicas=2
+    kubectl expose deployment web --port=80
+    kubectl rollout status deployment/web --timeout=180s
+  `,
+  { timeoutMs: TIMEOUT_MS },
+)
+
+await sandbox.commands.run(
+  'kubectl port-forward --address=0.0.0.0 service/web 8080:80',
+  { background: true, timeoutMs: TIMEOUT_MS },
+)
+
+await sandbox.commands.run(
+  'until curl -fsS http://127.0.0.1:8080 >/dev/null; do sleep 1; done',
+  { timeoutMs: TIMEOUT_MS },
+)
+
+const url = `https://${sandbox.getHost(8080)}`
+console.log(`Open the application: ${url}`)
+console.log(`Stop it with: e2b sandbox kill ${sandbox.sandboxId}`)
+```
+
+```python Python
+from e2b import Sandbox
+
+# One timeout for the sandbox and for every command run inside it,
+# including the background port-forward that serves the preview URL.
+TIMEOUT = 15 * 60
+
+sandbox = Sandbox.create("e2b/k3s", timeout=TIMEOUT)
+
+sandbox.commands.run(
+    """
+    set -euo pipefail
+    timeout 120s sh -c 'until kubectl get node -o name | grep -q .; do sleep 1; done'
+    kubectl wait --for=condition=Ready node --all --timeout=120s
+    timeout 120s sh -c 'until kubectl get pod --namespace=kube-system --selector=k8s-app=kube-dns -o name | grep -q .; do sleep 1; done'
+    kubectl wait --for=condition=Ready pod \
+      --namespace=kube-system \
+      --selector=k8s-app=kube-dns \
+      --timeout=120s
+    kubectl create deployment web --image=nginx:alpine
+    kubectl scale deployment web --replicas=2
+    kubectl expose deployment web --port=80
+    kubectl rollout status deployment/web --timeout=180s
+    """,
+    timeout=TIMEOUT,
+)
+
+sandbox.commands.run(
+    "kubectl port-forward --address=0.0.0.0 service/web 8080:80",
+    background=True,
+    timeout=TIMEOUT,
+)
+
+sandbox.commands.run(
+    "until curl -fsS http://127.0.0.1:8080 >/dev/null; do sleep 1; done",
+    timeout=TIMEOUT,
+)
+
+url = f"https://{sandbox.get_host(8080)}"
+print(f"Open the application: {url}")
+print(f"Stop it with: e2b sandbox kill {sandbox.sandbox_id}")
+```
+</CodeGroup>
+
+The script keeps running while the port-forward is open, and the sandbox stays available for up to 15 minutes so you can open the URL. Stop the script with `Ctrl+C` when you are done watching it, and remove the sandbox with the command it printed:
+
+```bash
+e2b sandbox kill <sandbox-id>
+```
+
+Stopping the script on its own does not delete the sandbox: it keeps serving the URL until you kill it or the 15-minute timeout expires.
+
+To verify in-cluster DNS and ClusterIP routing, run a client pod against the Service:
+
+```bash
+kubectl run cluster-check \
+  --rm -i \
+  --restart=Never \
+  --image=curlimages/curl:latest \
+  -- curl -fsS http://web
+```
+
+## Check k3s status and logs
+
+k3s is not managed by systemd in the template at the moment. It runs as a plain `k3s server` process, so use the commands below instead of `systemctl` or `journalctl`.
+
+Check that the server process is running and that the control plane answers:
+
+```bash
+pgrep -af '^k3s server'
+kubectl get --raw='/readyz?verbose' | tail -5
+kubectl get nodes
+kubectl get pods --all-namespaces
+```
+
+Read the logs of the cluster components through Kubernetes or the container runtime:
+
+```bash
+kubectl --namespace=kube-system logs --selector=k8s-app=kube-dns --tail=20
+sudo k3s crictl ps
+sudo k3s crictl logs --tail=20 <container-id>
+sudo ls /var/log/pods
+```
+
+## Where to use it
+
+- Give a coding agent an isolated cluster for a repository that expects Kubernetes.
+- Validate Helm charts, operators, CRDs, manifests, Services, and DNS in CI.
+- Create a cluster per pull request for integration tests or browser previews.
+- Reproduce Kubernetes issues without provisioning EKS, GKE, or AKS.
+- Test untrusted workloads without sharing a staging cluster.
+
+The useful production pattern is **cluster per task**: create a sandbox, deploy and test the workload, collect the results, and remove the sandbox. Promote the same images, charts, and manifests to your managed production cluster after validation.
+
+<Steps>
+<Step title="Create an isolated k3s sandbox">
+The agent, CI job, or preview service gets its own Firecracker microVM and Kubernetes control plane.
+</Step>
+<Step title="Deploy the production artifacts">
+Apply the same container images, Helm charts, CRDs, or manifests that will be promoted later.
+</Step>
+<Step title="Test the complete workload">
+Exercise Pods, Services, DNS, storage, and browser-visible endpoints without affecting a shared cluster.
+</Step>
+<Step title="Promote and clean up">
+Send validated artifacts to the production cluster, save any required test output, and kill the sandbox.
+</Step>
+</Steps>
+
+## Limitations
+
+- The template runs one Kubernetes node in one sandbox. It does not provide high availability.
+- A sandbox is disposable. Do not treat its local Kubernetes storage as a durable system of record.
+- Multi-node clusters across sandboxes are not supported.
+- Overlay CNIs that require VXLAN, Geneve, or macvlan are not supported. The template uses Flannel's `host-gw` backend.
+- IPVS kube-proxy mode and nested-virtualization runtimes such as Kata Containers or KubeVirt are not supported.
+- Services do not load balance across endpoints. All traffic to a Service reaches a single Pod, as described in the warning at the top of this page.
+- `kubectl port-forward service/<name>` connects to one Pod selected when the forward starts, so it never spreads requests across replicas either.
+
+For production application hosting, use a managed or otherwise highly available Kubernetes cluster with durable storage, backups, monitoring, and load balancing. Use E2B k3s to develop and validate what you deploy there.
