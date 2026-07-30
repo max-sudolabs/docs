@@ -12,12 +12,6 @@ Use it when an agent or CI job needs a single-node Kubernetes cluster without pr
 The k3s template is in preview and is not yet battle-tested across every Kubernetes workload. It is intended for ephemeral development and testing workflows, not as a highly available environment for hosting production traffic.
 </Warning>
 
-<Warning>
-**Service load balancing is not supported yet.** The current sandbox kernel does not ship the netfilter random-selection extensions that kube-proxy needs to distribute traffic, so a Service with several ready endpoints sends all traffic to a single Pod. Endpoints, DNS, ClusterIP routing, and failover to another Pod all work; only the distribution across Pods does not.
-
-Deploy and test multi-replica workloads with this in mind, and do not use the template to measure load distribution or per-replica behavior. The E2B team is testing and releasing a new kernel that fully supports iptables, Service load balancing, and additional CNIs.
-</Warning>
-
 ## Quickstart
 
 Create and connect to a k3s sandbox from the CLI:
@@ -222,25 +216,16 @@ kubectl run cluster-check \
 
 ## Check k3s status and logs
 
-k3s is not managed by systemd in the template at the moment. It runs as a plain `k3s server` process, so use the commands below instead of `systemctl` or `journalctl`.
-
-Check that the server process is running and that the control plane answers:
+k3s runs as a systemd service with automatic restart on crash. Use `sudo`: the sandbox has no user D-Bus session, so unprivileged `systemctl` and `journalctl` cannot connect.
 
 ```bash
-pgrep -af '^k3s server'
+sudo systemctl status k3s        # unit state
+sudo journalctl -u k3s -f        # server logs
 kubectl get --raw='/readyz?verbose' | tail -5
-kubectl get nodes
 kubectl get pods --all-namespaces
 ```
 
-Read the logs of the cluster components through Kubernetes or the container runtime:
-
-```bash
-kubectl --namespace=kube-system logs --selector=k8s-app=kube-dns --tail=20
-sudo k3s crictl ps
-sudo k3s crictl logs --tail=20 <container-id>
-sudo ls /var/log/pods
-```
+Server flags live in `/etc/rancher/k3s/config.yaml`; edit the file and `sudo systemctl restart k3s` to apply. Workload logs work as usual through `kubectl logs`.
 
 ## Where to use it
 
@@ -267,14 +252,25 @@ Send validated artifacts to the production cluster, save any required test outpu
 </Step>
 </Steps>
 
-## Limitations
+## What is tested and supported
 
-- The template runs one Kubernetes node in one sandbox. It does not provide high availability.
+The template runs stock k3s with Flannel's default VXLAN backend. These workflows are validated end-to-end on every release:
+
+- Deployments, Services with load balancing across replicas (kube-proxy iptables and nftables modes), and session affinity.
+- Ingress (Traefik), NodePort, LoadBalancer (ServiceLB), and `hostPort`.
+- NetworkPolicy, both ingress and egress, with the built-in controller.
+- StatefulSets with local-path PersistentVolumeClaims, Jobs, CronJobs, and HPA with metrics-server.
+- Alternative CNIs that use VXLAN, such as Calico with `CALICO_IPV4POOL_VXLAN=Always`.
+- Sandbox pause and resume: the cluster comes back immediately, the clock is corrected, and CronJobs keep their schedule.
+
+## Known limitations
+
+- The template runs one Kubernetes node in one sandbox. It does not provide high availability, and multi-node clusters across sandboxes are not supported.
 - A sandbox is disposable. Do not treat its local Kubernetes storage as a durable system of record.
-- Multi-node clusters across sandboxes are not supported.
-- Overlay CNIs that require VXLAN, Geneve, or macvlan are not supported. The template uses Flannel's `host-gw` backend.
+- Cilium and other eBPF dataplanes do not work: the sandbox kernel has no BPF JIT.
+- Service meshes with iptables interception (Istio, Linkerd) do not work: the kernel lacks the `owner` and `TPROXY` netfilter extensions their sidecars need.
+- Calico's default IPIP mode is not supported; use its VXLAN mode. GRE tunnels and SCTP Services are also unavailable.
 - IPVS kube-proxy mode and nested-virtualization runtimes such as Kata Containers or KubeVirt are not supported.
-- Services do not load balance across endpoints. All traffic to a Service reaches a single Pod, as described in the warning at the top of this page.
-- `kubectl port-forward service/<name>` connects to one Pod selected when the forward starts, so it never spreads requests across replicas either.
+- `kubectl port-forward service/<name>` connects to one Pod selected when the forward starts; use in-cluster requests to exercise load balancing across replicas.
 
 For production application hosting, use a managed or otherwise highly available Kubernetes cluster with durable storage, backups, monitoring, and load balancing. Use E2B k3s to develop and validate what you deploy there.
