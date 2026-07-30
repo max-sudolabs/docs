@@ -74,6 +74,7 @@
               "docs/agents/eve",
               "docs/agents/google-adk",
               "docs/agents/mastra",
+              "docs/agents/crewai",
               "docs/agents/openai-agents-sdk",
               {
                 "group": "OpenClaw",
