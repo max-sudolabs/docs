@@ -4,6 +4,42 @@ description: "Weekly updates on what shipped in E2B"
 rss: true
 ---
 
+<Update label="August 3, 2026" description="Multi-distro templates and CLI session flags" tags={["Templates", "CLI", "SDK", "API"]} rss={{ title: "Multi-Distro Templates & Terminal Session Controls", description: "This week improves templates and terminal workflows with Fedora, Alpine, Arch, and NixOS base images, CLI session flags, and cross-runtime detection of web platform objects." }}>
+
+## Multi-Distro Templates & Terminal Session Controls
+
+This week improves templates and terminal workflows with Fedora, Alpine, Arch, and NixOS base images, CLI session flags, and cross-runtime detection of web platform objects.
+
+### Fedora, Alpine, Arch, and NixOS base images
+
+Templates can now start from Fedora, Alpine, and Arch [base images](/docs/template/base-image) using the new `fromFedoraImage`, `fromAlpineImage`, and `fromArchImage` helpers in JavaScript SDK 2.37.0, or `from_fedora_image`, `from_alpine_image`, and `from_arch_image` in Python SDK 2.36.0. Base image provisioning identifies the distribution from `/etc/os-release`, and unsupported images fail the build with a clear reason. The premade `e2bdev/nixos` image adds NixOS support for images whose packages and services are declared in the image configuration. ([#3411](https://github.com/e2b-dev/infra/pull/3411), [#3412](https://github.com/e2b-dev/infra/pull/3412), [#1612](https://github.com/e2b-dev/E2B/pull/1612), [#1625](https://github.com/e2b-dev/E2B/pull/1625))
+
+### Terminal session flags in the CLI
+
+`e2b sandbox create` and `e2b sandbox connect` now accept `--user`, `--cwd`, and repeatable `--env KEY=VALUE` flags in `@e2b/cli` 2.16.1. The connected terminal starts as the given user, in the given working directory, and with the given environment variables. ([#1501](https://github.com/e2b-dev/E2B/pull/1501))
+
+### Cross-runtime detection of web platform objects
+
+The JavaScript SDK in version 2.37.0 now identifies `Request`, `Blob`, `File`, and `ReadableStream` values by shape rather than by class, so replacements installed by frameworks such as remix, `@hono/node-server`, and jsdom test environments no longer take the wrong branch. This fixes API calls failing with `Failed to parse URL from [object Request]`, uploads that silently contained the text `[object Blob]`, and `volume.readFile()` returning empty data. ([#1618](https://github.com/e2b-dev/E2B/pull/1618))
+
+### BYOC volume endpoints return the cluster domain
+
+Teams connected to a custom [BYOC cluster](/docs/byoc) now receive their cluster domain from the volume create and get endpoints, and the SDKs route volume content requests to that host instead of the default `api.<E2B_DOMAIN>`. Teams on the default cluster keep their configured default. ([#3490](https://github.com/e2b-dev/infra/pull/3490))
+
+### Cleaner installs of the JavaScript SDK and CLI
+
+Installing `e2b` and `@e2b/cli` no longer prints deprecation warnings for the transitive `glob` package. The JavaScript SDK moves to `glob` 13 in version 2.36.1, and the CLI moves `@npmcli/package-json` to version 7 in `@e2b/cli` 2.16.0, dropping fresh install package counts from 37 to 26 for the SDK and from 183 to 145 for the CLI. ([#1613](https://github.com/e2b-dev/E2B/pull/1613), [#1614](https://github.com/e2b-dev/E2B/pull/1614))
+
+### Fixes
+
+- Fixed [template builds](/docs/template/build) failing when a `copy` step targeted a trailing-slash destination that did not already exist in the base image, so `COPY test.sh /tests/` now creates `/tests/` on demand. ([#3458](https://github.com/e2b-dev/infra/pull/3458))
+- Template builds now fall back to the base image's declared `ID_LIKE` family with a best-effort warning when the exact distribution is not known, restoring builds from Debian derivatives such as Kali. ([#3459](https://github.com/e2b-dev/infra/pull/3459))
+- The API now rejects a `timeout` of zero or a negative number on sandbox create, resume, and fork with a `400 Bad Request` instead of accepting the value and failing later. ([#3419](https://github.com/e2b-dev/infra/pull/3419))
+- Fixed a failing local disk on a sandbox host taking down every sandbox on the machine, so a bad block now fails a single read instead of the whole node. ([#3385](https://github.com/e2b-dev/infra/pull/3385))
+- Reliability and security hardening across platform services, including dependency and base image CVE patches.
+
+</Update>
+
 <Update label="July 27, 2026" description="Projects rename, symlink support, Python SDK transport" tags={["SDK", "CLI", "API"]} rss={{ title: "Projects Rename, Symlink Support & Python SDK Transport", description: "This week improves the CLI and SDKs with the team-to-project rename, symlink listing in filesystem calls, and a rebuilt Python transport layer." }}>
 
 ## Projects Rename, Symlink Support & Python SDK Transport
