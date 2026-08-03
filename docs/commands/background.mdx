@@ -43,3 +43,74 @@ for stdout, stderr, _ in command:
 command.kill()
 ```
 </CodeGroup>
+
+## Reconnect to a background command
+
+A background command keeps running inside the sandbox even after the SDK disconnects. Because sandboxes are long-lived, you can start a long task in one process, return immediately, and reconnect from a completely different process later to wait for it and collect the result.
+
+This is a common pattern for kicking off slow work (code generation, a build, a data job) from a serverless function or API handler: you start the command, store the sandbox ID and process ID, and let a later request pick the work back up.
+
+The example below starts a long-running command (`run-codegen` here is a placeholder for your own binary or script) and returns the two identifiers you need to reconnect: the sandbox ID and the command's process ID (`pid`).
+
+<CodeGroup>
+```js JavaScript & TypeScript highlight={20}
+import { Sandbox } from 'e2b'
+
+// Start the task and return right away with the IDs needed to reconnect.
+async function startGeneration(prompt: string) {
+  const sandbox = await Sandbox.create({ timeoutMs: 15 * 60_000 })
+
+  // Pass the prompt as an env var, never interpolated into the shell string.
+  // Write output to a file so a reconnecting process can read it later.
+  const handle = await sandbox.commands.run(
+    'run-codegen "$PROMPT" > /home/user/gen.log 2>&1',
+    { background: true, timeoutMs: 0, envs: { PROMPT: prompt } }
+  )
+
+  return { sandboxId: sandbox.sandboxId, pid: handle.pid }
+}
+
+// From a separate process, reconnect and wait for the result.
+async function collectGeneration(sandboxId: string, pid: number) {
+  const sandbox = await Sandbox.connect(sandboxId)
+  const handle = await sandbox.commands.connect(pid)
+  await handle.wait()
+  return sandbox.files.read('/home/user/gen.log')
+}
+```
+```python Python highlight={22}
+from e2b import Sandbox
+
+# Start the task and return right away with the IDs needed to reconnect.
+def start_generation(prompt: str):
+    sandbox = Sandbox.create(timeout=15 * 60)
+
+    # Pass the prompt as an env var, never interpolated into the shell string.
+    # Write output to a file so a reconnecting process can read it later.
+    handle = sandbox.commands.run(
+        'run-codegen "$PROMPT" > /home/user/gen.log 2>&1',
+        background=True,
+        timeout=0,
+        envs={"PROMPT": prompt},
+    )
+
+    return {"sandbox_id": sandbox.sandbox_id, "pid": handle.pid}
+
+
+# From a separate process, reconnect and wait for the result.
+def collect_generation(sandbox_id: str, pid: int):
+    sandbox = Sandbox.connect(sandbox_id)
+    handle = sandbox.commands.connect(pid)
+    handle.wait()
+    return sandbox.files.read("/home/user/gen.log")
+```
+</CodeGroup>
+
+A few details make this reliable across processes:
+
+- **Redirect output to a file.** The streamed `stdout`/`stderr` from a background command is only delivered to the process that started it. Writing to a file (`> /home/user/gen.log 2>&1`) gives you durable output you can read after reconnecting.
+- **Pass untrusted input as an environment variable, not string interpolation.** The prompt is provided through `envs` and referenced as `"$PROMPT"`, so the shell inserts it as a literal value. Interpolating user input directly into the command string (for example with a template literal) would let inputs like `$(...)` or backticks run as commands inside the sandbox.
+- **Disable the command timeout.** `timeoutMs: 0` (`timeout=0` in Python) removes the command's connection time limit so it isn't killed while running long. Set the sandbox `timeoutMs`/`timeout` high enough to outlast the whole job (15 minutes above). See [sandbox persistence](/docs/sandbox/persistence) if you need it to survive even longer.
+- **Persist the IDs.** Return or store `sandboxId` and `pid` (for example in a database or the response of an API call). They are all a later process needs to call `Sandbox.connect()` and `commands.connect()`.
+
+`commands.connect(pid)` reattaches to the running command, and `handle.wait()` blocks until it finishes. If you don't know the `pid`, you can look up running processes with `sandbox.commands.list()`.
