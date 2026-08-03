@@ -40,7 +40,7 @@ build_info = Template.build(
 </CodeGroup>
 
 <Note>
-**Disk size is not a per-sandbox setting.** Unlike `cpuCount`/`cpu_count` and `memoryMB`/`memory_mb`, there is no disk-size parameter, neither on the template build nor on `Sandbox.create`. A sandbox's disk size is determined by your team's tier limit and applied when the template is built (see [Build limits](/docs/template/quickstart#build-limits)). `diskSizeMB` only ever appears in API response payloads (for example on sandbox and template info), never as an input. To get a larger disk, raise your tier or contact [support@e2b.dev](mailto:support@e2b.dev).
+**Disk size is not a per-sandbox setting.** Unlike `cpuCount`/`cpu_count` and `memoryMB`/`memory_mb`, there is no disk-size parameter, neither on the template build nor on `Sandbox.create`. A sandbox's disk size is determined by your project's tier limit and applied when the template is built (see [Build limits](/docs/template/quickstart#build-limits)). `diskSizeMB` only ever appears in API response payloads (for example on sandbox and template info), never as an input. To get a larger disk, raise your tier or contact [support@e2b.dev](mailto:support@e2b.dev).
 </Note>
 
 ## Build in background
