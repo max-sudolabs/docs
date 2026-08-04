@@ -103,6 +103,11 @@ paths:
       responses:
         '200':
           description: Successfully returned all running sandboxes
+          headers:
+            X-Next-Token:
+              $ref: '#/components/headers/XNextToken'
+            X-Total-Running:
+              $ref: '#/components/headers/XTotalRunning'
           content:
             application/json:
               schema:
@@ -410,6 +415,48 @@ paths:
       operationId: postSandboxResume
     servers:
     - *id001
+  /sandboxes/{sandboxID}/fork:
+    post:
+      summary: Fork sandbox
+      description: 'Fork the sandbox: checkpoint the running sandbox in place (it
+        is briefly paused, snapshotted with its full memory state, and resumed on
+        its node, keeping its ID and expiration untouched) and create count new sandboxes
+        from that snapshot. Returns one result per requested fork, each carrying either
+        the created sandbox or the error that prevented it from starting. A non-201
+        status means the request failed before any fork was attempted.'
+      tags:
+      - Sandboxes
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/sandboxID'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SandboxForkRequest'
+      responses:
+        '201':
+          description: The sandbox was snapshotted and the forks were attempted; each
+            entry reports one fork's outcome
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SandboxForkResult'
+        '409':
+          $ref: '#/components/responses/409'
+        '404':
+          $ref: '#/components/responses/404'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: postSandboxFork
+    servers:
+    - *id001
   /sandboxes/{sandboxID}/connect:
     post:
       summary: Connect to sandbox
@@ -591,11 +638,21 @@ paths:
         schema:
           type: string
           description: Filter snapshots by source sandbox ID
+      - name: name
+        in: query
+        description: Filter snapshots by name or ID, optionally tag-qualified (e.g.
+          "my-snapshot", "my-team/my-snapshot" or "my-snapshot:v1").
+        required: false
+        schema:
+          type: string
       - $ref: '#/components/parameters/paginationLimit'
       - $ref: '#/components/parameters/paginationNextToken'
       responses:
         '200':
           description: Successfully returned snapshots
+          headers:
+            X-Next-Token:
+              $ref: '#/components/headers/XNextToken'
           content:
             application/json:
               schema:
@@ -664,9 +721,7 @@ paths:
           description: Successfully returned all templates
           headers:
             X-Next-Token:
-              description: Cursor to fetch the next page of results, if more exist
-              schema:
-                type: string
+              $ref: '#/components/headers/XNextToken'
           content:
             application/json:
               schema:
@@ -823,6 +878,9 @@ paths:
       responses:
         '200':
           description: Successfully returned the template with its builds
+          headers:
+            X-Next-Token:
+              $ref: '#/components/headers/XNextToken'
           content:
             application/json:
               schema:
@@ -1377,7 +1435,7 @@ paths:
           description: E2B domain
   /metrics:
     get:
-      summary: Get the stats of the service
+      summary: Service stats
       security:
       - &id005
         SandboxAccessTokenAuth: []
@@ -1409,9 +1467,186 @@ paths:
       - Envd
     servers:
     - *id004
+  /freeze:
+    post:
+      summary: Freeze user/pty cgroups before pause. Written directly by envd to avoid
+        Process.Start / shell overhead under load.
+      security:
+      - *id005
+      responses:
+        '204':
+          description: Cgroups frozen
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          description: Freeze lock is held by another operation
+        '502': *id003
+      parameters:
+      - name: E2b-Sandbox-Id
+        in: header
+        required: true
+        description: Identifier of the target sandbox. Routes the request to that
+          sandbox's envd over the shared sandbox host.
+        schema:
+          type: string
+      - name: E2b-Sandbox-Port
+        in: header
+        required: true
+        description: Port envd listens on inside the sandbox (default 49983).
+        schema:
+          type: integer
+          default: 49983
+      operationId: postFreeze
+      tags:
+      - Envd
+    servers:
+    - *id004
+  /unfreeze:
+    post:
+      summary: Unfreeze user/pty cgroups. Intended ONLY for the orchestrator's pause-failure
+        rollback path; the normal resume thaw happens via /init's deferred unfreeze,
+        not here.
+      security:
+      - *id005
+      responses:
+        '204':
+          description: Cgroups unfrozen
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          description: Freeze lock is held by another operation
+        '502': *id003
+      parameters:
+      - name: E2b-Sandbox-Id
+        in: header
+        required: true
+        description: Identifier of the target sandbox. Routes the request to that
+          sandbox's envd over the shared sandbox host.
+        schema:
+          type: string
+      - name: E2b-Sandbox-Port
+        in: header
+        required: true
+        description: Port envd listens on inside the sandbox (default 49983).
+        schema:
+          type: integer
+          default: 49983
+      operationId: postUnfreeze
+      tags:
+      - Envd
+    servers:
+    - *id004
+  /collapse:
+    post:
+      summary: Collapse envd's own anonymous heap into 2 MiB transparent hugepages
+        before pause, so on resume envd touches fewer distinct guest-physical frames
+        (each a cold fault). Best-effort.
+      security:
+      - *id005
+      responses:
+        '200':
+          description: Heap collapsed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CollapseResult'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502': *id003
+      parameters:
+      - name: E2b-Sandbox-Id
+        in: header
+        required: true
+        description: Identifier of the target sandbox. Routes the request to that
+          sandbox's envd over the shared sandbox host.
+        schema:
+          type: string
+      - name: E2b-Sandbox-Port
+        in: header
+        required: true
+        description: Port envd listens on inside the sandbox (default 49983).
+        schema:
+          type: integer
+          default: 49983
+      operationId: postCollapse
+      tags:
+      - Envd
+    servers:
+    - *id004
+  /fsfreeze:
+    post:
+      summary: Freeze the guest rootfs (FIFREEZE) before a filesystem-only pause so
+        it is flushed to a consistent on-disk state, closing the sync->pause race.
+        Idempotent. On a successful filesystem-only pause the VM is rebooted, so no
+        thaw is needed; the orchestrator thaws only on the pause-failure path.
+      security:
+      - *id005
+      responses:
+        '204':
+          description: Rootfs frozen
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          description: Freeze lock is held by another operation
+        '502': *id003
+      parameters:
+      - name: E2b-Sandbox-Id
+        in: header
+        required: true
+        description: Identifier of the target sandbox. Routes the request to that
+          sandbox's envd over the shared sandbox host.
+        schema:
+          type: string
+      - name: E2b-Sandbox-Port
+        in: header
+        required: true
+        description: Port envd listens on inside the sandbox (default 49983).
+        schema:
+          type: integer
+          default: 49983
+      operationId: postFsfreeze
+      tags:
+      - Envd
+    servers:
+    - *id004
+  /fsthaw:
+    post:
+      summary: Thaw the guest rootfs (FITHAW). Intended ONLY for the orchestrator's
+        pause-failure rollback path, so a frozen filesystem cannot leave the live
+        VM deadlocked. Idempotent.
+      security:
+      - *id005
+      responses:
+        '204':
+          description: Rootfs thawed
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          description: Freeze lock is held by another operation
+        '502': *id003
+      parameters:
+      - name: E2b-Sandbox-Id
+        in: header
+        required: true
+        description: Identifier of the target sandbox. Routes the request to that
+          sandbox's envd over the shared sandbox host.
+        schema:
+          type: string
+      - name: E2b-Sandbox-Port
+        in: header
+        required: true
+        description: Port envd listens on inside the sandbox (default 49983).
+        schema:
+          type: integer
+          default: 49983
+      operationId: postFsthaw
+      tags:
+      - Envd
+    servers:
+    - *id004
   /envs:
     get:
-      summary: Get the environment variables
+      summary: Environment variables
       security:
       - *id005
       responses:
@@ -1476,31 +1711,53 @@ paths:
               schema:
                 type: string
                 format: binary
-                description: The file content
-        '401':
-          description: Invalid user
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+                description: The raw file content
         '400':
           description: Invalid path
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                message: path '/home/user/docs' is a directory
+                code: 400
+        '401':
+          description: Invalid user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: 'error looking up user ''nonexistent'': user: unknown user
+                  nonexistent'
+                code: 401
         '404':
           description: File not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                message: path '/home/user/missing.txt' does not exist
+                code: 404
+        '406':
+          description: Requested encoding is not supported
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: 'no acceptable encoding found, supported: [identity, gzip]'
+                code: 406
         '500':
           description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                message: 'error opening file ''/home/user/file.txt'': permission denied'
+                code: 500
         '502': *id003
       operationId: downloadFile
     post:
@@ -1580,32 +1837,99 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/EntryInfo'
+              example:
+              - path: /home/user/hello.txt
+                name: hello.txt
+                type: file
         '400':
           description: Invalid path
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                message: path '/home/user/docs' is a directory
+                code: 400
         '401':
           description: Invalid user
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                message: 'error looking up user ''nonexistent'': user: unknown user
+                  nonexistent'
+                code: 401
         '500':
           description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                message: 'error opening file ''/home/user/file.txt'': permission denied'
+                code: 500
         '507':
           description: Not enough disk space
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                message: not enough disk space available
+                code: 507
         '502': *id003
       operationId: uploadFile
+    servers:
+    - *id004
+  /files/compose:
+    post:
+      summary: Compose multiple files into a single file using zero-copy concatenation.
+        Source files are deleted after successful composition.
+      tags:
+      - Filesystem
+      security:
+      - *id005
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComposeRequest'
+      responses:
+        '200':
+          description: Files composed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntryInfo'
+        '400':
+          $ref: '#/components/responses/InvalidPath'
+        '401':
+          $ref: '#/components/responses/InvalidUser'
+        '404':
+          $ref: '#/components/responses/FileNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '507':
+          $ref: '#/components/responses/NotEnoughDiskSpace'
+        '502': *id003
+      parameters:
+      - name: E2b-Sandbox-Id
+        in: header
+        required: true
+        description: Identifier of the target sandbox. Routes the request to that
+          sandbox's envd over the shared sandbox host.
+        schema:
+          type: string
+      - name: E2b-Sandbox-Port
+        in: header
+        required: true
+        description: Port envd listens on inside the sandbox (default 49983).
+        schema:
+          type: integer
+          default: 49983
+      operationId: postFilesCompose
     servers:
     - *id004
   /filesystem.Filesystem/CreateWatcher:
@@ -2574,14 +2898,16 @@ components:
       name: path
       in: query
       required: false
-      description: Path to the file, URL encoded. Can be relative to user's home directory.
+      description: Path to the file, URL encoded. Can be relative to the user's home
+        directory (e.g. "file.txt" resolves to ~/file.txt).
       schema:
         type: string
     User:
       name: username
       in: query
       required: false
-      description: User used for setting the owner, or resolving relative paths.
+      description: User for setting file ownership and resolving relative paths. Defaults
+        to the sandbox's default user.
       schema:
         type: string
     Signature:
@@ -2595,8 +2921,8 @@ components:
       name: signature_expiration
       in: query
       required: false
-      description: Signature expiration used for defining the expiration time of the
-        signature.
+      description: Unix timestamp (seconds) after which the signature expires. Only
+        used with the signature parameter.
       schema:
         type: integer
     templateID:
@@ -2690,6 +3016,12 @@ components:
               file:
                 type: string
                 format: binary
+        application/octet-stream:
+          schema:
+            type: string
+            format: binary
+            description: Raw file content. The 'path' query parameter is required
+              when using this content type.
   responses:
     UploadSuccess:
       description: The file was uploaded successfully.
@@ -2699,6 +3031,10 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/EntryInfo'
+          example:
+          - path: /home/user/hello.txt
+            name: hello.txt
+            type: file
     DownloadSuccess:
       description: Entire file downloaded successfully.
       content:
@@ -2706,37 +3042,61 @@ components:
           schema:
             type: string
             format: binary
-            description: The file content
+            description: The raw file content
+    NotAcceptable:
+      description: Requested encoding is not supported
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: 'no acceptable encoding found, supported: [identity, gzip]'
+            code: 406
     InvalidPath:
       description: Invalid path
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+          example:
+            message: path '/home/user/docs' is a directory
+            code: 400
     InternalServerError:
       description: Internal server error
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+          example:
+            message: 'error opening file ''/home/user/file.txt'': permission denied'
+            code: 500
     FileNotFound:
       description: File not found
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+          example:
+            message: path '/home/user/missing.txt' does not exist
+            code: 404
     InvalidUser:
       description: Invalid user
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+          example:
+            message: 'error looking up user ''nonexistent'': user: unknown user nonexistent'
+            code: 401
     NotEnoughDiskSpace:
       description: Not enough disk space
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
+          example:
+            message: not enough disk space available
+            code: 507
     '400':
       description: Bad request
       content:
@@ -2763,6 +3123,12 @@ components:
             $ref: '#/components/schemas/Error'
     '409':
       description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '410':
+      description: Gone
       content:
         application/json:
           schema:
@@ -2840,6 +3206,17 @@ components:
           type: integer
           description: Used virtual memory in bytes
           format: int64
+        mem_cache:
+          type: integer
+          description: Cached memory (page cache) in bytes
+        mem_total_mib:
+          type: integer
+          description: Total virtual memory in MiB
+          format: int64
+        mem_used_mib:
+          type: integer
+          description: Used virtual memory in MiB
+          format: int64
         disk_used:
           type: integer
           description: Used disk space in bytes
@@ -2848,14 +3225,48 @@ components:
           type: integer
           description: Total disk space in bytes
           format: int64
-        mem_used_mib:
+    CollapseResult:
+      type: object
+      description: Per-call statistics from a heap collapse
+      properties:
+        regions:
           type: integer
-          description: Used virtual memory in MiB
-          format: int64
-        mem_total_mib:
+          description: Anonymous read-write regions scanned
+        chunks:
           type: integer
-          description: Total virtual memory in MiB
+          description: 2 MiB chunks attempted
+        collapsed:
+          type: integer
+          description: Chunks whose base pages were actually migrated into a new hugepage
+            (real work)
+        alreadyHuge:
+          type: integer
+          description: Chunks MADV_COLLAPSE accepted but were already hugepages (no
+            work)
+        skipped:
+          type: integer
+          description: Chunks that could not be collapsed (empty or ineligible)
+        elapsedMs:
+          type: integer
           format: int64
+          description: Wall-clock time spent collapsing, in milliseconds
+    ComposeRequest:
+      type: object
+      required:
+      - source_paths
+      - destination
+      properties:
+        source_paths:
+          type: array
+          items:
+            type: string
+          description: Ordered list of source file paths to concatenate
+        destination:
+          type: string
+          description: Destination file path for the composed file
+        username:
+          type: string
+          description: User for setting ownership and resolving relative paths
     connect-protocol-version:
       type: number
       title: Connect-Protocol-Version
@@ -2966,6 +3377,7 @@ components:
       - FILE_TYPE_UNSPECIFIED
       - FILE_TYPE_FILE
       - FILE_TYPE_DIRECTORY
+      - FILE_TYPE_SYMLINK
     filesystem.FilesystemEvent:
       type: object
       properties:
@@ -3507,6 +3919,8 @@ components:
           - boolean
           - 'null'
           title: stdin
+          description: "This is optional for backwards compatibility.\n We default\
+            \ to true. New SDK versions will set this to false by default."
       title: StartRequest
       additionalProperties: false
     process.StartResponse:
@@ -3711,7 +4125,12 @@ components:
           items:
             type: string
         egressProxy:
-          $ref: '#/components/schemas/SandboxEgressProxyConfig'
+          allOf:
+          - $ref: '#/components/schemas/SandboxEgressProxyConfig'
+          description: SOCKS5 proxy for sandbox egress. Outbound TCP is tunneled through
+            the proxy after allow/deny filtering; the sandbox is unaware. Domain-matched
+            flows use remote DNS (ATYP=domain).
+          x-not-implemented: true
         maskRequestHost:
           type: string
           description: Specify host mask which will be used for all sandbox requests
@@ -3748,7 +4167,12 @@ components:
           items:
             type: string
         egressProxy:
-          $ref: '#/components/schemas/SandboxEgressProxyConfig'
+          allOf:
+          - $ref: '#/components/schemas/SandboxEgressProxyConfig'
+          description: SOCKS5 proxy for sandbox egress. Outbound TCP is tunneled through
+            the proxy after allow/deny filtering; the sandbox is unaware. Domain-matched
+            flows use remote DNS (ATYP=domain).
+          x-not-implemented: true
         rules:
           type: object
           description: Per-domain transform rules. Replaces all existing rules when
@@ -3783,6 +4207,7 @@ components:
     SandboxEgressProxyConfig:
       type: object
       nullable: true
+      x-not-implemented: true
       description: SOCKS5 proxy for sandbox egress. Outbound TCP is tunneled through
         the proxy after allow/deny filtering; the sandbox is unaware. Domain-matched
         flows use remote DNS (ATYP=domain).
@@ -4173,11 +4598,38 @@ components:
           $ref: '#/components/schemas/EnvVars'
         mcp:
           $ref: '#/components/schemas/Mcp'
+        iam:
+          $ref: '#/components/schemas/SandboxIam'
         volumeMounts:
           type: array
           items:
             $ref: '#/components/schemas/SandboxVolumeMount'
       type: object
+    SandboxIam:
+      type: object
+      description: Sandbox workload identity configuration. A non-empty, valid tokens
+        map enables workload identity for the sandbox.
+      properties:
+        tokens:
+          $ref: '#/components/schemas/SandboxIamTokens'
+    SandboxIamTokens:
+      type: object
+      description: Named workload-token definitions, keyed by a caller-chosen token
+        name.
+      additionalProperties:
+        $ref: '#/components/schemas/SandboxIamToken'
+    SandboxIamToken:
+      type: object
+      required:
+      - audience
+      - tokenType
+      properties:
+        audience:
+          type: string
+          description: Audience of the workload token, stored exactly as provided.
+        tokenType:
+          type: string
+          description: Workload token type.
     ResumedSandbox:
       properties:
         timeout:
@@ -4241,6 +4693,35 @@ components:
             Resume it with an explicit request (connect or resume); auto-resume, which
             can be triggered by arbitrary traffic, refuses such a sandbox. Defaults
             to true.
+    SandboxForkRequest:
+      type: object
+      properties:
+        timeout:
+          type: integer
+          format: int32
+          minimum: 0
+          default: 15
+          description: Time to live for the new forked sandboxes in seconds.
+        count:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 1
+          description: Number of forked sandboxes to create. All forks boot from the
+            same snapshot, so the snapshot is captured once regardless of count. Each
+            fork succeeds or fails independently; the outcome of each is reported
+            in its entry of the response list.
+    SandboxForkResult:
+      type: object
+      description: 'Result of one requested fork. Exactly one of sandbox or error
+        is set: sandbox when the fork started successfully, error when it failed to
+        start.'
+      properties:
+        sandbox:
+          $ref: '#/components/schemas/Sandbox'
+        error:
+          $ref: '#/components/schemas/Error'
     TeamMetric:
       description: Team metric with timestamp
       required:
@@ -4626,6 +5107,7 @@ components:
             (e.g. "my-template" or "my-template:v1"). If tag is included, it will
             be treated as if the tag was provided in the tags array.
           type: string
+          maxLength: 128
         tags:
           type: array
           description: Tags to assign to the template build
@@ -4634,6 +5116,7 @@ components:
         alias:
           description: Alias of the template. Deprecated, use name instead.
           type: string
+          maxLength: 128
           deprecated: true
         teamID:
           deprecated: true
@@ -4971,6 +5454,19 @@ components:
           pattern: ^[a-zA-Z0-9_-]+$
       required:
       - name
+  headers:
+    XNextToken:
+      description: Cursor to fetch the next page of results, if more exist
+      schema:
+        type: string
+    XTotalRunning:
+      description: 'Number of running sandboxes matching the filters, before pagination
+        is applied. Only present when running sandboxes were requested.
+
+        '
+      schema:
+        type: integer
+        format: int32
 tags:
 - name: Sandboxes
 - name: Templates
