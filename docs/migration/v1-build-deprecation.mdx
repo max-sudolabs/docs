@@ -4,11 +4,11 @@ sidebarTitle: "V1 build deprecation"
 description: "The V1 template build system is deprecated. Migrate to the V2 build system."
 ---
 
-The V1 build system is deprecated, and V2 is now the supported build system. V1 builds stop working on **August 1, 2026**, when [access tokens stop working](/docs/migration/access-token-deprecation) (V1 builds authenticate with `E2B_ACCESS_TOKEN`). Migrate to V2 before then to keep building.
+The V1 build system is deprecated, and V2 is the supported build system. V1 builds stopped working on **August 1, 2026**, when [access tokens were disabled](/docs/migration/access-token-deprecation) (V1 builds authenticated with `E2B_ACCESS_TOKEN`). Migrate to V2 to keep building.
 
 ## What changed
 
-The `e2b template build` command that drove V1 builds is now a deprecation stub and exits immediately. The current build command is `e2b template create`, which authenticates with your `E2B_API_KEY` instead of the access token. Migrating to V2 is therefore also what keeps your builds working past the access token cutoff.
+The `e2b template build` command that drove V1 builds is now a deprecation stub and exits immediately. The current build command is `e2b template create`, which authenticates with your `E2B_API_KEY` instead of the access token. Migrating to V2 is therefore also what keeps your builds working now that the access token cutoff has passed.
 
 ## How to migrate
 

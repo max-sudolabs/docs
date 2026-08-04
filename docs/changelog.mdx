@@ -4,11 +4,15 @@ description: "Weekly updates on what shipped in E2B"
 rss: true
 ---
 
-<Update label="August 3, 2026" description="Multi-distro templates and CLI session flags" tags={["Templates", "CLI", "SDK", "API"]} rss={{ title: "Multi-Distro Templates & Terminal Session Controls", description: "This week improves templates and terminal workflows with Fedora, Alpine, Arch, and NixOS base images, CLI session flags, and cross-runtime detection of web platform objects." }}>
+<Update label="August 3, 2026" description="Access tokens disabled, multi-distro templates, and CLI session flags" tags={["Templates", "CLI", "SDK", "API"]} rss={{ title: "Access Tokens Disabled & Multi-Distro Templates", description: "Access tokens are now disabled; authenticate the CLI with E2B_API_KEY instead. This week also improves templates and terminal workflows with Fedora, Alpine, Arch, and NixOS base images, CLI session flags, and cross-runtime detection of web platform objects." }}>
 
-## Multi-Distro Templates & Terminal Session Controls
+## Access Tokens Disabled & Multi-Distro Templates
 
-This week improves templates and terminal workflows with Fedora, Alpine, Arch, and NixOS base images, CLI session flags, and cross-runtime detection of web platform objects.
+Access tokens are now disabled, so authenticate the CLI with `E2B_API_KEY` instead. This week also improves templates and terminal workflows with Fedora, Alpine, Arch, and NixOS base images, CLI session flags, and cross-runtime detection of web platform objects.
+
+### Access tokens are now disabled
+
+As of August 1, 2026, E2B no longer accepts access tokens for authentication, completing the [`E2B_ACCESS_TOKEN` deprecation](/docs/migration/access-token-deprecation) announced on June 22. Any CLI command or request still authenticated with an access token now fails. Authenticate the CLI with `E2B_API_KEY` instead, the same key the SDKs use. This also affects the V1 build system, which authenticated with the access token; see the [V1 build system deprecation](/docs/migration/v1-build-deprecation) to migrate to V2 builds that use `E2B_API_KEY`.
 
 ### Fedora, Alpine, Arch, and NixOS base images
 
