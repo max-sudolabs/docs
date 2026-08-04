@@ -1,0 +1,220 @@
+---
+sidebarTitle: "Volume Sync"
+"og:image": "/images/og/sdk-reference.png"
+"twitter:image": "/images/og/sdk-reference.png"
+---
+
+
+
+
+
+
+## Volume
+
+```python
+class Volume()
+```
+
+E2B Volume for persistent storage that can be mounted to sandboxes.
+
+
+
+### create
+
+```python
+@classmethod
+def create(cls, name: str, **opts: Unpack[ApiParams]) -> "Volume"
+```
+
+Create a new volume.
+
+**Arguments**:
+
+- `name`: Name of the volume
+
+**Returns**:
+
+A Volume instance for the new volume
+
+
+
+### connect
+
+```python
+@classmethod
+def connect(cls, volume_id: str, **opts: Unpack[ApiParams]) -> "Volume"
+```
+
+Connect to an existing volume by ID.
+
+**Arguments**:
+
+- `volume_id`: Volume ID
+
+**Returns**:
+
+A Volume instance for the existing volume
+
+
+
+### destroy
+
+```python
+@staticmethod
+def destroy(volume_id: str, **opts: Unpack[ApiParams]) -> bool
+```
+
+Destroy a volume.
+
+**Arguments**:
+
+- `volume_id`: Volume ID
+
+
+
+### make\_dir
+
+```python
+def make_dir(path: str,
+             uid: Optional[int] = None,
+             gid: Optional[int] = None,
+             mode: Optional[int] = None,
+             force: Optional[bool] = None,
+             **opts: Unpack[VolumeApiParams]) -> VolumeEntryStat
+```
+
+Create a directory.
+
+**Arguments**:
+
+- `path`: Path to the directory to create
+- `uid`: User ID of the created directory
+- `gid`: Group ID of the created directory
+- `mode`: Mode of the created directory
+- `force`: Create parent directories if they don't exist
+- `opts`: Connection options
+
+**Returns**:
+
+Information about the created directory
+
+
+
+### exists
+
+```python
+def exists(path: str, **opts: Unpack[VolumeApiParams]) -> bool
+```
+
+Check whether a file or directory exists.
+
+Uses get_info under the hood. Returns True if the path exists,
+False if it does not (404). Other errors are re-raised.
+
+**Arguments**:
+
+- `path`: Path to the file or directory
+- `opts`: Connection options
+
+**Returns**:
+
+True if the path exists, False otherwise
+
+
+
+### update\_metadata
+
+```python
+def update_metadata(path: str,
+                    uid: Optional[int] = None,
+                    gid: Optional[int] = None,
+                    mode: Optional[int] = None,
+                    **opts: Unpack[VolumeApiParams]) -> VolumeEntryStat
+```
+
+Update file or directory metadata.
+
+**Arguments**:
+
+- `path`: Path to the file or directory
+- `uid`: User ID of the file or directory
+- `gid`: Group ID of the file or directory
+- `mode`: Mode of the file or directory
+- `opts`: Connection options
+
+**Returns**:
+
+Updated entry information
+
+
+
+### read\_file
+
+```python
+def read_file(
+        path: str,
+        format: Literal["text", "bytes", "stream"] = "text",
+        **opts: Unpack[VolumeApiParams]) -> Union[str, bytes, Iterator[bytes]]
+```
+
+Read file content.
+
+You can pass `text`, `bytes`, or `stream` to `format` to change the return type.
+
+**Arguments**:
+
+- `path`: Path to the file
+- `format`: Format of the file content—`text` by default
+- `opts`: Connection options
+
+**Returns**:
+
+File content as string, bytes, or iterator of bytes
+
+
+
+### write\_file
+
+```python
+def write_file(path: str,
+               data: Union[str, bytes, IO[bytes]],
+               uid: Optional[int] = None,
+               gid: Optional[int] = None,
+               mode: Optional[int] = None,
+               force: Optional[bool] = None,
+               **opts: Unpack[VolumeApiParams]) -> VolumeEntryStat
+```
+
+Write content to a file.
+
+Writing to a file that doesn't exist creates the file.
+Writing to a file that already exists overwrites the file.
+
+**Arguments**:
+
+- `path`: Path to the file
+- `data`: Data to write to the file. Data can be a string, bytes, or IO.
+- `uid`: User ID of the created file
+- `gid`: Group ID of the created file
+- `mode`: Mode of the created file
+- `force`: Force overwrite of an existing file
+- `opts`: Connection options
+
+**Returns**:
+
+Information about the written file
+
+
+
+### remove
+
+```python
+def remove(path: str, **opts: Unpack[VolumeApiParams]) -> None
+```
+
+Remove a file or directory.
+
+**Arguments**:
+
+- `path`: Path to the file or directory to remove
+- `opts`: Connection options

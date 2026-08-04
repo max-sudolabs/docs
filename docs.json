@@ -286,8 +286,288 @@
             "icon": "square-js",
             "versions": [
               {
-                "version": "v2.29.1",
+                "version": "v2.38.0",
                 "default": true,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.38.0/errors",
+                  "docs/sdk-reference/js-sdk/v2.38.0/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.38.0/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.38.0/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.38.0/template",
+                  "docs/sdk-reference/js-sdk/v2.38.0/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.38.0/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.38.0/volume"
+                ]
+              },
+              {
+                "version": "v2.37.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.37.0/errors",
+                  "docs/sdk-reference/js-sdk/v2.37.0/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.37.0/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.37.0/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.37.0/template",
+                  "docs/sdk-reference/js-sdk/v2.37.0/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.37.0/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.37.0/volume"
+                ]
+              },
+              {
+                "version": "v2.36.1",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.36.1/errors",
+                  "docs/sdk-reference/js-sdk/v2.36.1/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.36.1/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.36.1/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.36.1/template",
+                  "docs/sdk-reference/js-sdk/v2.36.1/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.36.1/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.36.1/volume"
+                ]
+              },
+              {
+                "version": "v2.36.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.36.0/errors",
+                  "docs/sdk-reference/js-sdk/v2.36.0/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.36.0/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.36.0/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.36.0/template",
+                  "docs/sdk-reference/js-sdk/v2.36.0/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.36.0/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.36.0/volume"
+                ]
+              },
+              {
+                "version": "v2.35.3",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.35.3/errors",
+                  "docs/sdk-reference/js-sdk/v2.35.3/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.35.3/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.35.3/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.35.3/template",
+                  "docs/sdk-reference/js-sdk/v2.35.3/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.35.3/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.35.3/volume"
+                ]
+              },
+              {
+                "version": "v2.35.2",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.35.2/errors",
+                  "docs/sdk-reference/js-sdk/v2.35.2/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.35.2/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.35.2/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.35.2/template",
+                  "docs/sdk-reference/js-sdk/v2.35.2/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.35.2/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.35.2/volume"
+                ]
+              },
+              {
+                "version": "v2.35.1",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.35.1/errors",
+                  "docs/sdk-reference/js-sdk/v2.35.1/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.35.1/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.35.1/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.35.1/template",
+                  "docs/sdk-reference/js-sdk/v2.35.1/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.35.1/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.35.1/volume"
+                ]
+              },
+              {
+                "version": "v2.35.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.35.0/errors",
+                  "docs/sdk-reference/js-sdk/v2.35.0/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.35.0/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.35.0/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.35.0/template",
+                  "docs/sdk-reference/js-sdk/v2.35.0/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.35.0/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.35.0/volume"
+                ]
+              },
+              {
+                "version": "v2.34.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.34.0/errors",
+                  "docs/sdk-reference/js-sdk/v2.34.0/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.34.0/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.34.0/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.34.0/template",
+                  "docs/sdk-reference/js-sdk/v2.34.0/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.34.0/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.34.0/volume"
+                ]
+              },
+              {
+                "version": "v2.33.1",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.33.1/errors",
+                  "docs/sdk-reference/js-sdk/v2.33.1/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.33.1/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.33.1/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.33.1/template",
+                  "docs/sdk-reference/js-sdk/v2.33.1/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.33.1/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.33.1/volume"
+                ]
+              },
+              {
+                "version": "v2.33.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.33.0/errors",
+                  "docs/sdk-reference/js-sdk/v2.33.0/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.33.0/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.33.0/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.33.0/template",
+                  "docs/sdk-reference/js-sdk/v2.33.0/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.33.0/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.33.0/volume"
+                ]
+              },
+              {
+                "version": "v2.32.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.32.0/errors",
+                  "docs/sdk-reference/js-sdk/v2.32.0/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.32.0/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.32.0/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.32.0/template",
+                  "docs/sdk-reference/js-sdk/v2.32.0/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.32.0/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.32.0/volume"
+                ]
+              },
+              {
+                "version": "v2.31.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.31.0/errors",
+                  "docs/sdk-reference/js-sdk/v2.31.0/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.31.0/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.31.0/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.31.0/template",
+                  "docs/sdk-reference/js-sdk/v2.31.0/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.31.0/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.31.0/volume"
+                ]
+              },
+              {
+                "version": "v2.30.6",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.30.6/errors",
+                  "docs/sdk-reference/js-sdk/v2.30.6/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.30.6/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.30.6/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.30.6/template",
+                  "docs/sdk-reference/js-sdk/v2.30.6/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.30.6/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.30.6/volume"
+                ]
+              },
+              {
+                "version": "v2.30.5",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.30.5/errors",
+                  "docs/sdk-reference/js-sdk/v2.30.5/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.30.5/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.30.5/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.30.5/template",
+                  "docs/sdk-reference/js-sdk/v2.30.5/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.30.5/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.30.5/volume"
+                ]
+              },
+              {
+                "version": "v2.30.4",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.30.4/errors",
+                  "docs/sdk-reference/js-sdk/v2.30.4/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.30.4/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.30.4/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.30.4/template",
+                  "docs/sdk-reference/js-sdk/v2.30.4/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.30.4/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.30.4/volume"
+                ]
+              },
+              {
+                "version": "v2.30.3",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.30.3/errors",
+                  "docs/sdk-reference/js-sdk/v2.30.3/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.30.3/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.30.3/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.30.3/template",
+                  "docs/sdk-reference/js-sdk/v2.30.3/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.30.3/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.30.3/volume"
+                ]
+              },
+              {
+                "version": "v2.30.2",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.30.2/errors",
+                  "docs/sdk-reference/js-sdk/v2.30.2/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.30.2/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.30.2/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.30.2/template",
+                  "docs/sdk-reference/js-sdk/v2.30.2/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.30.2/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.30.2/volume"
+                ]
+              },
+              {
+                "version": "v2.30.1",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.30.1/errors",
+                  "docs/sdk-reference/js-sdk/v2.30.1/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.30.1/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.30.1/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.30.1/template",
+                  "docs/sdk-reference/js-sdk/v2.30.1/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.30.1/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.30.1/volume"
+                ]
+              },
+              {
+                "version": "v2.30.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/js-sdk/v2.30.0/errors",
+                  "docs/sdk-reference/js-sdk/v2.30.0/sandbox",
+                  "docs/sdk-reference/js-sdk/v2.30.0/sandbox-commands",
+                  "docs/sdk-reference/js-sdk/v2.30.0/sandbox-filesystem",
+                  "docs/sdk-reference/js-sdk/v2.30.0/template",
+                  "docs/sdk-reference/js-sdk/v2.30.0/template-logger",
+                  "docs/sdk-reference/js-sdk/v2.30.0/template-readycmd",
+                  "docs/sdk-reference/js-sdk/v2.30.0/volume"
+                ]
+              },
+              {
+                "version": "v2.29.1",
+                "default": false,
                 "pages": [
                   "docs/sdk-reference/js-sdk/v2.29.1/errors",
                   "docs/sdk-reference/js-sdk/v2.29.1/sandbox",
@@ -1714,8 +1994,264 @@
             "icon": "python",
             "versions": [
               {
-                "version": "v2.28.2",
+                "version": "v2.37.0",
                 "default": true,
+                "pages": [
+                  "docs/sdk-reference/python-sdk/v2.37.0/exceptions",
+                  "docs/sdk-reference/python-sdk/v2.37.0/logger",
+                  "docs/sdk-reference/python-sdk/v2.37.0/readycmd",
+                  "docs/sdk-reference/python-sdk/v2.37.0/sandbox_async",
+                  "docs/sdk-reference/python-sdk/v2.37.0/sandbox_sync",
+                  "docs/sdk-reference/python-sdk/v2.37.0/template",
+                  "docs/sdk-reference/python-sdk/v2.37.0/template_async",
+                  "docs/sdk-reference/python-sdk/v2.37.0/template_sync",
+                  "docs/sdk-reference/python-sdk/v2.37.0/volume_async",
+                  "docs/sdk-reference/python-sdk/v2.37.0/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.36.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/python-sdk/v2.36.0/exceptions",
+                  "docs/sdk-reference/python-sdk/v2.36.0/logger",
+                  "docs/sdk-reference/python-sdk/v2.36.0/readycmd",
+                  "docs/sdk-reference/python-sdk/v2.36.0/sandbox_async",
+                  "docs/sdk-reference/python-sdk/v2.36.0/sandbox_sync",
+                  "docs/sdk-reference/python-sdk/v2.36.0/template",
+                  "docs/sdk-reference/python-sdk/v2.36.0/template_async",
+                  "docs/sdk-reference/python-sdk/v2.36.0/template_sync",
+                  "docs/sdk-reference/python-sdk/v2.36.0/volume_async",
+                  "docs/sdk-reference/python-sdk/v2.36.0/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.35.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/python-sdk/v2.35.0/exceptions",
+                  "docs/sdk-reference/python-sdk/v2.35.0/logger",
+                  "docs/sdk-reference/python-sdk/v2.35.0/readycmd",
+                  "docs/sdk-reference/python-sdk/v2.35.0/sandbox_async",
+                  "docs/sdk-reference/python-sdk/v2.35.0/sandbox_sync",
+                  "docs/sdk-reference/python-sdk/v2.35.0/template",
+                  "docs/sdk-reference/python-sdk/v2.35.0/template_async",
+                  "docs/sdk-reference/python-sdk/v2.35.0/template_sync",
+                  "docs/sdk-reference/python-sdk/v2.35.0/volume_async",
+                  "docs/sdk-reference/python-sdk/v2.35.0/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.34.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/python-sdk/v2.34.0/exceptions",
+                  "docs/sdk-reference/python-sdk/v2.34.0/logger",
+                  "docs/sdk-reference/python-sdk/v2.34.0/readycmd",
+                  "docs/sdk-reference/python-sdk/v2.34.0/sandbox_async",
+                  "docs/sdk-reference/python-sdk/v2.34.0/sandbox_sync",
+                  "docs/sdk-reference/python-sdk/v2.34.0/template",
+                  "docs/sdk-reference/python-sdk/v2.34.0/template_async",
+                  "docs/sdk-reference/python-sdk/v2.34.0/template_sync",
+                  "docs/sdk-reference/python-sdk/v2.34.0/volume_async",
+                  "docs/sdk-reference/python-sdk/v2.34.0/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.33.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/python-sdk/v2.33.0/exceptions",
+                  "docs/sdk-reference/python-sdk/v2.33.0/logger",
+                  "docs/sdk-reference/python-sdk/v2.33.0/readycmd",
+                  "docs/sdk-reference/python-sdk/v2.33.0/sandbox_async",
+                  "docs/sdk-reference/python-sdk/v2.33.0/sandbox_sync",
+                  "docs/sdk-reference/python-sdk/v2.33.0/template",
+                  "docs/sdk-reference/python-sdk/v2.33.0/template_async",
+                  "docs/sdk-reference/python-sdk/v2.33.0/template_sync",
+                  "docs/sdk-reference/python-sdk/v2.33.0/volume_async",
+                  "docs/sdk-reference/python-sdk/v2.33.0/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.32.1",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/python-sdk/v2.32.1/exceptions",
+                  "docs/sdk-reference/python-sdk/v2.32.1/logger",
+                  "docs/sdk-reference/python-sdk/v2.32.1/readycmd",
+                  "docs/sdk-reference/python-sdk/v2.32.1/sandbox_async",
+                  "docs/sdk-reference/python-sdk/v2.32.1/sandbox_sync",
+                  "docs/sdk-reference/python-sdk/v2.32.1/template",
+                  "docs/sdk-reference/python-sdk/v2.32.1/template_async",
+                  "docs/sdk-reference/python-sdk/v2.32.1/template_sync",
+                  "docs/sdk-reference/python-sdk/v2.32.1/volume_async",
+                  "docs/sdk-reference/python-sdk/v2.32.1/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.32.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/python-sdk/v2.32.0/exceptions",
+                  "docs/sdk-reference/python-sdk/v2.32.0/logger",
+                  "docs/sdk-reference/python-sdk/v2.32.0/readycmd",
+                  "docs/sdk-reference/python-sdk/v2.32.0/sandbox_async",
+                  "docs/sdk-reference/python-sdk/v2.32.0/sandbox_sync",
+                  "docs/sdk-reference/python-sdk/v2.32.0/template",
+                  "docs/sdk-reference/python-sdk/v2.32.0/template_async",
+                  "docs/sdk-reference/python-sdk/v2.32.0/template_sync",
+                  "docs/sdk-reference/python-sdk/v2.32.0/volume_async",
+                  "docs/sdk-reference/python-sdk/v2.32.0/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.31.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/python-sdk/v2.31.0/exceptions",
+                  "docs/sdk-reference/python-sdk/v2.31.0/logger",
+                  "docs/sdk-reference/python-sdk/v2.31.0/readycmd",
+                  "docs/sdk-reference/python-sdk/v2.31.0/sandbox_async",
+                  "docs/sdk-reference/python-sdk/v2.31.0/sandbox_sync",
+                  "docs/sdk-reference/python-sdk/v2.31.0/template",
+                  "docs/sdk-reference/python-sdk/v2.31.0/template_async",
+                  "docs/sdk-reference/python-sdk/v2.31.0/template_sync",
+                  "docs/sdk-reference/python-sdk/v2.31.0/volume_async",
+                  "docs/sdk-reference/python-sdk/v2.31.0/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.30.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/python-sdk/v2.30.0/exceptions",
+                  "docs/sdk-reference/python-sdk/v2.30.0/logger",
+                  "docs/sdk-reference/python-sdk/v2.30.0/readycmd",
+                  "docs/sdk-reference/python-sdk/v2.30.0/sandbox_async",
+                  "docs/sdk-reference/python-sdk/v2.30.0/sandbox_sync",
+                  "docs/sdk-reference/python-sdk/v2.30.0/template",
+                  "docs/sdk-reference/python-sdk/v2.30.0/template_async",
+                  "docs/sdk-reference/python-sdk/v2.30.0/template_sync",
+                  "docs/sdk-reference/python-sdk/v2.30.0/volume_async",
+                  "docs/sdk-reference/python-sdk/v2.30.0/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.29.6",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/python-sdk/v2.29.6/exceptions",
+                  "docs/sdk-reference/python-sdk/v2.29.6/logger",
+                  "docs/sdk-reference/python-sdk/v2.29.6/readycmd",
+                  "docs/sdk-reference/python-sdk/v2.29.6/sandbox_async",
+                  "docs/sdk-reference/python-sdk/v2.29.6/sandbox_sync",
+                  "docs/sdk-reference/python-sdk/v2.29.6/template",
+                  "docs/sdk-reference/python-sdk/v2.29.6/template_async",
+                  "docs/sdk-reference/python-sdk/v2.29.6/template_sync",
+                  "docs/sdk-reference/python-sdk/v2.29.6/volume_async",
+                  "docs/sdk-reference/python-sdk/v2.29.6/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.29.5",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/python-sdk/v2.29.5/exceptions",
+                  "docs/sdk-reference/python-sdk/v2.29.5/logger",
+                  "docs/sdk-reference/python-sdk/v2.29.5/readycmd",
+                  "docs/sdk-reference/python-sdk/v2.29.5/sandbox_async",
+                  "docs/sdk-reference/python-sdk/v2.29.5/sandbox_sync",
+                  "docs/sdk-reference/python-sdk/v2.29.5/template",
+                  "docs/sdk-reference/python-sdk/v2.29.5/template_async",
+                  "docs/sdk-reference/python-sdk/v2.29.5/template_sync",
+                  "docs/sdk-reference/python-sdk/v2.29.5/volume_async",
+                  "docs/sdk-reference/python-sdk/v2.29.5/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.29.4",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/python-sdk/v2.29.4/exceptions",
+                  "docs/sdk-reference/python-sdk/v2.29.4/logger",
+                  "docs/sdk-reference/python-sdk/v2.29.4/readycmd",
+                  "docs/sdk-reference/python-sdk/v2.29.4/sandbox_async",
+                  "docs/sdk-reference/python-sdk/v2.29.4/sandbox_sync",
+                  "docs/sdk-reference/python-sdk/v2.29.4/template",
+                  "docs/sdk-reference/python-sdk/v2.29.4/template_async",
+                  "docs/sdk-reference/python-sdk/v2.29.4/template_sync",
+                  "docs/sdk-reference/python-sdk/v2.29.4/volume_async",
+                  "docs/sdk-reference/python-sdk/v2.29.4/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.29.3",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/python-sdk/v2.29.3/exceptions",
+                  "docs/sdk-reference/python-sdk/v2.29.3/logger",
+                  "docs/sdk-reference/python-sdk/v2.29.3/readycmd",
+                  "docs/sdk-reference/python-sdk/v2.29.3/sandbox_async",
+                  "docs/sdk-reference/python-sdk/v2.29.3/sandbox_sync",
+                  "docs/sdk-reference/python-sdk/v2.29.3/template",
+                  "docs/sdk-reference/python-sdk/v2.29.3/template_async",
+                  "docs/sdk-reference/python-sdk/v2.29.3/template_sync",
+                  "docs/sdk-reference/python-sdk/v2.29.3/volume_async",
+                  "docs/sdk-reference/python-sdk/v2.29.3/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.29.2",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/python-sdk/v2.29.2/exceptions",
+                  "docs/sdk-reference/python-sdk/v2.29.2/logger",
+                  "docs/sdk-reference/python-sdk/v2.29.2/readycmd",
+                  "docs/sdk-reference/python-sdk/v2.29.2/sandbox_async",
+                  "docs/sdk-reference/python-sdk/v2.29.2/sandbox_sync",
+                  "docs/sdk-reference/python-sdk/v2.29.2/template",
+                  "docs/sdk-reference/python-sdk/v2.29.2/template_async",
+                  "docs/sdk-reference/python-sdk/v2.29.2/template_sync",
+                  "docs/sdk-reference/python-sdk/v2.29.2/volume_async",
+                  "docs/sdk-reference/python-sdk/v2.29.2/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.29.1",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/python-sdk/v2.29.1/exceptions",
+                  "docs/sdk-reference/python-sdk/v2.29.1/logger",
+                  "docs/sdk-reference/python-sdk/v2.29.1/readycmd",
+                  "docs/sdk-reference/python-sdk/v2.29.1/sandbox_async",
+                  "docs/sdk-reference/python-sdk/v2.29.1/sandbox_sync",
+                  "docs/sdk-reference/python-sdk/v2.29.1/template",
+                  "docs/sdk-reference/python-sdk/v2.29.1/template_async",
+                  "docs/sdk-reference/python-sdk/v2.29.1/template_sync",
+                  "docs/sdk-reference/python-sdk/v2.29.1/volume_async",
+                  "docs/sdk-reference/python-sdk/v2.29.1/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.29.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/python-sdk/v2.29.0/exceptions",
+                  "docs/sdk-reference/python-sdk/v2.29.0/logger",
+                  "docs/sdk-reference/python-sdk/v2.29.0/readycmd",
+                  "docs/sdk-reference/python-sdk/v2.29.0/sandbox_async",
+                  "docs/sdk-reference/python-sdk/v2.29.0/sandbox_sync",
+                  "docs/sdk-reference/python-sdk/v2.29.0/template",
+                  "docs/sdk-reference/python-sdk/v2.29.0/template_async",
+                  "docs/sdk-reference/python-sdk/v2.29.0/template_sync",
+                  "docs/sdk-reference/python-sdk/v2.29.0/volume_async",
+                  "docs/sdk-reference/python-sdk/v2.29.0/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.28.2",
+                "default": false,
                 "pages": [
                   "docs/sdk-reference/python-sdk/v2.28.2/exceptions",
                   "docs/sdk-reference/python-sdk/v2.28.2/logger",
@@ -3119,8 +3655,28 @@
             "icon": "square-js",
             "versions": [
               {
-                "version": "v2.6.0",
+                "version": "v2.7.0",
                 "default": true,
+                "pages": [
+                  "docs/sdk-reference/code-interpreter-js-sdk/v2.7.0/charts",
+                  "docs/sdk-reference/code-interpreter-js-sdk/v2.7.0/consts",
+                  "docs/sdk-reference/code-interpreter-js-sdk/v2.7.0/messaging",
+                  "docs/sdk-reference/code-interpreter-js-sdk/v2.7.0/sandbox"
+                ]
+              },
+              {
+                "version": "v2.6.1",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/code-interpreter-js-sdk/v2.6.1/charts",
+                  "docs/sdk-reference/code-interpreter-js-sdk/v2.6.1/consts",
+                  "docs/sdk-reference/code-interpreter-js-sdk/v2.6.1/messaging",
+                  "docs/sdk-reference/code-interpreter-js-sdk/v2.6.1/sandbox"
+                ]
+              },
+              {
+                "version": "v2.6.0",
+                "default": false,
                 "pages": [
                   "docs/sdk-reference/code-interpreter-js-sdk/v2.6.0/charts",
                   "docs/sdk-reference/code-interpreter-js-sdk/v2.6.0/consts",
@@ -3345,8 +3901,22 @@
             "icon": "python",
             "versions": [
               {
-                "version": "v2.8.0",
+                "version": "v2.9.0",
                 "default": true,
+                "pages": [
+                  "docs/sdk-reference/code-interpreter-python-sdk/v2.9.0/code_interpreter"
+                ]
+              },
+              {
+                "version": "v2.8.1",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/code-interpreter-python-sdk/v2.8.1/code_interpreter"
+                ]
+              },
+              {
+                "version": "v2.8.0",
+                "default": false,
                 "pages": [
                   "docs/sdk-reference/code-interpreter-python-sdk/v2.8.0/code_interpreter"
                 ]
@@ -3756,8 +4326,15 @@
             "icon": "python",
             "versions": [
               {
-                "version": "v2.4.1",
+                "version": "v2.4.2",
                 "default": true,
+                "pages": [
+                  "docs/sdk-reference/desktop-python-sdk/v2.4.2/desktop"
+                ]
+              },
+              {
+                "version": "v2.4.1",
+                "default": false,
                 "pages": [
                   "docs/sdk-reference/desktop-python-sdk/v2.4.1/desktop"
                 ]
@@ -3965,8 +4542,125 @@
             "icon": "terminal",
             "versions": [
               {
-                "version": "v2.11.1",
+                "version": "v2.16.1",
                 "default": true,
+                "pages": [
+                  "docs/sdk-reference/cli/v2.16.1/auth",
+                  "docs/sdk-reference/cli/v2.16.1/sandbox",
+                  "docs/sdk-reference/cli/v2.16.1/template"
+                ]
+              },
+              {
+                "version": "v2.16.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/cli/v2.16.0/auth",
+                  "docs/sdk-reference/cli/v2.16.0/sandbox",
+                  "docs/sdk-reference/cli/v2.16.0/template"
+                ]
+              },
+              {
+                "version": "v2.15.1",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/cli/v2.15.1/auth",
+                  "docs/sdk-reference/cli/v2.15.1/sandbox",
+                  "docs/sdk-reference/cli/v2.15.1/template"
+                ]
+              },
+              {
+                "version": "v2.15.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/cli/v2.15.0/auth",
+                  "docs/sdk-reference/cli/v2.15.0/sandbox",
+                  "docs/sdk-reference/cli/v2.15.0/template"
+                ]
+              },
+              {
+                "version": "v2.14.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/cli/v2.14.0/auth",
+                  "docs/sdk-reference/cli/v2.14.0/sandbox",
+                  "docs/sdk-reference/cli/v2.14.0/template"
+                ]
+              },
+              {
+                "version": "v2.13.4",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/cli/v2.13.4/auth",
+                  "docs/sdk-reference/cli/v2.13.4/sandbox",
+                  "docs/sdk-reference/cli/v2.13.4/template"
+                ]
+              },
+              {
+                "version": "v2.13.3",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/cli/v2.13.3/auth",
+                  "docs/sdk-reference/cli/v2.13.3/sandbox",
+                  "docs/sdk-reference/cli/v2.13.3/template"
+                ]
+              },
+              {
+                "version": "v2.13.2",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/cli/v2.13.2/auth",
+                  "docs/sdk-reference/cli/v2.13.2/sandbox",
+                  "docs/sdk-reference/cli/v2.13.2/template"
+                ]
+              },
+              {
+                "version": "v2.13.1",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/cli/v2.13.1/auth",
+                  "docs/sdk-reference/cli/v2.13.1/sandbox",
+                  "docs/sdk-reference/cli/v2.13.1/template"
+                ]
+              },
+              {
+                "version": "v2.13.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/cli/v2.13.0/auth",
+                  "docs/sdk-reference/cli/v2.13.0/sandbox",
+                  "docs/sdk-reference/cli/v2.13.0/template"
+                ]
+              },
+              {
+                "version": "v2.12.2",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/cli/v2.12.2/auth",
+                  "docs/sdk-reference/cli/v2.12.2/sandbox",
+                  "docs/sdk-reference/cli/v2.12.2/template"
+                ]
+              },
+              {
+                "version": "v2.12.1",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/cli/v2.12.1/auth",
+                  "docs/sdk-reference/cli/v2.12.1/sandbox",
+                  "docs/sdk-reference/cli/v2.12.1/template"
+                ]
+              },
+              {
+                "version": "v2.12.0",
+                "default": false,
+                "pages": [
+                  "docs/sdk-reference/cli/v2.12.0/auth",
+                  "docs/sdk-reference/cli/v2.12.0/sandbox",
+                  "docs/sdk-reference/cli/v2.12.0/template"
+                ]
+              },
+              {
+                "version": "v2.11.1",
+                "default": false,
                 "pages": [
                   "docs/sdk-reference/cli/v2.11.1/auth",
                   "docs/sdk-reference/cli/v2.11.1/sandbox",
@@ -5049,22 +5743,22 @@
     },
     {
       "source": "/docs/sdk-reference/js-sdk/latest/:slug*",
-      "destination": "/docs/sdk-reference/js-sdk/v2.29.1/:slug*",
+      "destination": "/docs/sdk-reference/js-sdk/v2.38.0/:slug*",
       "permanent": false
     },
     {
       "source": "/docs/sdk-reference/python-sdk/latest/:slug*",
-      "destination": "/docs/sdk-reference/python-sdk/v2.28.2/:slug*",
+      "destination": "/docs/sdk-reference/python-sdk/v2.37.0/:slug*",
       "permanent": false
     },
     {
       "source": "/docs/sdk-reference/code-interpreter-js-sdk/latest/:slug*",
-      "destination": "/docs/sdk-reference/code-interpreter-js-sdk/v2.6.0/:slug*",
+      "destination": "/docs/sdk-reference/code-interpreter-js-sdk/v2.7.0/:slug*",
       "permanent": false
     },
     {
       "source": "/docs/sdk-reference/code-interpreter-python-sdk/latest/:slug*",
-      "destination": "/docs/sdk-reference/code-interpreter-python-sdk/v2.8.0/:slug*",
+      "destination": "/docs/sdk-reference/code-interpreter-python-sdk/v2.9.0/:slug*",
       "permanent": false
     },
     {
@@ -5074,12 +5768,12 @@
     },
     {
       "source": "/docs/sdk-reference/desktop-python-sdk/latest/:slug*",
-      "destination": "/docs/sdk-reference/desktop-python-sdk/v2.4.1/:slug*",
+      "destination": "/docs/sdk-reference/desktop-python-sdk/v2.4.2/:slug*",
       "permanent": false
     },
     {
       "source": "/docs/sdk-reference/cli/latest/:slug*",
-      "destination": "/docs/sdk-reference/cli/v2.11.1/:slug*",
+      "destination": "/docs/sdk-reference/cli/v2.16.1/:slug*",
       "permanent": false
     }
   ]

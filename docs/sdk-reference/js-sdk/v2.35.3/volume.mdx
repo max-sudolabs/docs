@@ -1,0 +1,693 @@
+---
+sidebarTitle: "Volume"
+"og:image": "/images/og/sdk-reference.png"
+"twitter:image": "/images/og/sdk-reference.png"
+---
+
+### VolumeFileType
+
+File type enum.
+
+#### Enumeration Members
+
+| Enumeration Member | Value |
+| ------ | ------ |
+| <a id="directory"></a> `DIRECTORY` | `"directory"` |
+| <a id="file"></a> `FILE` | `"file"` |
+| <a id="symlink"></a> `SYMLINK` | `"symlink"` |
+| <a id="unknown"></a> `UNKNOWN` | `"unknown"` |
+
+## Classes
+
+### Volume
+
+Module for interacting with E2B volumes.
+
+Create a `Volume` instance to interact with a volume by its ID,
+or use the static methods to manage volumes.
+
+#### Constructors
+
+```ts
+new Volume(
+   volumeId: string, 
+   name: string, 
+   token: string, 
+   domain?: string, 
+   debug?: boolean, 
+   proxy?: string): Volume
+```
+
+Create a local Volume instance with no API call.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `volumeId` | `string` | volume ID. |
+| `name` | `string` | volume name. |
+| `token` | `string` | volume auth token. |
+| `domain`? | `string` | domain for the volume API. |
+| `debug`? | `boolean` | whether to use debug mode. |
+| `proxy`? | `string` | proxy URL for the volume content API. |
+
+###### Returns
+
+`Volume`
+
+#### Properties
+
+| Property | Modifier | Type | Description |
+| ------ | ------ | ------ | ------ |
+| <a id="debug"></a> `debug?` | `readonly` | `boolean` | Whether to use debug mode (connects to local volume API server). |
+| <a id="domain"></a> `domain?` | `readonly` | `string` | Domain used for constructing the volume API URL. |
+| <a id="name"></a> `name` | `readonly` | `string` | Volume name. |
+| <a id="proxy"></a> `proxy?` | `readonly` | `string` | Proxy URL used for requests to the volume content API. |
+| <a id="token"></a> `token` | `readonly` | `string` | Volume auth token. |
+| <a id="volumeid"></a> `volumeId` | `readonly` | `string` | Volume ID. |
+
+#### Methods
+
+### exists()
+
+```ts
+exists(path: string, opts?: VolumeApiOpts): Promise<boolean>
+```
+
+Check whether a file or directory exists.
+
+Uses getInfo under the hood. Returns `true` if the path exists,
+`false` if it does not (404). Other errors are rethrown.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the file or directory. |
+| `opts`? | `VolumeApiOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`boolean`\>
+
+`true` if the path exists, `false` otherwise.
+
+### getInfo()
+
+```ts
+getInfo(path: string, opts?: VolumeApiOpts): Promise<VolumeEntryStat>
+```
+
+Get information about a file or directory.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the file or directory. |
+| `opts`? | `VolumeApiOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`VolumeEntryStat`\>
+
+information about the entry.
+
+### list()
+
+```ts
+list(path: string, opts?: VolumeApiOpts & object): Promise<VolumeEntryStat[]>
+```
+
+List directory contents.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the directory. |
+| `opts`? | `VolumeApiOpts` & `object` | connection options. |
+
+###### Returns
+
+`Promise`\<`VolumeEntryStat`[]\>
+
+list of entries in the directory.
+
+### makeDir()
+
+```ts
+makeDir(path: string, opts?: VolumeMetadataOpts & object & VolumeApiOpts): Promise<VolumeEntryStat>
+```
+
+Create a directory.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the directory to create. |
+| `opts`? | `VolumeMetadataOpts` & `object` & `VolumeApiOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`VolumeEntryStat`\>
+
+### readFile()
+
+###### Call Signature
+
+```ts
+readFile(path: string, opts?: VolumeApiOpts & object & object): Promise<string>
+```
+
+Read file content as a `string`.
+
+You can pass `text`, `bytes`, `blob`, or `stream` to `opts.format` to change the return type.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the file. |
+| `opts`? | `VolumeApiOpts` & `object` & `object` | connection options. |
+
+###### Returns
+
+`Promise`\<`string`\>
+
+file content as string
+
+###### Call Signature
+
+```ts
+readFile(path: string, opts?: VolumeApiOpts & object & object): Promise<Uint8Array<ArrayBufferLike>>
+```
+
+Read file content as a `Uint8Array`.
+
+You can pass `text`, `bytes`, `blob`, or `stream` to `opts.format` to change the return type.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the file. |
+| `opts`? | `VolumeApiOpts` & `object` & `object` | connection options. |
+
+###### Returns
+
+`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+
+file content as `Uint8Array`
+
+###### Call Signature
+
+```ts
+readFile(path: string, opts?: VolumeApiOpts & object & object): Promise<Blob>
+```
+
+Read file content as a `Blob`.
+
+You can pass `text`, `bytes`, `blob`, or `stream` to `opts.format` to change the return type.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the file. |
+| `opts`? | `VolumeApiOpts` & `object` & `object` | connection options. |
+
+###### Returns
+
+`Promise`\<`Blob`\>
+
+file content as `Blob`
+
+###### Call Signature
+
+```ts
+readFile(path: string, opts?: VolumeApiOpts & object & object): Promise<ReadableStream<Uint8Array<ArrayBufferLike>>>
+```
+
+Read file content as a `ReadableStream`.
+
+You can pass `text`, `bytes`, `blob`, or `stream` to `opts.format` to change the return type.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the file. |
+| `opts`? | `VolumeApiOpts` & `object` & `object` | connection options. |
+
+###### Returns
+
+`Promise`\<`ReadableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\>\>
+
+file content as `ReadableStream`
+
+### remove()
+
+```ts
+remove(path: string, opts?: VolumeApiOpts): Promise<void>
+```
+
+Remove a file or directory.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the file or directory to remove. |
+| `opts`? | `VolumeApiOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`void`\>
+
+### updateMetadata()
+
+```ts
+updateMetadata(
+   path: string, 
+   metadata: VolumeMetadataOpts, 
+opts?: VolumeApiOpts): Promise<VolumeEntryStat>
+```
+
+Update file or directory metadata.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the file or directory. |
+| `metadata` | `VolumeMetadataOpts` | metadata to update (uid, gid, mode). |
+| `opts`? | `VolumeApiOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`VolumeEntryStat`\>
+
+updated entry information.
+
+### writeFile()
+
+```ts
+writeFile(
+   path: string, 
+   data: 
+  | string
+  | ArrayBuffer
+  | Blob
+  | ReadableStream<Uint8Array<ArrayBufferLike>>, 
+opts?: VolumeMetadataOpts & object & VolumeApiOpts): Promise<VolumeEntryStat>
+```
+
+Write content to a file.
+
+Writing to a file that doesn't exist creates the file.
+
+Writing to a file that already exists overwrites the file.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the file. |
+| `data` | \| `string` \| `ArrayBuffer` \| `Blob` \| `ReadableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\> | data to write to the file. Data can be a string, `ArrayBuffer`, `Blob`, or `ReadableStream`. Outside the browser, `ReadableStream` data is streamed to the API instead of being buffered in memory. |
+| `opts`? | `VolumeMetadataOpts` & `object` & `VolumeApiOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`VolumeEntryStat`\>
+
+information about the written file
+
+### connect()
+
+```ts
+static connect(volumeId: string, opts?: ConnectionOpts): Promise<Volume>
+```
+
+Connect to an existing volume by ID.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `volumeId` | `string` | volume ID. |
+| `opts`? | `ConnectionOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`Volume`\>
+
+Volume instance.
+
+### create()
+
+```ts
+static create(name: string, opts?: ConnectionOpts): Promise<Volume>
+```
+
+Create a new volume.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `name` | `string` | name of the volume. |
+| `opts`? | `ConnectionOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`Volume`\>
+
+new Volume instance.
+
+### destroy()
+
+```ts
+static destroy(volumeId: string, opts?: ConnectionOpts): Promise<boolean>
+```
+
+Destroy a volume.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `volumeId` | `string` | volume ID. |
+| `opts`? | `ConnectionOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`boolean`\>
+
+### getInfo()
+
+```ts
+static getInfo(volumeId: string, opts?: ConnectionOpts): Promise<VolumeAndToken>
+```
+
+Get volume information.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `volumeId` | `string` | volume ID. |
+| `opts`? | `ConnectionOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`VolumeAndToken`\>
+
+volume information.
+
+### list()
+
+```ts
+static list(opts?: ConnectionOpts): Promise<VolumeInfo[]>
+```
+
+List all volumes.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts`? | `ConnectionOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`VolumeInfo`[]\>
+
+list of volume information.
+
+***
+
+### VolumeConnectionConfig
+
+#### Constructors
+
+```ts
+new VolumeConnectionConfig(volume: Volume, opts?: VolumeApiOpts): VolumeConnectionConfig
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `volume` | `Volume` |
+| `opts`? | `VolumeApiOpts` |
+
+###### Returns
+
+`VolumeConnectionConfig`
+
+#### Properties
+
+| Property | Modifier | Type |
+| ------ | ------ | ------ |
+| <a id="apiurl"></a> `apiUrl` | `readonly` | `string` |
+| <a id="debug-1"></a> `debug` | `readonly` | `boolean` |
+| <a id="domain-1"></a> `domain` | `readonly` | `string` |
+| <a id="headers"></a> `headers?` | `readonly` | `Record`\<`string`, `string`\> |
+| <a id="logger"></a> `logger?` | `readonly` | `Logger` |
+| <a id="proxy-1"></a> `proxy?` | `readonly` | `string` |
+| <a id="requesttimeoutms"></a> `requestTimeoutMs` | `readonly` | `number` |
+| <a id="signal"></a> `signal?` | `readonly` | `AbortSignal` |
+| <a id="token-1"></a> `token?` | `readonly` | `string` |
+
+#### Methods
+
+### getSignal()
+
+```ts
+getSignal(requestTimeoutMs?: number, signal?: AbortSignal): undefined | AbortSignal
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `requestTimeoutMs`? | `number` |
+| `signal`? | `AbortSignal` |
+
+###### Returns
+
+`undefined` \| `AbortSignal`
+
+## Interfaces
+
+### VolumeApiOpts
+
+#### Properties
+
+### domain?
+
+```ts
+optional domain: string;
+```
+
+Domain to use for the volume API.
+
+###### Default
+
+E2B_DOMAIN // environment variable or `e2b.app`
+
+### headers?
+
+```ts
+optional headers: Record<string, string>;
+```
+
+Additional headers to send with the request.
+
+### logger?
+
+```ts
+optional logger: Logger;
+```
+
+Logger to use for logging messages. It can accept any object that implements `Logger` interface—for example, console.
+
+### proxy?
+
+```ts
+optional proxy: string;
+```
+
+Proxy URL to use for requests.
+
+###### Example
+
+```ts
+'http://user:pass@127.0.0.1:8080'
+```
+
+### requestTimeoutMs?
+
+```ts
+optional requestTimeoutMs: number;
+```
+
+Timeout for requests to the API in **milliseconds**.
+
+###### Default
+
+```ts
+60_000 // 60 seconds
+```
+
+### signal?
+
+```ts
+optional signal: AbortSignal;
+```
+
+An optional `AbortSignal` that can be used to cancel the in-flight request.
+When the signal is aborted, the underlying `fetch` is aborted and the
+returned promise rejects with an `AbortError`.
+
+### token?
+
+```ts
+optional token: string;
+```
+
+E2B API key to use for authentication.
+
+###### Default
+
+```ts
+E2B_API_KEY // environment variable
+```
+
+## Type Aliases
+
+### VolumeAndToken
+
+```ts
+type VolumeAndToken = VolumeInfo & object;
+```
+
+Information about a volume and its auth token.
+
+#### Type declaration
+
+| Name | Type | Description |
+| ------ | ------ | ------ |
+| `token` | `string` | Volume auth token. |
+
+***
+
+### VolumeEntryStat
+
+```ts
+type VolumeEntryStat = Omit<VolumeApiComponents["schemas"]["VolumeEntryStat"], "atime" | "mtime" | "ctime" | "type"> & object;
+```
+
+Volume entry stat with dates converted to Date objects.
+
+#### Type declaration
+
+| Name | Type | Description |
+| ------ | ------ | ------ |
+| `atime` | `Date` | Access time as a Date object. |
+| `ctime` | `Date` | Creation time as a Date object. |
+| `mtime` | `Date` | Modification time as a Date object. |
+| `type` | `VolumeFileType` | File type. |
+
+***
+
+### VolumeInfo
+
+```ts
+type VolumeInfo = object;
+```
+
+Information about a volume.
+
+#### Type declaration
+
+| Name | Type | Description |
+| ------ | ------ | ------ |
+| <a id="name-1"></a> `name` | `string` | Volume name. |
+| <a id="volumeid-1"></a> `volumeId` | `string` | Volume ID. |
+
+***
+
+### ~~VolumeMetadataOptions~~
+
+```ts
+type VolumeMetadataOptions = VolumeMetadataOpts;
+```
+
+#### Deprecated
+
+Use VolumeMetadataOpts instead.
+
+***
+
+### VolumeMetadataOpts
+
+```ts
+type VolumeMetadataOpts = object;
+```
+
+Options for updating file metadata.
+
+#### Type declaration
+
+| Name | Type | Description |
+| ------ | ------ | ------ |
+| <a id="gid"></a> `gid`? | `number` | Group ID of the file or directory. |
+| <a id="mode"></a> `mode`? | `number` | Mode of the file or directory. |
+| <a id="uid"></a> `uid`? | `number` | User ID of the file or directory. |
+
+***
+
+### VolumeReadOpts
+
+```ts
+type VolumeReadOpts = VolumeApiOpts & object;
+```
+
+Options for reading files from a volume.
+
+#### Type declaration
+
+| Name | Type | Description |
+| ------ | ------ | ------ |
+| `streamIdleTimeoutMs`? | `number` | Idle timeout for a streamed read (`format: 'stream'`) in **milliseconds**: abort if no chunk arrives from the server within this window *while reading*. It bounds only the wire — a slow or paused consumer never trips it (a consumer that holds the stream but stops reading is reclaimed server-side). Defaults to the request timeout; pass `0` to disable. |
+
+***
+
+### ~~VolumeWriteOptions~~
+
+```ts
+type VolumeWriteOptions = VolumeWriteOpts;
+```
+
+#### Deprecated
+
+Use VolumeWriteOpts instead.
+
+***
+
+### VolumeWriteOpts
+
+```ts
+type VolumeWriteOpts = VolumeMetadataOpts & object;
+```
+
+Options for file and directory operations.
+
+#### Type declaration
+
+| Name | Type | Description |
+| ------ | ------ | ------ |
+| `force`? | `boolean` | For makeDir: Create parent directories if they don't exist. For writeFile: Force overwrite of an existing file. |

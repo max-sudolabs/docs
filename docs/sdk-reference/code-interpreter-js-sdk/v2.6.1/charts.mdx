@@ -1,0 +1,246 @@
+---
+sidebarTitle: "Charts"
+"og:image": "/images/og/sdk-reference.png"
+"twitter:image": "/images/og/sdk-reference.png"
+---
+
+### ChartType
+
+Chart types
+
+#### Enumeration Members
+
+| Enumeration Member | Value |
+| ------ | ------ |
+| <a id="bar"></a> `BAR` | `"bar"` |
+| <a id="box_and_whisker"></a> `BOX_AND_WHISKER` | `"box_and_whisker"` |
+| <a id="line"></a> `LINE` | `"line"` |
+| <a id="pie"></a> `PIE` | `"pie"` |
+| <a id="scatter"></a> `SCATTER` | `"scatter"` |
+| <a id="superchart"></a> `SUPERCHART` | `"superchart"` |
+| <a id="unknown"></a> `UNKNOWN` | `"unknown"` |
+
+***
+
+### ScaleType
+
+Ax scale types
+
+#### Enumeration Members
+
+| Enumeration Member | Value |
+| ------ | ------ |
+| <a id="asinh"></a> `ASINH` | `"asinh"` |
+| <a id="categorical"></a> `CATEGORICAL` | `"categorical"` |
+| <a id="datetime"></a> `DATETIME` | `"datetime"` |
+| <a id="function"></a> `FUNCTION` | `"function"` |
+| <a id="functionlog"></a> `FUNCTIONLOG` | `"functionlog"` |
+| <a id="linear"></a> `LINEAR` | `"linear"` |
+| <a id="log"></a> `LOG` | `"log"` |
+| <a id="logit"></a> `LOGIT` | `"logit"` |
+| <a id="symlog"></a> `SYMLOG` | `"symlog"` |
+
+## Type Aliases
+
+### BarChart
+
+```ts
+type BarChart = Chart2D & object;
+```
+
+#### Type declaration
+
+| Name | Type |
+| ------ | ------ |
+| `elements` | `BarData`[] |
+| `type` | `BAR` |
+
+***
+
+### BarData
+
+```ts
+type BarData = object;
+```
+
+#### Type declaration
+
+| Name | Type |
+| ------ | ------ |
+| <a id="group"></a> `group` | `string` |
+| <a id="label"></a> `label` | `string` |
+| <a id="value"></a> `value` | `string` |
+
+***
+
+### BoxAndWhiskerChart
+
+```ts
+type BoxAndWhiskerChart = Chart2D & object;
+```
+
+#### Type declaration
+
+| Name | Type |
+| ------ | ------ |
+| `elements` | `BoxAndWhiskerData`[] |
+| `type` | `BOX_AND_WHISKER` |
+
+***
+
+### BoxAndWhiskerData
+
+```ts
+type BoxAndWhiskerData = object;
+```
+
+#### Type declaration
+
+| Name | Type |
+| ------ | ------ |
+| <a id="first_quartile"></a> `first_quartile` | `number` |
+| <a id="label-1"></a> `label` | `string` |
+| <a id="max"></a> `max` | `number` |
+| <a id="median"></a> `median` | `number` |
+| <a id="min"></a> `min` | `number` |
+| <a id="outliers"></a> `outliers` | `number`[] |
+| <a id="third_quartile"></a> `third_quartile` | `number` |
+
+***
+
+### Chart
+
+```ts
+type Chart = object;
+```
+
+Represents a chart.
+
+#### Type declaration
+
+| Name | Type |
+| ------ | ------ |
+| <a id="elements"></a> `elements` | `any`[] |
+| <a id="title"></a> `title` | `string` |
+| <a id="type"></a> `type` | `ChartType` |
+
+***
+
+### ChartTypes
+
+```ts
+type ChartTypes = 
+  | LineChart
+  | ScatterChart
+  | BarChart
+  | PieChart
+  | BoxAndWhiskerChart
+  | SuperChart;
+```
+
+***
+
+### LineChart
+
+```ts
+type LineChart = PointChart & object;
+```
+
+#### Type declaration
+
+| Name | Type |
+| ------ | ------ |
+| `type` | `LINE` |
+
+***
+
+### PieChart
+
+```ts
+type PieChart = Chart & object;
+```
+
+#### Type declaration
+
+| Name | Type |
+| ------ | ------ |
+| `elements` | `PieData`[] |
+| `type` | `PIE` |
+
+***
+
+### PieData
+
+```ts
+type PieData = object;
+```
+
+#### Type declaration
+
+| Name | Type |
+| ------ | ------ |
+| <a id="angle"></a> `angle` | `number` |
+| <a id="label-2"></a> `label` | `string` |
+| <a id="radius"></a> `radius` | `number` |
+
+***
+
+### PointData
+
+```ts
+type PointData = object;
+```
+
+#### Type declaration
+
+| Name | Type |
+| ------ | ------ |
+| <a id="label-3"></a> `label` | `string` |
+| <a id="points"></a> `points` | \[`number` \| `string`, `number` \| `string`\][] |
+
+***
+
+### ScatterChart
+
+```ts
+type ScatterChart = PointChart & object;
+```
+
+#### Type declaration
+
+| Name | Type |
+| ------ | ------ |
+| `type` | `SCATTER` |
+
+***
+
+### SuperChart
+
+```ts
+type SuperChart = Chart & object;
+```
+
+#### Type declaration
+
+| Name | Type |
+| ------ | ------ |
+| `elements` | `Chart`[] |
+| `type` | `SUPERCHART` |
+
+## Functions
+
+### deserializeChart()
+
+```ts
+function deserializeChart(data: any): Chart
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `data` | `any` |
+
+#### Returns
+
+`Chart`

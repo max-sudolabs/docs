@@ -1,0 +1,914 @@
+---
+sidebarTitle: "Filesystem"
+"og:image": "/images/og/sdk-reference.png"
+"twitter:image": "/images/og/sdk-reference.png"
+---
+
+### FileType
+
+Sandbox filesystem object type.
+
+#### Enumeration Members
+
+| Enumeration Member | Value | Description |
+| ------ | ------ | ------ |
+| <a id="dir"></a> `DIR` | `"dir"` | Filesystem object is a directory. |
+| <a id="file"></a> `FILE` | `"file"` | Filesystem object is a file. |
+
+## Classes
+
+### Filesystem
+
+Module for interacting with the sandbox filesystem.
+
+#### Constructors
+
+```ts
+new Filesystem(
+   transport: Transport, 
+   envdApi: EnvdApiClient, 
+   connectionConfig: ConnectionConfig): Filesystem
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `transport` | `Transport` |
+| `envdApi` | `EnvdApiClient` |
+| `connectionConfig` | `ConnectionConfig` |
+
+###### Returns
+
+`Filesystem`
+
+#### Methods
+
+### exists()
+
+```ts
+exists(path: string, opts?: FilesystemRequestOpts): Promise<boolean>
+```
+
+Check if a file or a directory exists.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to a file or a directory |
+| `opts`? | `FilesystemRequestOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`boolean`\>
+
+`true` if the file or directory exists, `false` otherwise
+
+### getInfo()
+
+```ts
+getInfo(path: string, opts?: FilesystemRequestOpts): Promise<EntryInfo>
+```
+
+Get information about a file or directory.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to a file or directory. |
+| `opts`? | `FilesystemRequestOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`EntryInfo`\>
+
+information about the file or directory like name, type, and path.
+
+### list()
+
+```ts
+list(path: string, opts?: FilesystemListOpts): Promise<EntryInfo[]>
+```
+
+List entries in a directory.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the directory. |
+| `opts`? | `FilesystemListOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`EntryInfo`[]\>
+
+list of entries in the sandbox filesystem directory.
+
+### makeDir()
+
+```ts
+makeDir(path: string, opts?: FilesystemRequestOpts): Promise<boolean>
+```
+
+Create a new directory and all directories along the way if needed on the specified path.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to a new directory. For example '/dirA/dirB' when creating 'dirB'. |
+| `opts`? | `FilesystemRequestOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`boolean`\>
+
+`true` if the directory was created, `false` if it already exists.
+
+### read()
+
+###### Call Signature
+
+```ts
+read(path: string, opts?: FilesystemReadOpts & object): Promise<string>
+```
+
+Read file content as a `string`.
+
+You can pass `text`, `bytes`, `blob`, or `stream` to `opts.format` to change the return type.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the file. |
+| `opts`? | `FilesystemReadOpts` & `object` | connection options. |
+
+###### Returns
+
+`Promise`\<`string`\>
+
+file content as string
+
+###### Call Signature
+
+```ts
+read(path: string, opts?: FilesystemReadOpts & object): Promise<Uint8Array<ArrayBufferLike>>
+```
+
+Read file content as a `Uint8Array`.
+
+You can pass `text`, `bytes`, `blob`, or `stream` to `opts.format` to change the return type.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the file. |
+| `opts`? | `FilesystemReadOpts` & `object` | connection options. |
+
+###### Returns
+
+`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+
+file content as `Uint8Array`
+
+###### Call Signature
+
+```ts
+read(path: string, opts?: FilesystemReadOpts & object): Promise<Blob>
+```
+
+Read file content as a `Blob`.
+
+You can pass `text`, `bytes`, `blob`, or `stream` to `opts.format` to change the return type.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the file. |
+| `opts`? | `FilesystemReadOpts` & `object` | connection options. |
+
+###### Returns
+
+`Promise`\<`Blob`\>
+
+file content as `Blob`
+
+###### Call Signature
+
+```ts
+read(path: string, opts?: FilesystemReadOpts & object): Promise<ReadableStream<Uint8Array<ArrayBufferLike>>>
+```
+
+Read file content as a `ReadableStream`.
+
+You can pass `text`, `bytes`, `blob`, or `stream` to `opts.format` to change the return type.
+
+The request timeout bounds only the initial handshake. The returned stream
+holds a pooled connection until it is fully read, cancelled, errors, or the
+idle timeout (`opts.streamIdleTimeoutMs`) fires—so consume it to the end or
+cancel it (`opts.signal`).
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the file. |
+| `opts`? | `FilesystemReadOpts` & `object` | connection options. |
+
+###### Returns
+
+`Promise`\<`ReadableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\>\>
+
+file content as `ReadableStream`
+
+### remove()
+
+```ts
+remove(path: string, opts?: FilesystemRequestOpts): Promise<void>
+```
+
+Remove a file or directory.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to a file or directory. |
+| `opts`? | `FilesystemRequestOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`void`\>
+
+### rename()
+
+```ts
+rename(
+   oldPath: string, 
+   newPath: string, 
+opts?: FilesystemRequestOpts): Promise<EntryInfo>
+```
+
+Rename a file or directory.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `oldPath` | `string` | path to the file or directory to rename. |
+| `newPath` | `string` | new path for the file or directory. |
+| `opts`? | `FilesystemRequestOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`EntryInfo`\>
+
+information about renamed file or directory.
+
+### watchDir()
+
+```ts
+watchDir(
+   path: string, 
+   onEvent: (event: FilesystemEvent) => void | Promise<void>, 
+opts?: WatchOpts & object): Promise<WatchHandle>
+```
+
+Start watching a directory for filesystem events.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to directory to watch. |
+| `onEvent` | (`event`: `FilesystemEvent`) => `void` \| `Promise`\<`void`\> | callback to call when an event in the directory occurs. |
+| `opts`? | `WatchOpts` & `object` | connection options. |
+
+###### Returns
+
+`Promise`\<`WatchHandle`\>
+
+`WatchHandle` object for stopping watching directory.
+
+### write()
+
+###### Call Signature
+
+```ts
+write(
+   path: string, 
+   data: string | ArrayBuffer | Blob | ReadableStream<any>, 
+opts?: FilesystemWriteOpts): Promise<WriteInfo>
+```
+
+Write content to a file.
+
+Writing to a file that doesn't exist creates the file.
+
+Writing to a file that already exists overwrites the file.
+
+Writing to a file at path that doesn't exist creates the necessary directories.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to file. |
+| `data` | `string` \| `ArrayBuffer` \| `Blob` \| `ReadableStream`\<`any`\> | data to write to the file. Data can be a string, `ArrayBuffer`, `Blob`, or `ReadableStream`. |
+| `opts`? | `FilesystemWriteOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`WriteInfo`\>
+
+information about the written file
+
+###### Call Signature
+
+```ts
+write(files: WriteEntry[], opts?: FilesystemWriteOpts): Promise<WriteInfo[]>
+```
+
+Write content to a file.
+
+Writing to a file that doesn't exist creates the file.
+
+Writing to a file that already exists overwrites the file.
+
+Writing to a file at path that doesn't exist creates the necessary directories.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `files` | `WriteEntry`[] | - |
+| `opts`? | `FilesystemWriteOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`WriteInfo`[]\>
+
+information about the written file
+
+### writeFiles()
+
+```ts
+writeFiles(files: WriteEntry[], opts?: FilesystemWriteOpts): Promise<WriteInfo[]>
+```
+
+Write multiple files.
+
+Writing to a file that doesn't exist creates the file.
+
+Writing to a file that already exists overwrites the file.
+
+Writing to a file at path that doesn't exist creates the necessary directories.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `files` | `WriteEntry`[] | list of files to write as `WriteEntry` objects, each containing `path` and `data`. |
+| `opts`? | `FilesystemWriteOpts` | connection options. |
+
+###### Returns
+
+`Promise`\<`WriteInfo`[]\>
+
+information about the written files
+
+## Interfaces
+
+### EntryInfo
+
+Sandbox filesystem object information.
+
+#### Properties
+
+### group
+
+```ts
+group: string;
+```
+
+Group owner of the filesystem object.
+
+### metadata?
+
+```ts
+optional metadata: Record<string, string>;
+```
+
+User-defined metadata stored on the file as `user.e2b.*` extended
+attributes. On writes this reflects the metadata supplied on upload; on
+reads (`getInfo`, `list`, `rename`) it reflects any `user.e2b.*` xattr on
+the file, including ones set out-of-band. `undefined` when none is set.
+
+### mode
+
+```ts
+mode: number;
+```
+
+File mode and permission bits.
+
+### modifiedTime?
+
+```ts
+optional modifiedTime: Date;
+```
+
+Last modification time of the filesystem object.
+
+### name
+
+```ts
+name: string;
+```
+
+Name of the filesystem object.
+
+### owner
+
+```ts
+owner: string;
+```
+
+Owner of the filesystem object.
+
+### path
+
+```ts
+path: string;
+```
+
+Path to the filesystem object.
+
+### permissions
+
+```ts
+permissions: string;
+```
+
+String representation of file permissions (e.g. 'rwxr-xr-x').
+
+### size
+
+```ts
+size: number;
+```
+
+Size of the filesystem object in bytes.
+
+### symlinkTarget?
+
+```ts
+optional symlinkTarget: string;
+```
+
+If the filesystem object is a symlink, this is the target of the symlink.
+
+### type?
+
+```ts
+optional type: FileType;
+```
+
+Type of the filesystem object.
+
+***
+
+### FilesystemListOpts
+
+Options for the sandbox filesystem operations.
+
+#### Properties
+
+### depth?
+
+```ts
+optional depth: number;
+```
+
+Depth of the directory to list.
+
+### requestTimeoutMs?
+
+```ts
+optional requestTimeoutMs: number;
+```
+
+Timeout for requests to the API in **milliseconds**.
+
+###### Default
+
+```ts
+60_000 // 60 seconds
+```
+
+### signal?
+
+```ts
+optional signal: AbortSignal;
+```
+
+An optional `AbortSignal` that can be used to cancel the in-flight request.
+When the signal is aborted, the underlying `fetch` is aborted and the
+returned promise rejects with an `AbortError`.
+
+### user?
+
+```ts
+optional user: string;
+```
+
+User to use for the operation in the sandbox.
+This affects the resolution of relative paths and ownership of the created filesystem objects.
+
+***
+
+### FilesystemReadOpts
+
+Options for reading files from the sandbox filesystem.
+
+#### Properties
+
+### gzip?
+
+```ts
+optional gzip: boolean;
+```
+
+When true, the download will request gzip-encoded responses.
+
+### requestTimeoutMs?
+
+```ts
+optional requestTimeoutMs: number;
+```
+
+Timeout for requests to the API in **milliseconds**.
+
+###### Default
+
+```ts
+60_000 // 60 seconds
+```
+
+### signal?
+
+```ts
+optional signal: AbortSignal;
+```
+
+An optional `AbortSignal` that can be used to cancel the in-flight request.
+When the signal is aborted, the underlying `fetch` is aborted and the
+returned promise rejects with an `AbortError`.
+
+### streamIdleTimeoutMs?
+
+```ts
+optional streamIdleTimeoutMs: number;
+```
+
+Idle timeout for a streamed read (`format: 'stream'`) in **milliseconds**:
+abort if no chunk arrives from the server within this window *while
+reading*. It bounds only the wire — a slow or paused consumer never trips
+it (a consumer that holds the stream but stops reading is reclaimed
+server-side). Defaults to the request timeout (60s); pass `0` to disable.
+
+### user?
+
+```ts
+optional user: string;
+```
+
+User to use for the operation in the sandbox.
+This affects the resolution of relative paths and ownership of the created filesystem objects.
+
+***
+
+### FilesystemRequestOpts
+
+Options for the sandbox filesystem operations.
+
+#### Extended by
+
+- `FilesystemWriteOpts`
+- `FilesystemReadOpts`
+- `FilesystemListOpts`
+- `WatchOpts`
+
+#### Properties
+
+### requestTimeoutMs?
+
+```ts
+optional requestTimeoutMs: number;
+```
+
+Timeout for requests to the API in **milliseconds**.
+
+###### Default
+
+```ts
+60_000 // 60 seconds
+```
+
+### signal?
+
+```ts
+optional signal: AbortSignal;
+```
+
+An optional `AbortSignal` that can be used to cancel the in-flight request.
+When the signal is aborted, the underlying `fetch` is aborted and the
+returned promise rejects with an `AbortError`.
+
+### user?
+
+```ts
+optional user: string;
+```
+
+User to use for the operation in the sandbox.
+This affects the resolution of relative paths and ownership of the created filesystem objects.
+
+***
+
+### FilesystemWriteOpts
+
+Options for writing files to the sandbox filesystem.
+
+#### Properties
+
+### gzip?
+
+```ts
+optional gzip: boolean;
+```
+
+When true, the upload will be gzip-compressed. Implies the
+`application/octet-stream` upload.
+
+Requires envd 0.5.7 or later — when not supported by the sandbox's envd
+version, the upload falls back to uncompressed `multipart/form-data`.
+
+### metadata?
+
+```ts
+optional metadata: Record<string, string>;
+```
+
+User-defined metadata to persist on the uploaded file(s) as extended
+attributes. Keys are lowercased by the sandbox, so they may differ in case
+when read back. Invalid keys or values throw an `InvalidArgumentError`.
+The same metadata is applied to every file in a multi-file upload.
+Requires envd 0.6.2 or later.
+
+### requestTimeoutMs?
+
+```ts
+optional requestTimeoutMs: number;
+```
+
+Timeout for requests to the API in **milliseconds**.
+
+###### Default
+
+```ts
+60_000 // 60 seconds
+```
+
+### signal?
+
+```ts
+optional signal: AbortSignal;
+```
+
+An optional `AbortSignal` that can be used to cancel the in-flight request.
+When the signal is aborted, the underlying `fetch` is aborted and the
+returned promise rejects with an `AbortError`.
+
+### useOctetStream?
+
+```ts
+optional useOctetStream: boolean;
+```
+
+When true, the upload uses `application/octet-stream` instead of `multipart/form-data`.
+Outside the browser, `ReadableStream` data is then streamed to the sandbox
+instead of being buffered in memory.
+
+Defaults to `undefined`, which uses octet-stream when any entry is a
+`ReadableStream` (so streamed uploads aren't buffered) and
+`multipart/form-data` otherwise; browsers always use `multipart/form-data`
+since they can't stream request bodies. Requires envd 0.5.7 or later — when
+not supported by the sandbox's envd version, the upload falls back to
+`multipart/form-data`.
+
+### user?
+
+```ts
+optional user: string;
+```
+
+User to use for the operation in the sandbox.
+This affects the resolution of relative paths and ownership of the created filesystem objects.
+
+***
+
+### WatchOpts
+
+Options for watching a directory.
+
+#### Properties
+
+### allowNetworkMounts?
+
+```ts
+optional allowNetworkMounts: boolean;
+```
+
+Allow watching paths on network filesystem mounts (NFS, CIFS, SMB, FUSE),
+which are rejected by default. Events on network mounts may be unreliable
+or not delivered at all.
+
+Requires envd 0.6.4 or later. Watching with this option against an older sandbox
+throws a `TemplateError`.
+
+### includeEntry?
+
+```ts
+optional includeEntry: boolean;
+```
+
+Include the EntryInfo of the affected entry in each FilesystemEvent.
+
+The entry is populated best-effort and may be `undefined` for events where the
+entry no longer exists at the path (e.g. remove or rename-away events).
+
+Requires envd 0.6.3 or later. Watching with this option against an older sandbox
+throws a `TemplateError`.
+
+### onExit()?
+
+```ts
+optional onExit: (err?: Error) => void | Promise<void>;
+```
+
+Callback to call when the watch operation stops.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `err`? | `Error` |
+
+###### Returns
+
+`void` \| `Promise`\<`void`\>
+
+### recursive?
+
+```ts
+optional recursive: boolean;
+```
+
+Watch the directory recursively
+
+### requestTimeoutMs?
+
+```ts
+optional requestTimeoutMs: number;
+```
+
+Timeout for requests to the API in **milliseconds**.
+
+###### Default
+
+```ts
+60_000 // 60 seconds
+```
+
+### signal?
+
+```ts
+optional signal: AbortSignal;
+```
+
+An optional `AbortSignal` that can be used to cancel the in-flight request.
+When the signal is aborted, the underlying `fetch` is aborted and the
+returned promise rejects with an `AbortError`.
+
+### timeoutMs?
+
+```ts
+optional timeoutMs: number;
+```
+
+Timeout for the watch operation in **milliseconds**.
+You can pass `0` to disable the timeout.
+
+###### Default
+
+```ts
+60_000 // 60 seconds
+```
+
+### user?
+
+```ts
+optional user: string;
+```
+
+User to use for the operation in the sandbox.
+This affects the resolution of relative paths and ownership of the created filesystem objects.
+
+***
+
+### WriteInfo
+
+Sandbox filesystem object information.
+
+#### Extended by
+
+- `EntryInfo`
+
+#### Properties
+
+### metadata?
+
+```ts
+optional metadata: Record<string, string>;
+```
+
+User-defined metadata stored on the file as `user.e2b.*` extended
+attributes. On writes this reflects the metadata supplied on upload; on
+reads (`getInfo`, `list`, `rename`) it reflects any `user.e2b.*` xattr on
+the file, including ones set out-of-band. `undefined` when none is set.
+
+### name
+
+```ts
+name: string;
+```
+
+Name of the filesystem object.
+
+### path
+
+```ts
+path: string;
+```
+
+Path to the filesystem object.
+
+### type?
+
+```ts
+optional type: FileType;
+```
+
+Type of the filesystem object.
+
+## Type Aliases
+
+### WriteEntry
+
+```ts
+type WriteEntry = object;
+```
+
+#### Type declaration
+
+| Name | Type |
+| ------ | ------ |
+| <a id="data"></a> `data` | `string` \| `ArrayBuffer` \| `Blob` \| `ReadableStream` |
+| <a id="path-2"></a> `path` | `string` |
+
+## Functions
+
+### mapEntryInfo()
+
+```ts
+function mapEntryInfo(entry: EntryInfo): EntryInfo
+```
+
+Map a protobuf `EntryInfo` to the SDK `EntryInfo`.
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `entry` | `EntryInfo` |
+
+#### Returns
+
+`EntryInfo`

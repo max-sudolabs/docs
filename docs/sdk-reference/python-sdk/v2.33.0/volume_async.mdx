@@ -1,0 +1,228 @@
+---
+sidebarTitle: "Volume Async"
+"og:image": "/images/og/sdk-reference.png"
+"twitter:image": "/images/og/sdk-reference.png"
+---
+
+
+
+
+
+
+## AsyncVolume
+
+```python
+class AsyncVolume()
+```
+
+E2B Volume for persistent storage that can be mounted to sandboxes (async).
+
+
+
+### create
+
+```python
+@classmethod
+async def create(cls, name: str, **opts: Unpack[ApiParams]) -> "AsyncVolume"
+```
+
+Create a new volume.
+
+**Arguments**:
+
+- `name`: Name of the volume
+
+**Returns**:
+
+An AsyncVolume instance for the new volume
+
+
+
+### connect
+
+```python
+@classmethod
+async def connect(cls, volume_id: str,
+                  **opts: Unpack[ApiParams]) -> "AsyncVolume"
+```
+
+Connect to an existing volume by ID.
+
+**Arguments**:
+
+- `volume_id`: Volume ID
+
+**Returns**:
+
+An AsyncVolume instance for the existing volume
+
+
+
+### destroy
+
+```python
+@staticmethod
+async def destroy(volume_id: str, **opts: Unpack[ApiParams]) -> bool
+```
+
+Destroy a volume.
+
+**Arguments**:
+
+- `volume_id`: Volume ID
+
+
+
+### make\_dir
+
+```python
+async def make_dir(path: str,
+                   uid: Optional[int] = None,
+                   gid: Optional[int] = None,
+                   mode: Optional[int] = None,
+                   force: Optional[bool] = None,
+                   **opts: Unpack[VolumeApiParams]) -> VolumeEntryStat
+```
+
+Create a directory.
+
+**Arguments**:
+
+- `path`: Path to the directory to create
+- `uid`: User ID of the created directory
+- `gid`: Group ID of the created directory
+- `mode`: Mode of the created directory
+- `force`: Create parent directories if they don't exist
+- `opts`: Connection options
+
+**Returns**:
+
+Information about the created directory
+
+
+
+### exists
+
+```python
+async def exists(path: str, **opts: Unpack[VolumeApiParams]) -> bool
+```
+
+Check whether a file or directory exists.
+
+Uses get_info under the hood. Returns True if the path exists,
+False if it does not (404). Other errors are re-raised.
+
+**Arguments**:
+
+- `path`: Path to the file or directory
+- `opts`: Connection options
+
+**Returns**:
+
+True if the path exists, False otherwise
+
+
+
+### update\_metadata
+
+```python
+async def update_metadata(path: str,
+                          uid: Optional[int] = None,
+                          gid: Optional[int] = None,
+                          mode: Optional[int] = None,
+                          **opts: Unpack[VolumeApiParams]) -> VolumeEntryStat
+```
+
+Update file or directory metadata.
+
+**Arguments**:
+
+- `path`: Path to the file or directory
+- `uid`: User ID of the file or directory
+- `gid`: Group ID of the file or directory
+- `mode`: Mode of the file or directory
+- `opts`: Connection options
+
+**Returns**:
+
+Updated entry information
+
+
+
+### read\_file
+
+```python
+async def read_file(
+    path: str,
+    format: Literal["text", "bytes", "stream"] = "text",
+    stream_idle_timeout: Optional[float] = None,
+    **opts: Unpack[VolumeApiParams]
+) -> Union[str, bytes, AsyncIterator[bytes]]
+```
+
+Read file content.
+
+You can pass `text`, `bytes`, or `stream` to `format` to change the return type.
+
+**Arguments**:
+
+- `path`: Path to the file
+- `format`: Format of the file content—`text` by default
+- `stream_idle_timeout`: Idle timeout in **seconds** for a streamed
+read (`format="stream"`)—abort if no chunk arrives within this
+window while reading. Resets on every chunk, so it bounds a stalled
+stream without limiting total transfer time. Defaults to the request
+timeout; pass `0` to disable.
+- `opts`: Connection options
+
+**Returns**:
+
+File content as string, bytes, or async iterator of bytes
+
+
+
+### write\_file
+
+```python
+async def write_file(path: str,
+                     data: Union[str, bytes, IO],
+                     uid: Optional[int] = None,
+                     gid: Optional[int] = None,
+                     mode: Optional[int] = None,
+                     force: Optional[bool] = None,
+                     **opts: Unpack[VolumeApiParams]) -> VolumeEntryStat
+```
+
+Write content to a file.
+
+Writing to a file that doesn't exist creates the file.
+Writing to a file that already exists overwrites the file.
+
+**Arguments**:
+
+- `path`: Path to the file
+- `data`: Data to write to the file. Data can be a string, bytes, or IO. File-like objects are streamed in chunks instead of being buffered in memory.
+- `uid`: User ID of the created file
+- `gid`: Group ID of the created file
+- `mode`: Mode of the created file
+- `force`: Force overwrite of an existing file
+- `opts`: Connection options
+
+**Returns**:
+
+Information about the written file
+
+
+
+### remove
+
+```python
+async def remove(path: str, **opts: Unpack[VolumeApiParams]) -> None
+```
+
+Remove a file or directory.
+
+**Arguments**:
+
+- `path`: Path to the file or directory to remove
+- `opts`: Connection options
