@@ -76,6 +76,7 @@
               "docs/agents/mastra",
               "docs/agents/crewai",
               "docs/agents/openai-agents-sdk",
+              "docs/agents/nemo-gym",
               {
                 "group": "OpenClaw",
                 "icon": "https://mintlify.s3.us-west-1.amazonaws.com/e2b-openclaw-icon/images/icons/openclaw.svg",
