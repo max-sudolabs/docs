@@ -1389,7 +1389,23 @@ def filter_paths(spec: dict[str, Any]) -> None:
     """
     # Remove explicitly excluded paths
     excluded_prefixes = ("/access-tokens", "/api-keys")
-    excluded_exact = {"/init"}
+    # Internal-only envd endpoints that leak in from the upstream spec. The SDKs
+    # never call these - they are envd/orchestrator internals for the pause and
+    # resume path (cgroup + filesystem freeze/thaw, heap collapse, zero-copy file
+    # compose). They must not appear in the developer-facing docs, and their
+    # multi-sentence summaries also blow past the macOS 255-byte filename limit
+    # Mintlify derives from `summary` (e.g. /fsfreeze), which aborts the whole
+    # API-reference build. Exclude them here so a re-add upstream cannot re-leak
+    # them into openapi-public.yml.
+    excluded_exact = {
+        "/init",
+        "/freeze",
+        "/unfreeze",
+        "/collapse",
+        "/fsfreeze",
+        "/fsthaw",
+        "/files/compose",
+    }
     to_remove = [
         p for p in spec["paths"]
         if p.startswith(excluded_prefixes) or p in excluded_exact
