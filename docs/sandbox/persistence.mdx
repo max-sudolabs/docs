@@ -211,7 +211,7 @@ Sandbox.kill(sbx.sandbox_id)
 </CodeGroup>
 
 ## Sandbox's timeout
-When you connect to a sandbox, the timeout resets. The default is 5 minutes, but you can pass a custom timeout to the `Sandbox.connect()` method:
+When connecting to a sandbox, the timeout is not reset. `Sandbox.connect()` only ever extends the sandbox's lifetime - the new expiry is the later of the current expiry and now plus the timeout you pass (default 5 minutes). So a sandbox with 20 minutes left stays at 20 minutes even if you connect with the default timeout, while a sandbox with only 1 minute left is bumped up to 5. To set an exact timeout that can also shorten the remaining lifetime, use `setTimeout()` / `set_timeout()` instead.
 
 <CodeGroup>
 ```js JavaScript & TypeScript
