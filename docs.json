@@ -72,6 +72,7 @@
               "docs/agents/deep-agents",
               "docs/agents/open-swe",
               "docs/agents/eve",
+              "docs/agents/flue",
               "docs/agents/google-adk",
               "docs/agents/mastra",
               "docs/agents/crewai",
