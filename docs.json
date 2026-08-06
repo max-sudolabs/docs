@@ -264,6 +264,7 @@
           {
             "group": "FAQ",
             "pages": [
+              "docs/faq/calculate-sandbox-price",
               "docs/faq/increase-concurrency",
               "docs/faq/paused-sandboxes-concurrency",
               "docs/faq/template-limit",
