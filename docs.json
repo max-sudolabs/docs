@@ -250,7 +250,8 @@
           {
             "group": "Deployment",
             "pages": [
-              "docs/byoc"
+              "docs/byoc",
+              "docs/deployment/dscp-marking"
             ]
           },
           {
