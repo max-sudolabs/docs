@@ -73,3 +73,14 @@ print(response2.status_code)  # 200
 </CodeGroup>
 
 When `allowPublicTraffic` / `allow_public_traffic` is set to a falsy value, all requests to the sandbox's public URLs must include the `e2b-traffic-access-token` header with the value from `sandbox.trafficAccessToken` / `sandbox.traffic_access_token`.
+
+## Running a firewall inside the sandbox
+
+<Warning>
+If you are using custom `iptables` or firewall rules inside a sandbox, keep E2B's own connectivity open or the sandbox will lose contact with the SDK:
+
+- All loopback (`lo`) traffic.
+- Inbound TCP to port `49983` (the envd control channel).
+- Inbound TCP to port `49999`, if you use the [Code Interpreter](/docs/code-interpreting/analyze-data-with-ai) template.
+- Established and related connections, if you filter outbound traffic.
+</Warning>
