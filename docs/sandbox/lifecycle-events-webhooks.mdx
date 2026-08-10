@@ -266,13 +266,15 @@ The payload structure matches the event format from the API:
       "vcpu_count": 2,
       "memory_mb": 512,
       "execution_time": 1000
-    }
+    },
+    "kill_reason": "request"
   },
   "sandbox_id": "<your-sandbox-id>",
   "sandbox_execution_id": "<sandbox-unique-execution-id>",
   "sandbox_template_id": "<your-template-id>",
   "sandbox_build_id": "<template-build-id>",
-  "sandbox_team_id": "<your-team-id>"
+  "sandbox_team_id": "<your-team-id>",
+  "events_ttl_days": 30
 }
 ```
 
@@ -282,6 +284,17 @@ The payload structure matches the event format from the API:
 - `vcpu_count` - Number of vCPUs assigned to the sandbox
 - `memory_mb` - Memory assigned to the sandbox in MB
 - `execution_time` - Sandbox runtime in milliseconds
+
+`event_data.kill_reason` is included on `sandbox.lifecycle.killed` events and describes why the sandbox was terminated. Possible values:
+
+- `request` - stopped by an explicit kill request
+- `timeout` - the sandbox reached its timeout
+- `admin` - stopped by an E2B administrative action
+- `orphaned` - the sandbox was orphaned and cleaned up
+- `base_template_missing` - the sandbox's base template was unavailable
+- `unknown` - the reason was not recorded
+
+`events_ttl_days` is the number of days the event is retained and remains available through the lifecycle events API.
 
 # Webhook verification
 To ensure the authenticity of webhook requests, each request includes a signature in the `e2b-signature` header.
@@ -345,18 +358,18 @@ if verifyWebhookSignature(secret, webhookBodyString, webhookSignatureHeaderStrin
 </CodeGroup>
 
 ## Webhook request headers
-When webhooks is send, we are adding headers to help you verify the authenticity of the request and make debugging easier.
+When a webhook is sent, E2B adds headers to help you verify the authenticity of the request and make debugging easier.
 
 - `e2b-webhook-id` - Webhook ID that triggered the event
-- `e2b-delivery-id` - Unique ID for the delivery attempt
+- `e2b-delivery-id` - Unique ID for the delivery attempt. A new value is generated for each retry of the same event
 - `e2b-signature-version` - Currently always `v1`, reserved for future use
-- `e2b-signature` - Signature for verifying the request authenticity`
+- `e2b-signature` - Signature for verifying the request authenticity
 
 ## Delivery and retries
 
-If a delivery fails, E2B retries it **up to 3 times, 10 seconds apart**. A delivery is treated as failed when your endpoint returns a 4xx or 5xx status code, the request times out, or it fails with a network error.
+E2B attempts each delivery **up to 3 times in total**. A delivery attempt is treated as failed when your endpoint returns a 4xx or 5xx status code, the request times out, or it fails with a network error.
 
-Because a delivery can be retried, the same event may be delivered more than once. Make your webhook handler idempotent and use the `e2b-delivery-id` header to deduplicate deliveries you've already processed.
+Because a delivery can be retried, the same event may be delivered more than once. Make your webhook handler idempotent and use the event `id` field in the payload to deduplicate deliveries you've already processed.
 
 ## Available event types
 
