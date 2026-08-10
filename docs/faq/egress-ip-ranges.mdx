@@ -1,0 +1,35 @@
+---
+title: "Do you publish egress IP ranges (CIDRs)?"
+sidebarTitle: Egress IP ranges
+description: "Whether E2B publishes egress CIDRs, and how to allowlist or pin sandbox outbound traffic."
+---
+
+E2B does not publish a list of egress CIDRs, and there are no dedicated or static egress IP addresses on any plan (including Enterprise). Sandbox outbound traffic leaves from ephemeral public IPs on E2B's cloud, and those IPs rotate over time, so there is no fixed E2B-owned IP set to allowlist.
+
+If you need to lock down an egress proxy or firewall so it only accepts E2B sandbox traffic, you have two options.
+
+## Option 1: Allowlist the cloud provider's published ranges
+
+E2B's managed sandboxes run on Google Cloud, in the regions below.
+
+| Region | Google Cloud region(s) | Available on | How to enable |
+| --- | --- | --- | --- |
+| US | `us-west1` | All plans | Default - no action needed |
+| EU | `europe-west1` | Pro plan and above | [Contact support](https://e2b.dev/dashboard?support=true) |
+| APAC | `asia-southeast1` | Pro plan and above | [Contact support](https://e2b.dev/dashboard?support=true) |
+
+Because outbound traffic leaves from Google Cloud IPs, the source addresses fall within Google's published IP ranges, available at [https://www.gstatic.com/ipranges/cloud.json](https://www.gstatic.com/ipranges/cloud.json). You can allowlist the Google Cloud ranges for the region or regions your sandboxes run in.
+
+<Note>
+This is a coarse allowlist. Google's published ranges cover all Google Cloud workloads, not just E2B, so they do not uniquely identify traffic coming from your sandboxes. E2B may also run your sandboxes across more than one Google Cloud region and can change placement over time, so the exact ranges are not guaranteed to stay fixed. If you need a tight, stable allowlist that only your own sandboxes can pass, use a proxy (Option 2).
+</Note>
+
+## Option 2: Route sandbox traffic through your own proxy (dedicated IP)
+
+To get a single, stable egress IP that you fully control, tunnel sandbox traffic through a proxy server you own. Traffic routed through the proxy then leaves from your proxy's IP, which you can allowlist exactly.
+
+See [Proxy tunneling](/docs/network/ip-tunneling) for a step-by-step setup that routes sandbox traffic through a Shadowsocks proxy running on a cloud VM.
+
+## Restricting what a sandbox can reach
+
+The options above are about the IPs your sandbox traffic comes *from*. If instead you want to restrict which destinations a sandbox is allowed to reach, use per-sandbox allow and deny lists, or disable internet access entirely. See [Internet access](/docs/network/internet-access).

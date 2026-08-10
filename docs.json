@@ -273,6 +273,7 @@
               "docs/faq/template-limit",
               "docs/faq/public-templates",
               "docs/faq/eu-region",
+              "docs/faq/egress-ip-ranges",
               "docs/faq/iptables-xt-owner",
               "docs/faq/pip-install-error",
               "docs/faq/port-49999-not-open",
