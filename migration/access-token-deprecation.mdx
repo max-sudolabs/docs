@@ -1,0 +1,47 @@
+---
+title: "E2B_ACCESS_TOKEN deprecation"
+sidebarTitle: "Access token deprecation"
+description: "E2B_ACCESS_TOKEN is deprecated and no longer works. Authenticate the CLI with E2B_API_KEY instead."
+---
+
+`E2B_ACCESS_TOKEN` was deprecated for security reasons and, as of August 1, 2026, no longer works. It was announced on June 22, 2026. Authenticate with `E2B_API_KEY` instead.
+
+- **July 1, 2026**: new access tokens could no longer be generated in the dashboard. Existing tokens kept working until August 1.
+- **August 1, 2026**: all access tokens stopped working. Any request authenticated with an access token now fails.
+
+For most people this is a small change. The E2B CLI already authenticates with `E2B_API_KEY` alone, so it no longer needs the access token. As of August 1, 2026 the infrastructure no longer accepts the token at all. In practice the migration is removing a now-redundant environment variable, and upgrading the CLI if you are on an older version.
+
+## Who is affected
+
+This affects anyone who authenticates the E2B CLI by setting the `E2B_ACCESS_TOKEN` environment variable. CI/CD pipelines are the most common case, but the same applies to servers, containers, and local scripts. The E2B SDKs authenticate with API keys, so SDK users are unaffected.
+
+The interactive login commands `e2b auth login` and `e2b auth configure` set up your local workstation. They are outside the scope of this change.
+
+It also affects anyone still on the V1 build system, since V1 builds authenticated with the access token. Now that tokens no longer work, V1 builds have stopped as well. See the [V1 build system deprecation](/migration/v1-build-deprecation) to migrate to V2, which builds with `E2B_API_KEY`.
+
+## Migrate your CLI authentication
+
+First, get an API key. You can find it in the [dashboard keys tab](https://e2b.dev/dashboard?tab=keys). It is the same key you use with the SDKs.
+
+Next, set a single environment variable wherever you run the CLI and remove the access token. Use CLI version 2.12.1 or later (latest recommended).
+
+```bash Terminal
+# Set only your API key (no access token, no login step)
+export E2B_API_KEY=e2b_...
+```
+
+Your API key is scoped to a project, so the CLI targets the right project automatically. There is no separate project variable to set.
+
+With the API key set, run CLI commands directly. You do not need to run `e2b auth login`.
+
+```bash Terminal
+e2b template create my-template
+e2b sandbox list
+```
+
+If you currently set both variables, delete the `E2B_ACCESS_TOKEN` line. It is no longer needed.
+
+```bash Terminal
+export E2B_API_KEY=e2b_...
+export E2B_ACCESS_TOKEN=...   # Remove this line
+```

@@ -127,8 +127,8 @@ jobs:
       - name: Collect change details
         id: changes
         run: |
-          CHANGED_FILES="$(git status --porcelain -- docs/sdk-reference docs.json | wc -l | tr -d ' ')"
-          TOTAL_MDX_FILES="$(find docs/sdk-reference -type f -name '*.mdx' | wc -l | tr -d ' ')"
+          CHANGED_FILES="$(git status --porcelain -- sdk-reference docs.json | wc -l | tr -d ' ')"
+          TOTAL_MDX_FILES="$(find sdk-reference -type f -name '*.mdx' | wc -l | tr -d ' ')"
 
           if [[ "$CHANGED_FILES" == "0" ]]; then
             echo "changes=false" >> $GITHUB_OUTPUT
@@ -148,7 +148,7 @@ jobs:
           branch: automation/sdk-reference-sync
           delete-branch: true
           add-paths: |
-            docs/sdk-reference
+            sdk-reference
             docs.json
           author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
           committer: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
@@ -166,7 +166,7 @@ jobs:
             - Force: `${{ steps.params.outputs.force }}`
 
             ## Changes
-            - Updates generated reference files under `docs/sdk-reference/**`
+            - Updates generated reference files under `sdk-reference/**`
             - Updates `docs.json` navigation when generation changes the docs tree
             - Changed files detected in this run: `${{ steps.changes.outputs.changed_files }}`
             - Total tracked MDX reference files after generation: `${{ steps.changes.outputs.total_mdx_files }}`

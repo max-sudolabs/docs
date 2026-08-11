@@ -1,0 +1,72 @@
+---
+title: "E2B Documentation"
+sidebarTitle: Home
+icon: house
+---
+
+import { Quickstart } from '/snippets/Quickstart.jsx';
+
+## What is E2B?
+
+E2B provides isolated sandboxes that let agents safely execute code, process data, and run tools. Our SDKs make it easy to start and manage these environments.
+
+Start a sandbox and run code in a few lines:
+
+<CodeGroup>
+```bash JavaScript & TypeScript
+npm i e2b
+```
+```bash Python
+pip install e2b
+```
+</CodeGroup>
+
+<CodeGroup>
+```javascript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create() // Needs E2B_API_KEY environment variable
+const result = await sandbox.commands.run('echo "Hello from E2B Sandbox!"')
+console.log(result.stdout)
+```
+```python Python
+from e2b import Sandbox
+
+sandbox = Sandbox.create()  # Needs E2B_API_KEY environment variable
+result = sandbox.commands.run('echo "Hello from E2B Sandbox!"')
+print(result.stdout)
+```
+</CodeGroup>
+
+## E2B building blocks
+
+A quick overview of the core building blocks you'll interact with when using E2B.
+
+- [**Sandbox**](/sandbox) — A fast, secure Linux VM created on demand for your agent
+
+- [**Template**](/template/quickstart) — Defines what environment a sandbox starts with
+
+## How to use the docs
+
+The documentation is split into three main sections:
+
+- [**Quickstart**](#quickstart) — Step-by-step tutorials that walk you through creating your first E2B sandboxes.
+
+- [**Examples**](#examples) — In-depth tutorials focused on specific use cases. Pick the topics that match what you're building.
+
+- [**SDK Reference**](https://docs.e2b.dev/sdk-reference) — A complete technical reference for every SDK method, parameter, and configuration option.
+
+## Quickstart
+
+<Quickstart />
+
+## Examples
+
+<CardGroup cols={2}>
+  <Card title="Computer Use" icon="desktop" href="/use-cases/computer-use">
+    Build AI agents that see, understand, and control virtual Linux desktops using E2B Desktop sandboxes.
+  </Card>
+  <Card title="GitHub Actions CI/CD" icon="gears" href="/use-cases/ci-cd">
+    Use E2B sandboxes in your GitHub Actions workflows to run testing, validation, and AI code reviews.
+  </Card>
+</CardGroup>

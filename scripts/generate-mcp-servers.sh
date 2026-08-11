@@ -12,7 +12,7 @@ if [ -z "$1" ]; then
 fi
 
 SPEC_FILE="$1"
-OUTPUT_FILE="docs/mcp/available-servers.mdx"
+OUTPUT_FILE="mcp/available-servers.mdx"
 
 # Check if spec file exists
 if [ ! -f "$SPEC_FILE" ]; then

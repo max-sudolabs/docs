@@ -1,0 +1,667 @@
+---
+title: "Cloud browser"
+description: "Use Kernel cloud browsers with E2B sandboxes to give your agents access to the internet."
+icon: "globe"
+---
+
+<Note>
+This guide covers **cloud browsers** powered by [Kernel](https://www.kernel.sh/) — cloud Chromium instances your code controls via [CDP](https://chromedevtools.github.io/devtools-protocol/) or the [Kernel SDK](https://www.kernel.sh/docs/sdk/overview). For **local browser automation** using a virtual desktop, see [Computer use](/use-cases/computer-use).
+</Note>
+
+Cloud browsers run on Kernel's managed infrastructure, not inside your sandbox. This gives you sub-second browser startup, [persistent sessions you can pause and resume](https://www.onkernel.com/docs/browsers/persistence) across hours or days, and reusable browser state. Your agent connects to them over the network via CDP, BiDi, or their CUA API.
+
+Kernel handles CAPTCHA solving, residential proxies, authentication, and observability out of the box.
+
+## Prerequisites
+
+- An [E2B API key](https://e2b.dev/dashboard?tab=keys)
+- A [Kernel API key](https://dashboard.onkernel.com/api-keys)
+- Python 3.10+ / Node.js 18+
+
+<CodeGroup>
+```bash JavaScript & TypeScript
+npm i e2b @onkernel/sdk playwright-core
+```
+```bash Python
+pip install e2b kernel playwright
+```
+</CodeGroup>
+
+Set your keys in the environment:
+
+```bash .env
+E2B_API_KEY=e2b_***
+KERNEL_API_KEY=kernel_***
+```
+
+E2B provides a pre-built sandbox template with the Kernel SDK and Playwright already installed:
+
+| Template | What's included | Best for |
+|---|---|---|
+| `kernel-browser` | Kernel SDK, Playwright, Browser Use | Screenshots, scraping, app previews, autonomous agents |
+
+## Examples
+
+Here are three common patterns for using cloud browsers with E2B sandboxes.
+
+<CardGroup cols={3}>
+  <Card title="Screenshot app endpoints" icon="camera" href="#screenshot-app-endpoints">
+    Deploy a web app in a sandbox, screenshot every route
+  </Card>
+  <Card title="Agent data extraction" icon="robot" href="#agent-data-extraction">
+    Let an LLM autonomously browse and extract data
+  </Card>
+  <Card title="Live browser preview" icon="eye" href="#live-browser-preview">
+    Watch the browser in real time via Kernel's live view
+  </Card>
+</CardGroup>
+
+---
+
+## Screenshot app endpoints
+
+Deploy a web app inside an E2B sandbox, get a public URL, then use a Kernel cloud browser to screenshot every route.
+
+<Steps>
+<Step title="Create the sandbox and start your app">
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+// A minimal FastAPI app with three routes to screenshot
+const FASTAPI_APP = `
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+
+app = FastAPI()
+
+@app.get("/")
+def home():
+    return HTMLResponse("<h1>Home</h1><p>Welcome to the app.</p>")
+
+@app.get("/about")
+def about():
+    return HTMLResponse("<h1>About</h1><p>About this app.</p>")
+
+@app.get("/dashboard")
+def dashboard():
+    return HTMLResponse("<h1>Dashboard</h1><p>Your dashboard.</p>")
+`
+
+const sandbox = await Sandbox.create('kernel-browser', {
+  envs: { KERNEL_API_KEY: process.env.KERNEL_API_KEY! },
+  timeoutMs: 300_000,
+})
+
+await sandbox.files.write('/home/user/app.py', FASTAPI_APP)
+await sandbox.commands.run(
+  'pip install fastapi uvicorn',
+  { timeoutMs: 60_000 },
+)
+await sandbox.commands.run(
+  'uvicorn app:app --host 0.0.0.0 --port 8000',
+  { background: true, cwd: '/home/user' },
+)
+```
+```python Python
+import os
+from e2b import Sandbox
+
+# A minimal FastAPI app with three routes to screenshot
+FASTAPI_APP = """
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+
+app = FastAPI()
+
+@app.get("/")
+def home():
+    return HTMLResponse("<h1>Home</h1><p>Welcome to the app.</p>")
+
+@app.get("/about")
+def about():
+    return HTMLResponse("<h1>About</h1><p>About this app.</p>")
+
+@app.get("/dashboard")
+def dashboard():
+    return HTMLResponse("<h1>Dashboard</h1><p>Your dashboard.</p>")
+"""
+
+sandbox = Sandbox.create(
+    "kernel-browser",
+    envs={"KERNEL_API_KEY": os.environ["KERNEL_API_KEY"]},
+    timeout=300,
+)
+
+sandbox.files.write("/home/user/app.py", FASTAPI_APP)
+sandbox.commands.run(
+    "pip install fastapi uvicorn",
+    timeout=60,
+)
+sandbox.commands.run(
+    "uvicorn app:app --host 0.0.0.0 --port 8000",
+    background=True,
+    cwd="/home/user",
+)
+```
+</CodeGroup>
+</Step>
+
+<Step title="Screenshot each route with Kernel">
+E2B exposes any sandbox port as a public HTTPS endpoint. Write a browsing script into the sandbox that creates a Kernel browser and screenshots each route.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+const host = sandbox.getHost(8000)
+const appUrl = `https://${host}`
+
+const BROWSE_SCRIPT = `
+import sys
+from kernel import Kernel
+from playwright.sync_api import sync_playwright
+
+app_url = "${appUrl}"
+routes = ["/", "/about", "/dashboard"]
+
+kernel = Kernel()
+kb = kernel.browsers.create()
+
+with sync_playwright() as pw:
+    browser = pw.chromium.connect_over_cdp(kb.cdp_ws_url)
+    page = browser.new_page()
+    page.set_viewport_size({"width": 1280, "height": 720})
+
+    for route in routes:
+        page.goto(f"{app_url}{route}", wait_until="networkidle")
+        name = "home" if route == "/" else route.strip("/")
+        page.screenshot(path=f"/home/user/{name}.png")
+        print(f"Captured {route}")
+
+    browser.close()
+`
+
+await sandbox.files.write('/home/user/browse.py', BROWSE_SCRIPT)
+const result = await sandbox.commands.run(
+  'python3 /home/user/browse.py',
+  { timeoutMs: 60_000 },
+)
+console.log(result.stdout)
+await sandbox.kill()
+```
+```python Python
+host = sandbox.get_host(8000)
+app_url = f"https://{host}"
+
+BROWSE_SCRIPT = f'''
+from kernel import Kernel
+from playwright.sync_api import sync_playwright
+
+app_url = "{app_url}"
+routes = ["/", "/about", "/dashboard"]
+
+kernel = Kernel()
+kb = kernel.browsers.create()
+
+with sync_playwright() as pw:
+    browser = pw.chromium.connect_over_cdp(kb.cdp_ws_url)
+    page = browser.new_page()
+    page.set_viewport_size({{"width": 1280, "height": 720}})
+
+    for route in routes:
+        page.goto(f"{{app_url}}{{route}}", wait_until="networkidle")
+        name = "home" if route == "/" else route.strip("/")
+        page.screenshot(path=f"/home/user/{{name}}.png")
+        print(f"Captured {{route}}")
+
+    browser.close()
+'''
+
+sandbox.files.write("/home/user/browse.py", BROWSE_SCRIPT)
+result = sandbox.commands.run("python3 /home/user/browse.py", timeout=60)
+print(result.stdout)
+sandbox.kill()
+```
+</CodeGroup>
+</Step>
+</Steps>
+
+Full example:
+
+<CodeGroup>
+```typescript JavaScript & TypeScript expandable
+import { Sandbox } from 'e2b'
+
+// A minimal FastAPI app with three routes to screenshot
+const FASTAPI_APP = `
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+
+app = FastAPI()
+
+@app.get("/")
+def home():
+    return HTMLResponse("<h1>Home</h1><p>Welcome to the app.</p>")
+
+@app.get("/about")
+def about():
+    return HTMLResponse("<h1>About</h1><p>About this app.</p>")
+
+@app.get("/dashboard")
+def dashboard():
+    return HTMLResponse("<h1>Dashboard</h1><p>Your dashboard.</p>")
+`
+
+// 1. Create the sandbox and start the app
+const sandbox = await Sandbox.create('kernel-browser', {
+  envs: { KERNEL_API_KEY: process.env.KERNEL_API_KEY! },
+  timeoutMs: 300_000,
+})
+
+await sandbox.files.write('/home/user/app.py', FASTAPI_APP)
+await sandbox.commands.run(
+  'pip install fastapi uvicorn',
+  { timeoutMs: 60_000 },
+)
+await sandbox.commands.run(
+  'uvicorn app:app --host 0.0.0.0 --port 8000',
+  { background: true, cwd: '/home/user' },
+)
+
+// 2. Screenshot each route with a Kernel browser
+const host = sandbox.getHost(8000)
+const appUrl = `https://${host}`
+
+const BROWSE_SCRIPT = `
+import sys
+from kernel import Kernel
+from playwright.sync_api import sync_playwright
+
+app_url = "${appUrl}"
+routes = ["/", "/about", "/dashboard"]
+
+kernel = Kernel()
+kb = kernel.browsers.create()
+
+with sync_playwright() as pw:
+    browser = pw.chromium.connect_over_cdp(kb.cdp_ws_url)
+    page = browser.new_page()
+    page.set_viewport_size({"width": 1280, "height": 720})
+
+    for route in routes:
+        page.goto(f"{app_url}{route}", wait_until="networkidle")
+        name = "home" if route == "/" else route.strip("/")
+        page.screenshot(path=f"/home/user/{name}.png")
+        print(f"Captured {route}")
+
+    browser.close()
+`
+
+await sandbox.files.write('/home/user/browse.py', BROWSE_SCRIPT)
+const result = await sandbox.commands.run(
+  'python3 /home/user/browse.py',
+  { timeoutMs: 60_000 },
+)
+console.log(result.stdout)
+await sandbox.kill()
+```
+```python Python expandable
+import os
+from e2b import Sandbox
+
+# A minimal FastAPI app with three routes to screenshot
+FASTAPI_APP = """
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+
+app = FastAPI()
+
+@app.get("/")
+def home():
+    return HTMLResponse("<h1>Home</h1><p>Welcome to the app.</p>")
+
+@app.get("/about")
+def about():
+    return HTMLResponse("<h1>About</h1><p>About this app.</p>")
+
+@app.get("/dashboard")
+def dashboard():
+    return HTMLResponse("<h1>Dashboard</h1><p>Your dashboard.</p>")
+"""
+
+# 1. Create the sandbox and start the app
+sandbox = Sandbox.create(
+    "kernel-browser",
+    envs={"KERNEL_API_KEY": os.environ["KERNEL_API_KEY"]},
+    timeout=300,
+)
+
+sandbox.files.write("/home/user/app.py", FASTAPI_APP)
+sandbox.commands.run(
+    "pip install fastapi uvicorn",
+    timeout=60,
+)
+sandbox.commands.run(
+    "uvicorn app:app --host 0.0.0.0 --port 8000",
+    background=True,
+    cwd="/home/user",
+)
+
+# 2. Screenshot each route with a Kernel browser
+host = sandbox.get_host(8000)
+app_url = f"https://{host}"
+
+BROWSE_SCRIPT = f'''
+from kernel import Kernel
+from playwright.sync_api import sync_playwright
+
+app_url = "{app_url}"
+routes = ["/", "/about", "/dashboard"]
+
+kernel = Kernel()
+kb = kernel.browsers.create()
+
+with sync_playwright() as pw:
+    browser = pw.chromium.connect_over_cdp(kb.cdp_ws_url)
+    page = browser.new_page()
+    page.set_viewport_size({{"width": 1280, "height": 720}})
+
+    for route in routes:
+        page.goto(f"{{app_url}}{{route}}", wait_until="networkidle")
+        name = "home" if route == "/" else route.strip("/")
+        page.screenshot(path=f"/home/user/{{name}}.png")
+        print(f"Captured {{route}}")
+
+    browser.close()
+'''
+
+sandbox.files.write("/home/user/browse.py", BROWSE_SCRIPT)
+result = sandbox.commands.run("python3 /home/user/browse.py", timeout=60)
+print(result.stdout)
+sandbox.kill()
+```
+</CodeGroup>
+
+---
+
+## Agent data extraction
+
+Use [Browser Use](https://docs.browser-use.com/) to let an LLM autonomously browse a website and extract data. The agent sees the page via screenshots and decides what to click, type, and navigate.
+
+This requires an additional LLM API key:
+
+```bash .env
+ANTHROPIC_API_KEY=sk-ant-***
+```
+
+<Steps>
+<Step title="Create the sandbox with API keys">
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('kernel-browser', {
+  envs: {
+    KERNEL_API_KEY: process.env.KERNEL_API_KEY!,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY!,
+  },
+  timeoutMs: 300_000,
+})
+```
+```python Python
+import os
+from e2b import Sandbox
+
+sandbox = Sandbox.create(
+    "kernel-browser",
+    envs={
+        "KERNEL_API_KEY": os.environ["KERNEL_API_KEY"],
+        "ANTHROPIC_API_KEY": os.environ["ANTHROPIC_API_KEY"],
+    },
+    timeout=300,
+)
+```
+</CodeGroup>
+</Step>
+
+<Step title="Write and run the agent">
+The agent script runs inside the sandbox. Browser Use and its dependencies come pre-installed in the `kernel-browser` template. The script creates a Kernel browser, connects Browser Use, and completes the task autonomously.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+const AGENT_SCRIPT = `
+import asyncio
+from kernel import Kernel
+from browser_use import Agent, Browser, ChatAnthropic
+
+async def main():
+    kernel = Kernel()
+    kb = kernel.browsers.create()
+    browser = Browser(cdp_url=kb.cdp_ws_url)
+
+    agent = Agent(
+        task="Go to https://news.ycombinator.com, find the top 5 stories, and return their titles and point counts as JSON",
+        llm=ChatAnthropic(model="claude-sonnet-4"),
+        browser=browser,
+    )
+    result = await agent.run()
+    print(result)
+
+asyncio.run(main())
+`
+
+await sandbox.files.write('/home/user/agent_task.py', AGENT_SCRIPT)
+const result = await sandbox.commands.run(
+  'python3 /home/user/agent_task.py',
+  { timeoutMs: 180_000 },
+)
+console.log(result.stdout)
+await sandbox.kill()
+```
+```python Python
+AGENT_SCRIPT = '''
+import asyncio
+from kernel import Kernel
+from browser_use import Agent, Browser, ChatAnthropic
+
+async def main():
+    kernel = Kernel()
+    kb = kernel.browsers.create()
+    browser = Browser(cdp_url=kb.cdp_ws_url)
+
+    agent = Agent(
+        task="Go to https://news.ycombinator.com, find the top 5 stories, and return their titles and point counts as JSON",
+        llm=ChatAnthropic(model="claude-sonnet-4"),
+        browser=browser,
+    )
+    result = await agent.run()
+    print(result)
+
+asyncio.run(main())
+'''
+
+sandbox.files.write("/home/user/agent_task.py", AGENT_SCRIPT)
+result = sandbox.commands.run("python3 /home/user/agent_task.py", timeout=180)
+print(result.stdout)
+sandbox.kill()
+```
+</CodeGroup>
+</Step>
+</Steps>
+
+Full example:
+
+<CodeGroup>
+```typescript JavaScript & TypeScript expandable
+import { Sandbox } from 'e2b'
+
+// 1. Create the sandbox with API keys
+const sandbox = await Sandbox.create('kernel-browser', {
+  envs: {
+    KERNEL_API_KEY: process.env.KERNEL_API_KEY!,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY!,
+  },
+  timeoutMs: 300_000,
+})
+
+// 2. Write and run the Browser Use agent
+const AGENT_SCRIPT = `
+import asyncio
+from kernel import Kernel
+from browser_use import Agent, Browser, ChatAnthropic
+
+async def main():
+    kernel = Kernel()
+    kb = kernel.browsers.create()
+    browser = Browser(cdp_url=kb.cdp_ws_url)
+
+    agent = Agent(
+        task="Go to https://news.ycombinator.com, find the top 5 stories, and return their titles and point counts as JSON",
+        llm=ChatAnthropic(model="claude-sonnet-4"),
+        browser=browser,
+    )
+    result = await agent.run()
+    print(result)
+
+asyncio.run(main())
+`
+
+await sandbox.files.write('/home/user/agent_task.py', AGENT_SCRIPT)
+const result = await sandbox.commands.run(
+  'python3 /home/user/agent_task.py',
+  { timeoutMs: 180_000 },
+)
+console.log(result.stdout)
+await sandbox.kill()
+```
+```python Python expandable
+import os
+from e2b import Sandbox
+
+# 1. Create the sandbox with API keys
+sandbox = Sandbox.create(
+    "kernel-browser",
+    envs={
+        "KERNEL_API_KEY": os.environ["KERNEL_API_KEY"],
+        "ANTHROPIC_API_KEY": os.environ["ANTHROPIC_API_KEY"],
+    },
+    timeout=300,
+)
+
+# 2. Write and run the Browser Use agent
+AGENT_SCRIPT = '''
+import asyncio
+from kernel import Kernel
+from browser_use import Agent, Browser, ChatAnthropic
+
+async def main():
+    kernel = Kernel()
+    kb = kernel.browsers.create()
+    browser = Browser(cdp_url=kb.cdp_ws_url)
+
+    agent = Agent(
+        task="Go to https://news.ycombinator.com, find the top 5 stories, and return their titles and point counts as JSON",
+        llm=ChatAnthropic(model="claude-sonnet-4"),
+        browser=browser,
+    )
+    result = await agent.run()
+    print(result)
+
+asyncio.run(main())
+'''
+
+sandbox.files.write("/home/user/agent_task.py", AGENT_SCRIPT)
+result = sandbox.commands.run("python3 /home/user/agent_task.py", timeout=180)
+print(result.stdout)
+sandbox.kill()
+```
+</CodeGroup>
+
+---
+
+## Live browser preview
+
+Kernel provides a live view URL for every browser session — you can watch the browser in real time or embed it in your app. This is useful for debugging, demos, or letting users see what the agent is doing.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('kernel-browser', {
+  envs: { KERNEL_API_KEY: process.env.KERNEL_API_KEY! },
+  timeoutMs: 300_000,
+})
+
+const LIVE_VIEW_SCRIPT = `
+from kernel import Kernel
+
+kernel = Kernel()
+browser = kernel.browsers.create()
+
+# Print the live view URL — accessible from any browser
+print(browser.browser_live_view_url)
+`
+
+await sandbox.files.write('/home/user/live_view.py', LIVE_VIEW_SCRIPT)
+const result = await sandbox.commands.run(
+  'python3 /home/user/live_view.py',
+  { timeoutMs: 30_000 },
+)
+const liveViewUrl = result.stdout.trim()
+console.log('Watch the browser:', liveViewUrl)
+
+// Embed in your app as an iframe
+// <iframe src={liveViewUrl}></iframe>
+
+// Read-only mode (no mouse/keyboard interaction)
+// liveViewUrl + '?readOnly=true'
+```
+```python Python
+import os
+from e2b import Sandbox
+
+sandbox = Sandbox.create(
+    "kernel-browser",
+    envs={"KERNEL_API_KEY": os.environ["KERNEL_API_KEY"]},
+    timeout=300,
+)
+
+LIVE_VIEW_SCRIPT = '''
+from kernel import Kernel
+
+kernel = Kernel()
+browser = kernel.browsers.create()
+
+# Print the live view URL — accessible from any browser
+print(browser.browser_live_view_url)
+'''
+
+sandbox.files.write("/home/user/live_view.py", LIVE_VIEW_SCRIPT)
+result = sandbox.commands.run("python3 /home/user/live_view.py", timeout=30)
+live_view_url = result.stdout.strip()
+print("Watch the browser:", live_view_url)
+
+# Embed in your app as an iframe
+# <iframe src={live_view_url}></iframe>
+
+# Read-only mode (no mouse/keyboard interaction)
+# live_view_url + '?readOnly=true'
+```
+</CodeGroup>
+
+The live view URL stays active until the browser is deleted or times out. For more details, see the [Kernel live view documentation](https://www.kernel.sh/docs/browsers/live-view).
+
+## Related guides
+
+<CardGroup cols={3}>
+  <Card title="Computer use" icon="desktop" href="/use-cases/computer-use">
+    Local browser automation with virtual desktops
+  </Card>
+  <Card title="Sandbox lifecycle" icon="rotate" href="/sandbox">
+    Create, manage, and control sandbox lifecycle
+  </Card>
+  <Card title="Running commands" icon="terminal" href="/commands">
+    Run terminal commands inside the sandbox
+  </Card>
+</CardGroup>

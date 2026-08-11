@@ -8,7 +8,7 @@ on:
             - ".github/workflows/sdk-reference-generator-test.yml"
             - "requirements.txt"
             - "docs.json"
-            - "docs/sdk-reference/**"
+            - "sdk-reference/**"
 
 permissions:
     contents: read

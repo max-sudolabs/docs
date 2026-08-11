@@ -1,0 +1,291 @@
+---
+title: "Quickstart"
+description: "Start with custom sandbox templates"
+---
+
+E2B templates allow you to define custom sandboxes.
+You can define the base image, environment variables, files to copy, commands to run, and
+a [start command](/template/start-ready-command#start-command) that runs during the template build and is captured in a snapshot — so the process is **already running** when you create a sandbox from that template.
+This gives you fully configured sandboxes with running processes ready to use with zero wait time for your users.
+
+There are two ways how you can start creating a new template:
+- using the CLI
+- manually using the SDK
+
+## CLI
+
+You can use the E2B CLI to create a new template.
+
+<Steps>
+    <Step title="Install the E2B CLI">
+        Install the latest version of the [E2B CLI](https://docs.e2b.dev/cli)
+    </Step>
+    <Step title="Initialize a new template">
+    ```bash
+    e2b template init
+    ```
+    </Step>
+    <Step title="Follow the prompts">
+        Follow the prompts to create a new template.
+    </Step>
+    <Step title="Done">
+        Check the generated `README.md` file to see how to build and use your new template.
+    </Step>
+</Steps>
+
+## Manual
+
+### Install the packages
+<Info>
+    Requires the E2B SDK version at least 2.3.0
+</Info>
+
+<CodeGroup>
+
+```bash JavaScript & TypeScript
+npm install e2b dotenv
+```
+
+```bash Python
+pip install e2b dotenv
+```
+
+</CodeGroup>
+
+Create the `.env` file
+
+```bash
+E2B_API_KEY=e2b_***
+```
+
+### Create a new template file
+Create a template file with the following name and content
+
+<CodeGroup>
+
+```typescript JavaScript & TypeScript
+// template.ts
+import { Template, waitForTimeout } from 'e2b';
+
+export const template = Template()
+  .fromBaseImage()
+  .setEnvs({
+    HELLO: "Hello, World!",
+  })
+  .setStartCmd("echo $HELLO", waitForTimeout(5_000));
+```
+
+```python Python
+# template.py
+from e2b import Template, wait_for_timeout
+
+template = (
+    Template()
+    .from_base_image()
+    .set_envs(
+        {
+            "HELLO": "Hello, World!",
+        }
+    )
+    .set_start_cmd("echo $HELLO", wait_for_timeout(5_000)))
+```
+
+</CodeGroup>
+
+
+### Create a development build script
+
+<CodeGroup>
+
+```typescript JavaScript & TypeScript
+// build.dev.ts
+import 'dotenv/config';
+import { Template, defaultBuildLogger } from 'e2b';
+import { template } from './template';
+
+async function main() {
+  await Template.build(template, 'template-tag-dev', {
+    cpuCount: 1,
+    memoryMB: 1024,
+    onBuildLogs: defaultBuildLogger(),
+  });
+}
+
+main().catch(console.error);
+```
+
+```python Python
+# build_dev.py
+from dotenv import load_dotenv
+from e2b import Template, default_build_logger
+from template import template
+
+load_dotenv()
+
+if __name__ == '__main__':
+    Template.build(
+        template,
+        'template-tag-dev',
+        cpu_count=1,
+        memory_mb=1024,
+        on_build_logs=default_build_logger(),
+    )
+```
+
+</CodeGroup>
+
+### Create a production build script
+
+<CodeGroup>
+
+```typescript JavaScript & TypeScript
+// build.prod.ts
+import 'dotenv/config';
+import { Template, defaultBuildLogger } from 'e2b';
+import { template } from './template';
+
+async function main() {
+  await Template.build(template, 'template-tag', {
+    cpuCount: 1,
+    memoryMB: 1024,
+    onBuildLogs: defaultBuildLogger(),
+  });
+}
+
+main().catch(console.error);
+```
+
+```python Python
+# build_prod.py
+from dotenv import load_dotenv
+from e2b import Template, default_build_logger
+from template import template
+
+load_dotenv()
+
+if __name__ == '__main__':
+    Template.build(
+        template,
+        'template-tag',
+        cpu_count=1,
+        memory_mb=1024,
+        on_build_logs=default_build_logger(),
+    )
+```
+
+</CodeGroup>
+
+### Build the template
+
+Build the development template
+
+<CodeGroup>
+
+```bash JavaScript & TypeScript
+npx tsx build.dev.ts
+```
+
+```bash Python
+python build_dev.py
+```
+
+</CodeGroup>
+
+Build the production template
+
+<CodeGroup>
+
+```bash JavaScript & TypeScript
+npx tsx build.prod.ts
+```
+
+```bash Python
+python build_prod.py
+```
+
+</CodeGroup>
+
+## Create a new Sandbox from the Template
+
+<CodeGroup>
+
+```typescript JavaScript & TypeScript
+import 'dotenv/config';
+import { Sandbox } from 'e2b';
+
+// Create a Sandbox from development template
+const sandbox = await Sandbox.create("template-tag-dev");
+
+// Create a Sandbox from production template
+const sandbox = await Sandbox.create("template-tag");
+```
+
+```python Python
+from dotenv import load_dotenv
+from e2b import Sandbox
+
+load_dotenv()
+
+# Create a new Sandbox from the development template
+sbx = Sandbox(template="template-tag-dev")
+
+# Create a new Sandbox from the production template
+sbx = Sandbox(template="template-tag")
+```
+
+</CodeGroup>
+
+<Note>
+The template name is the identifier that can be used to create a new Sandbox.
+</Note>
+
+## Scaling templates
+
+You can create a large number of templates with low overhead, for example one template per customer, per project, or per agent run. There's currently no limit on the number of templates, though pricing for total storage used by templates may be introduced in the future.
+
+The template build environment is a full sandbox environment, so you can do anything during the build that you can do inside a running sandbox, including running Docker containers as part of the setup.
+
+Compared to [snapshots](/sandbox/snapshots), templates start faster and use fewer resources because the guest OS is restarted before the long-running process is captured and prefetching is significantly more effective. If your workload involves spinning up many per-customer or per-project environments, prefer templates over snapshots.
+
+### Layering templates with `fromTemplate`
+
+When you build many similar templates (e.g. a customer-specific template per customer that all share the same base setup), use [`fromTemplate`](/sdk-reference/js-sdk/latest/template#fromtemplate) to start from an existing template instead of rebuilding the shared layers from scratch each time. This keeps per-customer builds fast and reuses the cached base.
+
+<CodeGroup>
+
+```typescript JavaScript & TypeScript
+import { Template } from 'e2b'
+
+// Per-customer template built on top of a shared base template
+export const template = Template()
+  .fromTemplate('my-base-template')
+  .copy('./customers/acme', '/app/config')
+  .setEnvs({ CUSTOMER_ID: 'acme' })
+```
+
+```python Python
+from e2b import Template
+
+# Per-customer template built on top of a shared base template
+template = (
+    Template()
+    .from_template("my-base-template")
+    .copy("./customers/acme", "/app/config")
+    .set_envs({"CUSTOMER_ID": "acme"})
+)
+```
+
+</CodeGroup>
+
+## Build limits
+
+Template builds are subject to the following limits:
+
+- **Max build duration**: Builds can run for **up to 1 hour**. If a build exceeds this, it will be terminated.
+- **Max vCPUs per build**: 8 on Hobby, 8+ on Pro, custom on Enterprise.
+- **Max memory per build**: 8 GB on Hobby, 8+ GB on Pro, custom on Enterprise.
+- **Max disk size per build**: 10 GB on Hobby, 20+ GB on Pro, custom on Enterprise.
+- **Concurrent builds**: 20 on Hobby and Pro, custom on Enterprise.
+
+See [Billing & limits](/billing#plans) for the full list of plan limits. Need higher limits? Contact [support@e2b.dev](mailto:support@e2b.dev).
+

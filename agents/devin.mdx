@@ -1,0 +1,52 @@
+---
+title: "Devin"
+description: "Run Devin for Terminal in a secure E2B sandbox."
+icon: "/images/icons/devin.svg"
+---
+
+[Devin for Terminal](https://devin.ai/terminal) is Cognition's coding agent for working directly from a terminal. You can install it in an E2B sandbox and use the sandbox as an isolated workspace for agent tasks.
+
+To run Devin cloud sessions in isolated E2B sandboxes, see [Devin Outposts](/agents/devin-outposts).
+
+## Installation
+
+Use a PTY for install and login because Devin's setup is interactive. You can create a Devin account during sign up if you don't have one.
+
+```bash
+e2b sandbox create base
+
+###
+# Inside the sandbox
+###
+curl -fsSL https://cli.devin.ai/install.sh | bash
+
+source /home/user/.bashrc
+```
+
+## Usage
+
+After installation and login, use `devin -p` for non-interactive mode and `--permission-mode dangerous` to auto-approve tool calls.
+
+<Note>
+Auto-approving tool calls is contained by the sandbox: the agent cannot touch your host machine, local files, or credentials. It can still make outbound network requests — internet access is enabled by default. To limit where an auto-approved agent can connect, configure [outbound network rules](/network/internet-access) (`allowInternetAccess`, plus allow/deny lists by CIDR or hostname). Hostname rules apply to HTTP(S) traffic only; use CIDR rules for other protocols.
+</Note>
+
+```bash
+mkdir -p /home/user/project
+cd /home/user/project
+
+devin --permission-mode dangerous -p "Create a hello world HTTP server in Go"
+```
+
+## Example: work on a cloned repository
+
+After installing Devin for Terminal and signing in, clone a repository and run Devin from the project directory.
+
+```bash
+git clone https://github.com/your-org/your-repo.git /home/user/repo
+cd /home/user/repo
+
+devin --permission-mode dangerous -p "Add error handling to all API endpoints"
+```
+
+Devin can edit files, run commands, and work on code inside the sandbox without accessing your local machine.

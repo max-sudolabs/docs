@@ -1,0 +1,44 @@
+---
+title: "Can I make a template public so other projects can use it?"
+sidebarTitle: Public templates
+---
+
+Yes. By default, templates are scoped to the project that built them, but you can publish a template to make it usable by any other E2B project.
+
+## Publishing a template
+
+You can publish a template in two ways:
+
+### From the dashboard
+
+Open the [Templates tab](https://e2b.dev/dashboard?tab=templates), find the template, and toggle it to public.
+
+### From the CLI
+
+Use the [E2B CLI](/cli) to publish a template you've already built:
+
+```bash
+e2b template publish <template-name>
+```
+
+## Using a public template
+
+Once published, other projects can create a sandbox from your template by referencing it with the full namespaced format `project-slug/template-name`:
+
+```bash
+e2b sandbox spawn your-project-slug/<template-name>
+```
+
+The same naming format works in the SDKs. Pass `project-slug/template-name` as the template alias to `Sandbox.create()`.
+
+## Unpublishing
+
+To revoke public access, either toggle the template back to private in the [dashboard Templates tab](https://e2b.dev/dashboard?tab=templates), or run:
+
+```bash
+e2b template unpublish <template-name>
+```
+
+The template stays in your project and remains usable by your project. It is just no longer reachable by others.
+
+For more on naming and how the project-slug prefix works, see [Template names](/template/names).

@@ -1,0 +1,158 @@
+---
+title: "How do I calculate the price of a sandbox?"
+sidebarTitle: Calculating sandbox price
+---
+
+E2B uses [usage-based pricing](/billing#usage-based-pricing). You pay **per second, only while a sandbox is running**, based on the vCPU and RAM allocated to it. Paused and killed sandboxes are not billed.
+
+## The formula
+
+```
+cost = (vCPU x vCPU_rate + RAM_in_GiB x RAM_rate) x seconds_running
+```
+
+The rate depends on how much compute the sandbox has allocated, not on how much it actually uses.
+
+## Current rates
+
+| Resource | Per second | Per hour |
+|:---------|:-----------|:---------|
+| vCPU | $0.000014 per vCPU | $0.0504 per vCPU |
+| RAM | $0.0000045 per GiB | $0.0162 per GiB |
+| Disk | Included (10 GiB Hobby / 20 GiB Pro) | Included |
+
+<Note>
+These rates are shown for convenience and can change. The [pricing page](https://e2b.dev/pricing) and its [usage cost calculator](https://e2b.dev/pricing#:~:text=Usage%20Cost%20Calculator) are the source of truth for current prices.
+</Note>
+
+## Worked example
+
+A **default sandbox** has 2 vCPU and 512 MiB (0.5 GiB) of RAM. Running it for **1 hour**:
+
+- vCPU: `2 x $0.0504 = $0.1008`
+- RAM: `0.5 x $0.0162 = $0.0081`
+- **Total: about $0.109 for the hour**
+
+The same sandbox running for 5 minutes (300 seconds) would cost roughly `$0.109 x (300 / 3600) = $0.009`.
+
+## Get the numbers for your own sandboxes
+
+You need three inputs: **vCPU**, **RAM**, and **running time**.
+
+### vCPU and RAM of a running sandbox
+
+`getInfo()` returns the sandbox's allocated `cpuCount` and `memoryMB`. Use [`Sandbox.list()`](/cli/list-sandboxes) to get the same fields for all of your running and paused sandboxes at once.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create()
+const info = await sandbox.getInfo()
+
+console.log(info.cpuCount)  // e.g. 2
+console.log(info.memoryMB)  // e.g. 512
+```
+```python Python
+from e2b import Sandbox
+
+sandbox = Sandbox()
+info = sandbox.get_info()
+
+print(info.cpu_count)  # e.g. 2
+print(info.memory_mb)  # e.g. 512
+```
+</CodeGroup>
+
+### Running time
+
+For completed runs, set up [lifecycle event webhooks](/sandbox/lifecycle-events-webhooks). The `sandbox.lifecycle.killed` and `sandbox.lifecycle.paused` events carry an `event_data.execution` object with everything you need to compute cost for that run:
+
+- `vcpu_count` and `memory_mb` - the resources that were allocated
+- `execution_time` - how long the sandbox ran, in milliseconds
+- `started_at` - when the run began
+
+Because these fields arrive together on the terminating event, a single delivery has both the resource allocation and the duration for one completed execution. Note that the `sandbox.lifecycle.created` event does not include resource allocation, so read compute off the `killed` and `paused` events (or from `getInfo` while the sandbox is still running).
+
+### Example: cost from a webhook
+
+The handler below receives lifecycle deliveries, and whenever a sandbox is killed or paused it reads `event_data.execution` and applies the formula above to log the cost of that run.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import express from 'express'
+
+const VCPU_RATE_PER_SECOND = 0.000014      // USD per vCPU per second
+const RAM_RATE_PER_GIB_SECOND = 0.0000045  // USD per GiB per second
+
+function sandboxCost({ vcpu_count, memory_mb, execution_time }) {
+  const seconds = execution_time / 1000
+  const ramGiB = memory_mb / 1024
+  return (vcpu_count * VCPU_RATE_PER_SECOND + ramGiB * RAM_RATE_PER_GIB_SECOND) * seconds
+}
+
+const app = express()
+app.use(express.json())
+
+app.post('/webhook', (req, res) => {
+  const event = req.body
+
+  // Resources and duration are only on the terminating events
+  if (event.type === 'sandbox.lifecycle.killed' || event.type === 'sandbox.lifecycle.paused') {
+    const cost = sandboxCost(event.event_data.execution)
+    console.log(`Sandbox ${event.sandbox_id} cost $${cost.toFixed(6)}`)
+  }
+
+  res.sendStatus(200)
+})
+
+app.listen(3000)
+```
+```python Python
+from flask import Flask, request
+
+VCPU_RATE_PER_SECOND = 0.000014      # USD per vCPU per second
+RAM_RATE_PER_GIB_SECOND = 0.0000045  # USD per GiB per second
+
+def sandbox_cost(execution: dict) -> float:
+    seconds = execution["execution_time"] / 1000
+    ram_gib = execution["memory_mb"] / 1024
+    return (
+        execution["vcpu_count"] * VCPU_RATE_PER_SECOND
+        + ram_gib * RAM_RATE_PER_GIB_SECOND
+    ) * seconds
+
+app = Flask(__name__)
+
+@app.post("/webhook")
+def webhook():
+    event = request.get_json()
+
+    # Resources and duration are only on the terminating events
+    if event["type"] in ("sandbox.lifecycle.killed", "sandbox.lifecycle.paused"):
+        cost = sandbox_cost(event["event_data"]["execution"])
+        print(f"Sandbox {event['sandbox_id']} cost ${cost:.6f}")
+
+    return "", 200
+```
+</CodeGroup>
+
+<Note>
+In production, [verify the `e2b-signature` header](/sandbox/lifecycle-events-webhooks#webhook-verification) and deduplicate on the `e2b-delivery-id` header, since a delivery can be retried and arrive more than once. See [Sandbox lifecycle webhooks](/sandbox/lifecycle-events-webhooks) for registration and the full payload.
+</Note>
+
+## Reducing your bill
+
+<AccordionGroup>
+  <Accordion title="Do I pay for paused or stopped sandboxes?">
+    No. Billing stops the moment a sandbox is paused or killed. See [Do paused sandboxes count toward the concurrency limit?](/faq/paused-sandboxes-concurrency)
+  </Accordion>
+
+  <Accordion title="How do I allocate less compute?">
+    Start with the default resources (2 vCPU, 512 MiB RAM) and only increase them if you need to. You set `cpuCount` and `memoryMB` when building a custom template. See [Billing & limits](/billing#customizing-compute-resources).
+  </Accordion>
+
+  <Accordion title="Where do I see my actual costs?">
+    In the [dashboard usage tab](https://e2b.dev/dashboard?tab=usage). You can also set a spending limit on the [budget page](https://e2b.dev/dashboard?tab=budget).
+  </Accordion>
+</AccordionGroup>

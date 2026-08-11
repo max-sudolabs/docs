@@ -1,0 +1,147 @@
+---
+title: "Mastra"
+description: "Build a Mastra coding agent with secure E2B sandboxes."
+icon: "/images/icons/mastra.svg"
+---
+
+[Mastra](https://mastra.ai) is a TypeScript framework for building AI agents and workflows. The [`@mastra/e2b`](https://www.npmjs.com/package/@mastra/e2b) package connects a Mastra workspace to an E2B sandbox, so agent-generated commands run in an isolated cloud environment instead of on your machine.
+
+In this guide, you will build a command-line coding agent that:
+
+1. Starts an E2B sandbox through Mastra's workspace API.
+2. Creates and tests a small project inside the sandbox.
+3. Streams its progress to your terminal.
+4. Destroys the sandbox when the task finishes.
+
+## Prerequisites
+
+- Node.js 22.13.0 or later
+- An [E2B API key](https://e2b.dev/dashboard?tab=keys)
+- An API key for a [model provider supported by Mastra](https://mastra.ai/models)
+
+This guide uses OpenAI, but you can replace the model with any model supported by Mastra.
+
+## Create the project
+
+Create a new Node.js project and install Mastra, the E2B workspace provider, and their required dependencies:
+
+```bash
+mkdir mastra-e2b-agent
+cd mastra-e2b-agent
+npm init -y
+npm pkg set type=module
+npm install @mastra/core @mastra/e2b zod
+npm install --save-dev tsx typescript @types/node
+```
+
+Set your E2B and model provider API keys:
+
+```bash
+export E2B_API_KEY="e2b_***"
+export OPENAI_API_KEY="sk-***"
+```
+
+## Build the coding agent
+
+Create an `index.ts` file:
+
+```typescript title="index.ts"
+import { Agent } from '@mastra/core/agent'
+import { Workspace } from '@mastra/core/workspace'
+import { E2BSandbox } from '@mastra/e2b'
+
+const task =
+  process.argv.slice(2).join(' ') ||
+  `Create /home/user/mastra-demo/slugify.js and a test file using
+   Node.js's built-in test runner. Run the tests and report the exact output.`
+
+const workspace = new Workspace({
+  sandbox: new E2BSandbox({
+    id: `mastra-coding-agent-${Date.now()}`, // Mastra's logical sandbox ID
+    timeout: 600_000, // 10 minutes; Mastra expects milliseconds
+  }),
+})
+
+const agent = new Agent({
+  id: 'coding-agent',
+  name: 'Coding Agent',
+  model: 'openai/gpt-5.4-mini',
+  instructions: `
+    You are a software engineer working in an isolated E2B sandbox.
+    Use shell commands to create, inspect, and edit files inside the sandbox.
+    Run the relevant tests and verify that they pass before you respond.
+    Include the files you changed, the verification command, and its output
+    in your final response.
+  `,
+  workspace,
+})
+
+try {
+  await workspace.init()
+
+  const stream = await agent.stream(task, { maxSteps: 30 })
+
+  for await (const chunk of stream.textStream) {
+    process.stdout.write(chunk)
+  }
+  process.stdout.write('\n')
+} finally {
+  await workspace.destroy()
+}
+```
+
+The Mastra agent runs in your local Node.js process. Mastra automatically gives it an `execute_command` workspace tool, while `@mastra/e2b` routes those commands to the E2B sandbox through the JavaScript E2B SDK. Under the hood, workspace initialization creates or reconnects to a sandbox, command tools use E2B command execution, and workspace destruction kills the sandbox.
+
+The `id` option is Mastra's logical identifier, stored in E2B metadata so the provider can find the same sandbox again. The provider manages the native E2B sandbox ID for you. This one-shot example includes a timestamp so concurrent runs receive separate sandboxes.
+
+<Note>
+  A workspace configured with only a sandbox provides command execution tools, not Mastra's dedicated `read_file` or `write_file` tools. This example uses shell commands to work with files. To add dedicated file tools backed by shared cloud storage, configure an S3, GCS, or Azure Blob mount in the workspace.
+</Note>
+
+## Run the agent
+
+Run the default task:
+
+```bash
+npx tsx index.ts
+```
+
+Or pass your own coding task:
+
+```bash
+npx tsx index.ts "Create a small Express API with a health endpoint and test it"
+```
+
+The first workspace initialization creates the E2B sandbox. The agent can then install packages, create files, run commands, and start background processes entirely inside the sandbox. The `finally` block calls `workspace.destroy()` so the sandbox is cleaned up even if the agent fails.
+
+## Use a custom template
+
+For repeatable environments and faster startup, pre-install your runtimes and dependencies in an [E2B template](/template/quickstart), then pass its ID or name to `E2BSandbox`:
+
+```typescript
+const workspace = new Workspace({
+  sandbox: new E2BSandbox({
+    template: 'your-template-id-or-name',
+    timeout: 600_000, // 10 minutes; Mastra expects milliseconds
+  }),
+})
+```
+
+Use templates when every agent run needs the same language toolchain, system packages, or repository bootstrap files.
+
+## How the integration works
+
+| Component | Responsibility |
+| --- | --- |
+| `Agent` | Chooses commands and iterates until the coding task is complete |
+| `Workspace` | Adds command and process tools to the agent |
+| `E2BSandbox` | Creates the E2B sandbox and executes workspace commands inside it |
+| E2B template | Defines the operating system, runtimes, and pre-installed dependencies |
+
+## Learn more
+
+- [Mastra E2BSandbox reference](https://mastra.ai/reference/workspace/e2b-sandbox)
+- [Mastra workspace documentation](https://mastra.ai/docs/workspace/overview)
+- [E2B sandbox lifecycle](/sandbox)
+- [E2B templates](/template/quickstart)
+- [E2B Git integration](/sandbox/git-integration)

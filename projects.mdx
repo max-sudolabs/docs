@@ -1,0 +1,29 @@
+---
+title: "Projects"
+icon: "folder"
+---
+
+A **project** groups the resources you build with under your E2B account - API keys, sandboxes, templates, and billing. Every sandbox runs inside a project, and every API key is scoped to exactly one project, so the key you use determines which project's resources and limits apply.
+
+<Info>
+Projects were previously called **Teams**. The concept is unchanged; only the name is new. Existing API keys, template slugs, and integrations keep working without any change.
+</Info>
+
+## What a project owns
+
+Your project is the boundary for the resources and settings you manage in the [E2B Dashboard](https://e2b.dev/dashboard):
+
+- **API keys**: Each key authenticates against a single project. See [API key](/api-key) for where to find yours.
+- **Sandboxes**: Every sandbox is created and billed within the project tied to your API key.
+- **Templates**: Templates are scoped to the project that built them and are namespaced by the project slug. See [Template names](/template/names).
+- **Billing and limits**: Your tier (concurrent sandboxes, continuous runtime, disk size, and other resource ceilings) applies to the whole project. See [Billing](/billing).
+
+## Finding your project
+
+Open the [E2B Dashboard](https://e2b.dev/dashboard) to see the project you're currently working in, manage its API keys, and review usage. Your API key already targets the right project, so the SDK and CLI pick it up automatically with no extra configuration.
+
+## Project slug and template names
+
+Each project has a unique slug used to namespace its templates. A template named `my-app` in a project with the slug `your-project-slug` is stored as `your-project-slug/my-app`. You can reference it by its short name within the project, or by the full `project-slug/template-name` format from anywhere (for example, to use a public template from another project).
+
+For the full naming rules and how the slug prefix works, see [Template names](/template/names).

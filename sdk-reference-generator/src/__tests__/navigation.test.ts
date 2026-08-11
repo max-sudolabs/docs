@@ -93,7 +93,7 @@ describe("buildNavigation", () => {
     expect(result[0].versions[0].version).toBe("v1.0.0");
     expect(result[0].versions[0].default).toBe(true);
     expect(result[0].versions[0].pages).toContain(
-      "docs/sdk-reference/test-js-sdk/v1.0.0/Sandbox"
+      "sdk-reference/test-js-sdk/v1.0.0/Sandbox"
     );
   });
 
@@ -170,9 +170,9 @@ describe("buildNavigation", () => {
     const pages = result[0].versions[0].pages;
     expect(pages).toHaveLength(3);
     // pages should be sorted alphabetically
-    expect(pages[0]).toBe("docs/sdk-reference/test-js-sdk/v1.0.0/Commands");
-    expect(pages[1]).toBe("docs/sdk-reference/test-js-sdk/v1.0.0/Filesystem");
-    expect(pages[2]).toBe("docs/sdk-reference/test-js-sdk/v1.0.0/Sandbox");
+    expect(pages[0]).toBe("sdk-reference/test-js-sdk/v1.0.0/Commands");
+    expect(pages[1]).toBe("sdk-reference/test-js-sdk/v1.0.0/Filesystem");
+    expect(pages[2]).toBe("sdk-reference/test-js-sdk/v1.0.0/Sandbox");
   });
 
   it("ignores non-mdx files in version directories", async () => {
@@ -222,12 +222,12 @@ describe("buildLatestRedirects", () => {
           {
             version: "v2.0.0",
             default: true,
-            pages: ["docs/sdk-reference/test-js-sdk/v2.0.0/sandbox"],
+            pages: ["sdk-reference/test-js-sdk/v2.0.0/sandbox"],
           },
           {
             version: "v1.0.0",
             default: false,
-            pages: ["docs/sdk-reference/test-js-sdk/v1.0.0/sandbox"],
+            pages: ["sdk-reference/test-js-sdk/v1.0.0/sandbox"],
           },
         ],
       },
@@ -237,8 +237,8 @@ describe("buildLatestRedirects", () => {
 
     expect(redirects).toEqual([
       {
-        source: "/docs/sdk-reference/test-js-sdk/latest/:slug*",
-        destination: "/docs/sdk-reference/test-js-sdk/v2.0.0/:slug*",
+        source: "/sdk-reference/test-js-sdk/latest/:slug*",
+        destination: "/sdk-reference/test-js-sdk/v2.0.0/:slug*",
         permanent: false,
       },
     ]);
@@ -253,7 +253,7 @@ describe("buildLatestRedirects", () => {
           {
             version: "v2.0.0",
             default: true,
-            pages: ["docs/sdk-reference/js-sdk/v2.0.0/sandbox"],
+            pages: ["sdk-reference/js-sdk/v2.0.0/sandbox"],
           },
         ],
       },
@@ -264,7 +264,7 @@ describe("buildLatestRedirects", () => {
           {
             version: "v3.0.0",
             default: true,
-            pages: ["docs/sdk-reference/python-sdk/v3.0.0/sandbox_sync"],
+            pages: ["sdk-reference/python-sdk/v3.0.0/sandbox_sync"],
           },
         ],
       },
@@ -273,8 +273,8 @@ describe("buildLatestRedirects", () => {
     const redirects = buildLatestRedirects(navigation);
 
     expect(redirects.map((r) => r.source)).toEqual([
-      "/docs/sdk-reference/js-sdk/latest/:slug*",
-      "/docs/sdk-reference/python-sdk/latest/:slug*",
+      "/sdk-reference/js-sdk/latest/:slug*",
+      "/sdk-reference/python-sdk/latest/:slug*",
     ]);
   });
 
@@ -287,7 +287,7 @@ describe("buildLatestRedirects", () => {
           {
             version: "v1.0.0",
             default: false,
-            pages: ["docs/sdk-reference/test-js-sdk/v1.0.0/sandbox"],
+            pages: ["sdk-reference/test-js-sdk/v1.0.0/sandbox"],
           },
         ],
       },
@@ -492,11 +492,11 @@ describe("mergeNavigation", () => {
       navigation: { anchors: [] },
       redirects: [
         // a manual redirect that must survive
-        { source: "/docs/old", destination: "/docs/new", permanent: true },
+        { source: "/old", destination: "/new", permanent: true },
         // a stale latest redirect pointing at an old version
         {
-          source: "/docs/sdk-reference/test-js-sdk/latest/:slug*",
-          destination: "/docs/sdk-reference/test-js-sdk/v1.0.0/:slug*",
+          source: "/sdk-reference/test-js-sdk/latest/:slug*",
+          destination: "/sdk-reference/test-js-sdk/v1.0.0/:slug*",
           permanent: false,
         },
       ],
@@ -510,7 +510,7 @@ describe("mergeNavigation", () => {
           {
             version: "v2.0.0",
             default: true,
-            pages: ["docs/sdk-reference/test-js-sdk/v2.0.0/sandbox"],
+            pages: ["sdk-reference/test-js-sdk/v2.0.0/sandbox"],
           },
         ],
       },
@@ -520,10 +520,10 @@ describe("mergeNavigation", () => {
 
     const result = await fs.readJSON(docsJsonPath);
     expect(result.redirects).toEqual([
-      { source: "/docs/old", destination: "/docs/new", permanent: true },
+      { source: "/old", destination: "/new", permanent: true },
       {
-        source: "/docs/sdk-reference/test-js-sdk/latest/:slug*",
-        destination: "/docs/sdk-reference/test-js-sdk/v2.0.0/:slug*",
+        source: "/sdk-reference/test-js-sdk/latest/:slug*",
+        destination: "/sdk-reference/test-js-sdk/v2.0.0/:slug*",
         permanent: false,
       },
     ]);
@@ -548,4 +548,3 @@ describe("mergeNavigation", () => {
     expect(content.endsWith("\n")).toBe(true);
   });
 });
-

@@ -1,0 +1,341 @@
+---
+title: "Internet access"
+---
+
+Every sandbox has outbound access to the internet by default. You can control and restrict this access to fit security-sensitive workloads, from a simple on/off switch to fine-grained allow and deny lists.
+
+To expose services running inside the sandbox to the outside world, see [Sandbox public URL](/network/public-url).
+
+## Controlling internet access
+
+You can control whether a sandbox has access to the internet by using the `allowInternetAccess` / `allow_internet_access` parameter when creating a sandbox. By default, internet access is enabled, but you can disable it for security-sensitive workloads.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+// Create sandbox with internet access enabled (default)
+const sandbox = await Sandbox.create({ allowInternetAccess: true })
+
+// Create sandbox without internet access
+const isolatedSandbox = await Sandbox.create({ allowInternetAccess: false })
+```
+```python Python
+from e2b import Sandbox
+
+# Create sandbox with internet access enabled (default)
+sandbox = Sandbox.create(allow_internet_access=True)
+
+# Create sandbox without internet access
+isolated_sandbox = Sandbox.create(allow_internet_access=False)
+```
+</CodeGroup>
+
+When internet access is disabled, the sandbox cannot make outbound network connections, which provides an additional layer of security for sensitive code execution.
+
+<Note>
+Setting `allowInternetAccess` / `allow_internet_access` to a falsy value is equivalent to setting `network.denyOut` / `network.deny_out` to `['0.0.0.0/0']` (denying all traffic).
+</Note>
+
+## Fine-grained network control
+
+For more granular control over network access, you can use the network configuration option to specify allow and deny lists for outbound traffic.
+
+### Allow and deny lists
+
+You can specify IP addresses, CIDR blocks, or domain names that the sandbox is allowed to use:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+// Deny all traffic except specific IPs
+const sandbox = await Sandbox.create({
+  network: {
+    denyOut: ({ allTraffic }) => [allTraffic], // allTraffic === '0.0.0.0/0'
+    allowOut: ['1.1.1.1', '8.8.8.0/24']
+  }
+})
+
+// Deny specific IPs only
+const restrictedSandbox = await Sandbox.create({
+  network: {
+    denyOut: ['8.8.8.8']
+  }
+})
+```
+```python Python
+from e2b import Sandbox
+
+# Deny all traffic except specific IPs
+sandbox = Sandbox.create(
+    network={
+        "deny_out": lambda ctx: [ctx.all_traffic],  # ctx.all_traffic == "0.0.0.0/0"
+        "allow_out": ["1.1.1.1", "8.8.8.0/24"]
+    }
+)
+
+# Deny specific IPs only
+restricted_sandbox = Sandbox.create(
+    network={
+        "deny_out": ["8.8.8.8"]
+    }
+)
+```
+</CodeGroup>
+
+<Note>
+The selector callback (`({ allTraffic }) => [allTraffic]` / `lambda ctx: [ctx.all_traffic]`) is the recommended way to express "all traffic" (`0.0.0.0/0`). The `ALL_TRAFFIC` constant remains exported for backward compatibility.
+</Note>
+
+### Domain-based filtering
+
+You can allow traffic to specific domains by specifying hostnames in `allowOut` / `allow_out`. When using domain-based filtering, you must deny all other traffic in `denyOut` / `deny_out`. Domains are not supported in the deny lists.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+// Allow only traffic to google.com
+const sandbox = await Sandbox.create({
+  network: {
+    allowOut: ['google.com'],
+    denyOut: ({ allTraffic }) => [allTraffic]
+  }
+})
+```
+```python Python
+from e2b import Sandbox
+
+# Allow only traffic to google.com
+sandbox = Sandbox.create(
+    network={
+        "allow_out": ["google.com"],
+        "deny_out": lambda ctx: [ctx.all_traffic]
+    }
+)
+```
+</CodeGroup>
+
+<Note>
+When any domain is used, the default nameserver `8.8.8.8` is automatically allowed to ensure proper DNS resolution.
+</Note>
+
+You can also use wildcards to allow all subdomains of a domain:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+// Allow traffic to any subdomain of mydomain.com
+const sandbox = await Sandbox.create({
+  network: {
+    allowOut: ['*.mydomain.com'],
+    denyOut: ({ allTraffic }) => [allTraffic]
+  }
+})
+```
+```python Python
+from e2b import Sandbox
+
+# Allow traffic to any subdomain of mydomain.com
+sandbox = Sandbox.create(
+    network={
+        "allow_out": ["*.mydomain.com"],
+        "deny_out": lambda ctx: [ctx.all_traffic]
+    }
+)
+```
+</CodeGroup>
+
+You can combine domain names with IP addresses and CIDR blocks:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+// Allow traffic to specific domains and IPs
+const sandbox = await Sandbox.create({
+  network: {
+    allowOut: ['api.example.com', '*.github.com', '8.8.8.8'],
+    denyOut: ({ allTraffic }) => [allTraffic]
+  }
+})
+```
+```python Python
+from e2b import Sandbox
+
+# Allow traffic to specific domains and IPs
+sandbox = Sandbox.create(
+    network={
+        "allow_out": ["api.example.com", "*.github.com", "8.8.8.8"],
+        "deny_out": lambda ctx: [ctx.all_traffic]
+    }
+)
+```
+</CodeGroup>
+
+<Note>
+Domain-based filtering only works for HTTP traffic on port 80 (via Host header inspection) and TLS traffic on port 443 (via SNI inspection). Traffic on other ports uses CIDR-based filtering only. UDP-based protocols like QUIC/HTTP3 are not supported for domain filtering.
+</Note>
+
+### Behavior of blocked TCP connections
+
+Due to firewall design, blocked connections may appear successful from inside the sandbox.
+
+The firewall has to accept the connection first before it can decide whether the destination is allowed. This means that, from inside the sandbox, a TCP connection can succeed and report the socket as open even when the destination is denied - no packets actually reach the destination.
+
+To verify that traffic is reaching its destination, check for an application-level response (e.g. an HTTP status code, a TLS handshake, or expected protocol bytes) rather than relying on the TCP connection succeeding.
+
+This is a limitation of how outbound traffic is currently routed from the sandbox to our firewall and may change in the future.
+
+### Priority rules
+
+When both allow and deny rules are specified, **allow rules always take precedence** over deny rules. This means if an IP address is in both lists, it will be allowed.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+// Even though all traffic is denied, 1.1.1.1 and 8.8.8.8 are explicitly allowed
+const sandbox = await Sandbox.create({
+  network: {
+    denyOut: ({ allTraffic }) => [allTraffic],
+    allowOut: ['1.1.1.1', '8.8.8.8']
+  }
+})
+```
+```python Python
+from e2b import Sandbox
+
+# Even though all traffic is denied, 1.1.1.1 and 8.8.8.8 are explicitly allowed
+sandbox = Sandbox.create(
+    network={
+        "deny_out": lambda ctx: [ctx.all_traffic],
+        "allow_out": ["1.1.1.1", "8.8.8.8"]
+    }
+)
+```
+</CodeGroup>
+
+### Per-host request transforms
+
+<Note>
+Per-host request transforms are currently in public beta. You can start using them right away, no need to request access.
+
+Please keep in mind that this feature is still in active development, and the features and ways of interacting with it might change during this period.
+
+If you have any questions or feedback, please [reach out to us](https://e2b.dev/dashboard?support=true). Any input is greatly appreciated.
+</Note>
+
+You can register per-host rules under `network.rules` to apply transforms (for example, inject HTTP headers) on outbound requests matching a host. Rules are keyed by host and registering one does **not** grant egress on its own — the host must still be referenced via `allowOut` / `allow_out`.
+
+The `transform.headers` object is sent on the wire as-is and injected by the egress proxy on matching HTTP/HTTPS requests.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+await Sandbox.create({
+  network: {
+    // Only allow egress to hosts that have rules registered.
+    allowOut: ({ rules }) => [...rules.keys()],
+    // Deny all other traffic
+    denyOut: ({ allTraffic }) => [allTraffic],
+    // Register per-host rules
+    rules: {
+      'api.example.com': [
+        {
+          transform: {
+            headers: { 'X-Header': 'Content' },
+          },
+        },
+      ],
+    },
+  },
+})
+```
+```python Python
+from e2b import Sandbox
+
+sandbox = Sandbox.create(
+    network={
+        # Only allow egress to hosts that have rules registered.
+        "allow_out": lambda ctx: list(ctx.rules.keys()),
+        # Deny all other traffic
+        "deny_out": lambda ctx: [ctx.all_traffic],
+        # Register per-host rules
+        "rules": {
+            "api.example.com": [
+                {
+                    "transform": {
+                        "headers": {"X-Header": "Content"},
+                    },
+                },
+            ],
+        },
+    },
+)
+```
+</CodeGroup>
+
+In JavaScript, `network.rules` accepts either a plain object or a `Map`:
+
+```js JavaScript & TypeScript
+const rules = new Map([
+  ['api.example.com', [{ transform: { headers: { 'X-Trace': 'on' } } }]],
+])
+
+await Sandbox.create({
+  network: { allowOut: ({ rules }) => [...rules.keys()], rules },
+})
+```
+
+### Updating network settings on a running sandbox
+
+You can update the network configuration of an already running sandbox using `updateNetwork` (JavaScript) or `update_network` (Python). This replaces the current egress rules with the provided configuration without restarting the sandbox.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create()
+
+// Tighten egress on the running sandbox: block 8.8.8.8
+await sandbox.updateNetwork({
+  denyOut: ['8.8.8.8'],
+})
+
+// Replace with an allow-list only
+await sandbox.updateNetwork({
+  denyOut: ({ allTraffic }) => [allTraffic],
+  allowOut: ['api.example.com'],
+})
+
+// Toggle internet access without recreating the sandbox
+await sandbox.updateNetwork({ allowInternetAccess: false })
+```
+```python Python
+from e2b import Sandbox
+
+sandbox = Sandbox.create()
+
+# Tighten egress on the running sandbox: block 8.8.8.8
+sandbox.update_network({"deny_out": ["8.8.8.8"]})
+
+# Replace with an allow-list only
+sandbox.update_network({
+    "deny_out": lambda ctx: [ctx.all_traffic],
+    "allow_out": ["api.example.com"],
+})
+
+# Toggle internet access without recreating the sandbox
+sandbox.update_network({"allow_internet_access": False})
+```
+</CodeGroup>
+
+<Note>
+`updateNetwork` / `update_network` **replaces** the current egress configuration — it does not merge with the existing rules. Calling it with an empty object (`updateNetwork({})` / `update_network({})`) clears all allow and deny rules set at create time.
+</Note>
+
+Create-only options such as `allowPublicTraffic` / `allow_public_traffic`, `maskRequestHost` / `mask_request_host` and network rules in `network.rules` cannot be changed after the sandbox is created.

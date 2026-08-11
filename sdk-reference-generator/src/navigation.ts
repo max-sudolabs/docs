@@ -103,7 +103,7 @@ export async function buildNavigation(
  *
  * For each SDK, emits a single wildcard redirect that points a stable
  * `.../latest/...` path at the newest (default) version, e.g.
- *   /docs/sdk-reference/js-sdk/latest/:slug*  ->  /docs/sdk-reference/js-sdk/v2.29.1/:slug*
+ *   /sdk-reference/js-sdk/latest/:slug*  ->  /sdk-reference/js-sdk/v2.29.1/:slug*
  *
  * These are regenerated on every sync so they always track the current
  * release. They are non-permanent because the destination moves over time.
@@ -118,10 +118,10 @@ export function buildLatestRedirects(
     const firstPage = latestVersion?.pages[0];
     if (!latestVersion || !firstPage) continue;
 
-    // pages look like: docs/sdk-reference/{sdkKey}/{version}/{module}
+    // pages look like: sdk-reference/{sdkKey}/{version}/{module}
     const parts = firstPage.split("/");
-    const sdkKey = parts[2];
-    const version = parts[3];
+    const sdkKey = parts[1];
+    const version = parts[2];
     if (!sdkKey || !version) continue;
 
     const base = `/${CONSTANTS.DOCS_SDK_REF_PATH}/${sdkKey}`;

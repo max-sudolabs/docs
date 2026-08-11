@@ -196,7 +196,7 @@ The sync workflow no longer pushes directly to `main`.
 When generated docs change, the workflow now:
 - Creates or updates an automation branch
 - Opens a structured pull request with trigger metadata, generation parameters, and a link to the workflow run
-- Limits committed paths to `docs/sdk-reference/**` and `docs.json`
+- Limits committed paths to `sdk-reference/**` and `docs.json`
 
 ### Safety Features
 

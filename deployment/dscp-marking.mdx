@@ -1,0 +1,28 @@
+---
+title: "DSCP marking for egress traffic"
+sidebarTitle: DSCP marking
+description: Mark the egress traffic that leaves your sandboxes with a DSCP value so your firewalls can filter, log, or shape it.
+---
+
+import { EnterpriseBanner } from '/snippets/EnterpriseBanner.jsx';
+
+<EnterpriseBanner />
+
+On [BYOC](/byoc) deployments, the traffic that leaves your sandboxes can be marked with a [DSCP](https://en.wikipedia.org/wiki/Differentiated_services) value - a small classifier carried in the IP header of every packet. Your firewalls, packet samplers, and QoS policies can then match on that value to filter, log, or shape E2B traffic, the same way you classify other traffic on your network. This is useful when you need to isolate, prioritize, or audit sandbox traffic for security or compliance.
+
+Sandbox traffic and template-build traffic can carry separate DSCP values, so your network can tell the two apart and apply different rules to each.
+
+## Enabling it
+
+Marking is off by default. To turn it on, tell your E2B contact:
+
+- the DSCP value (`0`-`63`) to use for sandbox traffic, and
+- optionally, a separate value for template-build traffic.
+
+Choose values that fit your existing firewall or QoS policy - E2B does not require any particular one, and leaving the build value unset means build traffic uses the same mark as sandbox traffic. E2B applies the values to your cluster.
+
+Once marking is on, add rules on your side that match those DSCP values to filter, log, or shape the traffic. Nothing changes for code running inside the sandbox.
+
+<Note>
+DSCP is a hint carried in the IP header. Whether it is honored, rewritten, or cleared depends on the network path between your cluster and the destination. Confirm your cloud and firewall preserve the field before relying on it.
+</Note>

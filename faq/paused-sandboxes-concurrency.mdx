@@ -1,0 +1,14 @@
+---
+title: "Do paused sandboxes count toward the concurrency limit?"
+sidebarTitle: Paused sandboxes & concurrency
+---
+
+No. Only running sandboxes count toward your concurrency limit. Paused sandboxes are excluded, so you can keep many paused sandboxes around without affecting how many sandboxes you can run at the same time.
+
+Paused sandboxes are also not billed. You are only charged for sandboxes while they are running, so keeping a sandbox paused has no impact on your bill.
+
+There is also no time limit on how long a sandbox can remain paused. Paused sandboxes are kept indefinitely, with no automatic deletion or time-to-live, and you can [resume](/sandbox/persistence#resuming-sandbox) them at any time.
+
+E2B never kills paused sandboxes on its own. A paused sandbox is only removed when you explicitly call `kill` on it (either via `sandbox.kill()` or `Sandbox.kill(sandboxId)`).
+
+For more details on pausing and resuming, see the [Sandbox persistence](/sandbox/persistence) page.

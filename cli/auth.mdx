@@ -1,0 +1,35 @@
+---
+title: "Authentication in CLI"
+sidebarTitle: Authentication
+---
+
+There are two ways to authenticate with the E2B CLI:
+
+## Option 1: browser authentication
+
+<Warning>
+This option requires an interactive browser environment.
+</Warning>
+
+Run the following command to sign in through your browser:
+
+```bash
+e2b auth login
+```
+
+This will open your default browser and prompt you to authenticate with your E2B account.
+
+## Option 2: setup environment variables
+
+This is the recommended option for non-interactive environments like CI/CD pipelines, servers, and containers. Set a single environment variable with your API key:
+
+```bash
+export E2B_API_KEY=your_api_key_here
+```
+
+With the API key set, you can run CLI commands directly without `e2b auth login`. Use CLI version 2.12.1 or later.
+
+<Info>
+Learn more about obtaining and managing your API key on the [API Key page](/api-key).
+</Info>
+

@@ -1,0 +1,86 @@
+---
+title: "Restricting public access"
+---
+
+By default, a sandbox's [public URL](/network/public-url) is reachable by anyone who knows it. For sensitive workloads, you can require callers to authenticate with a per-sandbox token before any request reaches the services inside.
+
+## Restricting public access to sandbox URLs
+
+By default, sandbox URLs are publicly accessible. You can restrict access to require authentication using the `allowPublicTraffic` / `allow_public_traffic` option:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+// Create sandbox with restricted public access
+const sandbox = await Sandbox.create({
+  network: {
+    allowPublicTraffic: false
+  }
+})
+
+// The sandbox has a traffic access token
+console.log(sandbox.trafficAccessToken)
+
+// Start a server inside the sandbox
+await sandbox.commands.run('python -m http.server 8080', { background: true })
+
+const host = sandbox.getHost(8080)
+const url = `https://${host}`
+
+// Request without token will fail with 403
+const response1 = await fetch(url)
+console.log(response1.status) // 403
+
+// Request with token will succeed
+const response2 = await fetch(url, {
+  headers: {
+    'e2b-traffic-access-token': sandbox.trafficAccessToken
+  }
+})
+console.log(response2.status) // 200
+```
+```python Python
+import requests
+from e2b import Sandbox
+
+# Create sandbox with restricted public access
+sandbox = Sandbox.create(
+    network={
+        "allow_public_traffic": False
+    }
+)
+
+# The sandbox has a traffic access token
+print(sandbox.traffic_access_token)
+
+# Start a server inside the sandbox
+sandbox.commands.run("python -m http.server 8080", background=True)
+
+host = sandbox.get_host(8080)
+url = f"https://{host}"
+
+# Request without token will fail with 403
+response1 = requests.get(url)
+print(response1.status_code)  # 403
+
+# Request with token will succeed
+response2 = requests.get(url, headers={
+    'e2b-traffic-access-token': sandbox.traffic_access_token
+})
+print(response2.status_code)  # 200
+```
+</CodeGroup>
+
+When `allowPublicTraffic` / `allow_public_traffic` is set to a falsy value, all requests to the sandbox's public URLs must include the `e2b-traffic-access-token` header with the value from `sandbox.trafficAccessToken` / `sandbox.traffic_access_token`.
+
+## Running a firewall inside the sandbox
+
+<Warning>
+If you are using custom `iptables` or firewall rules inside a sandbox, keep E2B's own connectivity open or the sandbox will lose contact with the SDK:
+
+- All loopback (`lo`) traffic.
+- Inbound TCP to port `49983` (the envd control channel).
+- Inbound TCP to port `49999`, if you use the [Code Interpreter](/code-interpreting/analyze-data-with-ai) template.
+- Established and related connections, if you filter outbound traffic.
+</Warning>

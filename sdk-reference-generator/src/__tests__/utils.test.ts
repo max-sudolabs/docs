@@ -169,7 +169,7 @@ describe("buildSDKPath", () => {
 
   it("uses DOCS_SDK_REF_PATH constant", () => {
     const result = buildSDKPath("/root", "test", "v2.0.0");
-    expect(result).toContain("docs/sdk-reference");
+    expect(result).toContain("sdk-reference");
     expect(result).toContain("test");
     expect(result).toContain("v2.0.0");
   });

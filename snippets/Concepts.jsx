@@ -1,14 +1,14 @@
 export const Concepts = () => {
   const concepts = [
     {
-      href: "/docs/sandbox",
+      href: "/sandbox",
       title: "Sandbox lifecycle",
       description:
         "Learn about how to start the sandbox, manage its lifecycle, and interact with it.",
       icon: "hourglass",
     },
     {
-      href: "/docs/sandbox/persistence",
+      href: "/sandbox/persistence",
       title: "Sandbox persistence",
       description:
         "Pause and resume sandboxes to preserve state.",
@@ -21,14 +21,14 @@ export const Concepts = () => {
     //   icon: <Binary strokeWidth={1.5} className="h-6 w-6 transition-colors duration-300 fill-white/10 stroke-zinc-400 group-hover:fill-brand-300/10 group-hover:stroke-brand-400" />,
     // },
     {
-      href: "/docs/filesystem",
+      href: "/filesystem",
       title: "Filesystem",
       description:
         "Sandbox has an isolated filesystem that you can use to create, read, write, and delete files.",
       icon: "folder-tree",
     },
     {
-      href: "/docs/commands",
+      href: "/commands",
       title: "Commands",
       description:
         "Run terminal commands inside the Sandbox and start any process inside the Sandbox.",

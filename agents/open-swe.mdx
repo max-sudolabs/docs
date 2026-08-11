@@ -1,0 +1,90 @@
+---
+title: "LangChain Open SWE"
+description: "Use E2B sandboxes as the execution environment for Open SWE, LangChain's open-source coding agent framework."
+icon: "/images/icons/open-swe.svg"
+---
+
+[Open SWE](https://github.com/langchain-ai/open-swe) is LangChain's open-source framework for building your org's internal coding agent, built on [LangGraph](https://langchain-ai.github.io/langgraph/) and [Deep Agents](https://github.com/langchain-ai/deepagents). Every task runs in an isolated cloud sandbox where the agent gets full shell access — and E2B is a supported sandbox provider out of the box.
+
+## Get started
+
+<Steps>
+<Step title="Clone and install Open SWE">
+
+```bash
+git clone https://github.com/langchain-ai/open-swe.git
+cd open-swe
+uv venv
+source .venv/bin/activate
+uv sync --all-extras
+```
+
+</Step>
+<Step title="Set the sandbox provider to E2B">
+
+Get your API key from the [E2B dashboard](https://e2b.dev/dashboard?tab=keys) and create a `.env` file in the repo root — `langgraph dev` loads it automatically:
+
+```bash .env
+SANDBOX_TYPE="e2b"
+E2B_API_KEY="e2b_***"       # get yours at https://e2b.dev/dashboard
+E2B_TEMPLATE="my-template"  # optional: custom sandbox template
+
+# === LLM ===
+OPENAI_API_KEY=""           # default model is openai:gpt-5.6-sol
+ANTHROPIC_API_KEY=""        # when using anthropic: models
+```
+
+You need an API key for at least one LLM provider — the default model is `openai:gpt-5.6-sol`, and you can switch with `LLM_MODEL_ID` (e.g. `LLM_MODEL_ID="anthropic:claude-sonnet-5"`). Google and Fireworks are also supported — see the [full environment variable reference](https://github.com/langchain-ai/open-swe/blob/main/docs/INSTALLATION.md#6-environment-variables) for LangSmith tracing, GitHub App, and trigger configuration.
+
+No other sandbox changes are needed — Open SWE creates and manages the sandboxes for you.
+
+</Step>
+<Step title="Run the backend">
+
+Open SWE's backend is a LangGraph app served together with its webhook API:
+
+```bash
+langgraph dev
+```
+
+The full deployment (GitHub App, webhooks, dashboard) is covered in the [installation guide](https://github.com/langchain-ai/open-swe/blob/main/docs/INSTALLATION.md).
+
+</Step>
+<Step title="Watch the sandboxes">
+
+As Open SWE picks up tasks, you can watch it create and reuse sandboxes with the [E2B CLI](/cli):
+
+```bash
+e2b sandbox list --state running
+```
+
+</Step>
+</Steps>
+
+## Custom templates
+
+By default, sandboxes start from the E2B base template. To pre-install languages, frameworks, or internal tools your repositories depend on — and cut setup time per agent run — build a [custom template](/template/quickstart) and point Open SWE at it:
+
+```bash
+E2B_TEMPLATE="your-template-id-or-name"
+```
+
+## Learn more
+
+- [Open SWE installation guide](https://github.com/langchain-ai/open-swe/blob/main/docs/INSTALLATION.md)
+- [Open SWE customization guide](https://github.com/langchain-ai/open-swe/blob/main/docs/CUSTOMIZATION.md#using-a-different-sandbox-provider) — switching sandbox providers
+- [Announcement blog post](https://blog.langchain.com/open-swe-an-open-source-framework-for-internal-coding-agents/)
+
+## Related guides
+
+<CardGroup cols={3}>
+  <Card title="Templates" icon="layer-group" href="/template/quickstart">
+    Build custom sandbox templates with pre-installed dependencies
+  </Card>
+  <Card title="Sandbox persistence" icon="clock" href="/sandbox/persistence">
+    Auto-pause, resume, and manage sandbox lifecycle
+  </Card>
+  <Card title="Git integration" icon="code-branch" href="/sandbox/git-integration">
+    Clone repos, manage branches, and push changes
+  </Card>
+</CardGroup>

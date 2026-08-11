@@ -1,6 +1,6 @@
 # E2B Docs
 
-This is an official E2B documentation deployed at [e2b.dev/docs](https://e2b.dev/docs?utm_source=github&utm_medium=referral&utm_campaign=readme&utm_content=docs).
+This is the official E2B documentation deployed at [docs.e2b.dev](https://docs.e2b.dev?utm_source=github&utm_medium=referral&utm_campaign=readme&utm_content=docs).
 
 
 ### Development

@@ -1,0 +1,113 @@
+---
+title: "LangChain Deep Agents"
+description: "Use E2B sandboxes as the execution backend for LangChain Deep Agents."
+icon: "/images/icons/deep-agents.svg"
+---
+
+[Deep Agents](https://docs.langchain.com/oss/python/deepagents/overview) is LangChain's agent harness for building LLM-powered agents, built on the [LangGraph](https://langchain-ai.github.io/langgraph/) runtime. In Deep Agents, a [sandbox backend](https://docs.langchain.com/oss/python/deepagents/sandboxes) defines the environment where the agent operates — E2B is a supported backend via the [`langchain-e2b`](https://pypi.org/project/langchain-e2b/) package.
+
+With the E2B backend, the agent's built-in tools all execute inside an isolated sandbox instead of your machine:
+
+- **Filesystem tools** — `ls`, `read_file`, `write_file`, `edit_file`, `glob`, and `grep` operate on the sandbox filesystem.
+- **Shell tool** — `execute` runs arbitrary shell commands in the sandbox.
+
+## Install the dependencies
+
+Set API keys for E2B and your model provider:
+
+```bash
+export E2B_API_KEY="e2b_***"        # get yours at https://e2b.dev/dashboard
+export ANTHROPIC_API_KEY="sk-ant-***"
+```
+
+Then install the packages:
+
+```bash
+pip install deepagents langchain-e2b e2b
+```
+
+## Basic example
+
+Create an E2B sandbox, wrap it in the `E2BSandbox` backend, and pass it to `create_deep_agent`. You manage the sandbox lifecycle yourself — create it before the agent runs and kill it when you're done.
+
+```python
+from deepagents import create_deep_agent
+from e2b import Sandbox
+from langchain_e2b import E2BSandbox
+
+sandbox = Sandbox.create(timeout=600)
+
+agent = create_deep_agent(
+    model="anthropic:claude-sonnet-5",
+    system_prompt="You are a coding agent working in an isolated Linux sandbox.",
+    backend=E2BSandbox(sandbox=sandbox),
+)
+
+result = agent.invoke({
+    "messages": [{
+        "role": "user",
+        "content": "Create hello.py that prints 'Hello from E2B', run it, and show the output.",
+    }]
+})
+
+print(result["messages"][-1].content)
+sandbox.kill()
+```
+
+The agent's file operations and shell commands all run inside the sandbox — nothing touches your machine. Because the backend wraps the native E2B SDK sandbox, you can configure everything the SDK supports: [custom templates](/template/quickstart), timeouts, [persistence](/sandbox/persistence), or reconnecting to an existing sandbox by ID.
+
+## Deep Agents Code (dcode)
+
+[Deep Agents Code](https://docs.langchain.com/oss/python/deepagents/sandboxes#deep-agents-code) is LangChain's terminal coding agent built on Deep Agents. `langchain-e2b` ships a sandbox provider for it, so every `dcode` session can run in an E2B sandbox:
+
+```bash
+dcode --install langchain-e2b --package
+export E2B_API_KEY="e2b_***"
+dcode --sandbox e2b
+```
+
+Requires `dcode` >= 0.1.19 and `langchain-e2b` >= 0.0.4. Unlike the library path, `dcode` manages the sandbox lifecycle for you — it creates the sandbox on start and deletes it on exit. Configure it with:
+
+- `E2B_TEMPLATE` — custom sandbox template to start from
+- `E2B_SANDBOX_TIMEOUT` — sandbox timeout in seconds
+
+## Custom templates
+
+By default, sandboxes start from the E2B base template. To pre-install languages, frameworks, or tools your agent needs — and cut setup time per run — build a [custom template](/template/quickstart) and pass it when creating the sandbox:
+
+```python
+sandbox = Sandbox.create(template="your-template-id-or-name", timeout=600)
+```
+
+## Deep Agents vs. Open SWE
+
+[Open SWE](/agents/open-swe) is LangChain's coding agent framework built on top of Deep Agents — both use the same `langchain-e2b` backend under the hood, but they sit at different layers:
+
+| | **Deep Agents** (this page) | **[LangChain Open SWE](/agents/open-swe)** |
+|---|---|---|
+| What it is | A Python library you embed in your own agent | A deployable internal coding agent you fork and run |
+| How you use E2B | Create the sandbox yourself and pass `E2BSandbox` to `create_deep_agent` | Set `SANDBOX_TYPE="e2b"` — sandboxes are created and managed for you |
+| Sandbox lifecycle | Yours to manage (`Sandbox.create()` / `sandbox.kill()`) | Per-thread persistent sandbox, reconnect by ID, auto-recreate |
+| Use it when | Building any custom agent that needs isolated code execution | You want a GitHub/Slack/Linear-driven coding agent for your org |
+
+Use this page's approach for custom agents; if you're deploying a coding agent for your team, start from [Open SWE](/agents/open-swe) instead.
+
+## Learn more
+
+- [Deep Agents sandboxes](https://docs.langchain.com/oss/python/deepagents/sandboxes) — sandbox backends overview
+- [E2B integration reference](https://docs.langchain.com/oss/python/integrations/sandboxes/e2b) — LangChain's E2B provider page
+- [`langchain-e2b` on PyPI](https://pypi.org/project/langchain-e2b/)
+
+## Related guides
+
+<CardGroup cols={3}>
+  <Card title="Templates" icon="layer-group" href="/template/quickstart">
+    Build custom sandbox templates with pre-installed dependencies
+  </Card>
+  <Card title="Sandbox persistence" icon="clock" href="/sandbox/persistence">
+    Auto-pause, resume, and manage sandbox lifecycle
+  </Card>
+  <Card title="Open SWE" icon="/images/icons/open-swe.svg" href="/agents/open-swe">
+    LangChain's coding agent framework with E2B built in
+  </Card>
+</CardGroup>
