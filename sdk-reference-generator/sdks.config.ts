@@ -3,6 +3,7 @@ import type { SDKConfig } from "./src/types.js";
 const sdks = {
   cli: {
     displayName: "CLI",
+    versionLabel: "CLI",
     icon: "terminal",
     order: 7,
     repo: "https://github.com/e2b-dev/e2b.git",
@@ -16,6 +17,7 @@ const sdks = {
 
   "js-sdk": {
     displayName: "SDK (JavaScript)",
+    versionLabel: "JS",
     icon: "square-js",
     order: 1,
     repo: "https://github.com/e2b-dev/e2b.git",
@@ -78,6 +80,7 @@ const sdks = {
 
   "python-sdk": {
     displayName: "SDK (Python)",
+    versionLabel: "Python",
     icon: "python",
     order: 2,
     repo: "https://github.com/e2b-dev/e2b.git",
@@ -129,6 +132,7 @@ const sdks = {
 
   "code-interpreter-js-sdk": {
     displayName: "Code Interpreter SDK (JavaScript)",
+    versionLabel: "Code Interpreter JS",
     icon: "square-js",
     order: 3,
     repo: "https://github.com/e2b-dev/code-interpreter.git",
@@ -152,6 +156,7 @@ const sdks = {
 
   "code-interpreter-python-sdk": {
     displayName: "Code Interpreter SDK (Python)",
+    versionLabel: "Code Interpreter Python",
     icon: "python",
     order: 4,
     repo: "https://github.com/e2b-dev/code-interpreter.git",
@@ -169,6 +174,7 @@ const sdks = {
 
   "desktop-js-sdk": {
     displayName: "Desktop SDK (JavaScript)",
+    versionLabel: "Desktop JS",
     icon: "square-js",
     order: 5,
     repo: "https://github.com/e2b-dev/desktop.git",
@@ -186,6 +192,7 @@ const sdks = {
 
   "desktop-python-sdk": {
     displayName: "Desktop SDK (Python)",
+    versionLabel: "Desktop Python",
     icon: "python",
     order: 6,
     repo: "https://github.com/e2b-dev/desktop.git",

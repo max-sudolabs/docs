@@ -9,6 +9,7 @@ vi.mock("../../sdks.config.js", () => ({
   default: {
     "test-js-sdk": {
       displayName: "Test SDK (JavaScript)",
+      versionLabel: "TestJS",
       icon: "square-js",
       order: 1,
       repo: "https://github.com/test/repo.git",
@@ -19,6 +20,7 @@ vi.mock("../../sdks.config.js", () => ({
     },
     "test-py-sdk": {
       displayName: "Test SDK (Python)",
+      versionLabel: "TestPy",
       icon: "python",
       order: 2,
       repo: "https://github.com/test/repo.git",
@@ -90,7 +92,7 @@ describe("buildNavigation", () => {
     expect(result[0].dropdown).toBe("Test SDK (JavaScript)");
     expect(result[0].icon).toBe("square-js");
     expect(result[0].versions).toHaveLength(1);
-    expect(result[0].versions[0].version).toBe("v1.0.0");
+    expect(result[0].versions[0].version).toBe("v1.0.0 (TestJS)");
     expect(result[0].versions[0].default).toBe(true);
     expect(result[0].versions[0].pages).toContain(
       "sdk-reference/test-js-sdk/v1.0.0/Sandbox"
@@ -112,9 +114,9 @@ describe("buildNavigation", () => {
 
     const result = await buildNavigation(tempDir);
 
-    expect(result[0].versions[0].version).toBe("v2.0.0");
-    expect(result[0].versions[1].version).toBe("v1.5.0");
-    expect(result[0].versions[2].version).toBe("v1.0.0");
+    expect(result[0].versions[0].version).toBe("v2.0.0 (TestJS)");
+    expect(result[0].versions[1].version).toBe("v1.5.0 (TestJS)");
+    expect(result[0].versions[2].version).toBe("v1.0.0 (TestJS)");
   });
 
   it("marks first version as default", async () => {
@@ -140,7 +142,7 @@ describe("buildNavigation", () => {
 
     const result = await buildNavigation(tempDir);
 
-    expect(result[0].versions[0].version).toBe("v1.0.0");
+    expect(result[0].versions[0].version).toBe("v1.0.0 (TestJS)");
   });
 
   it("sorts SDKs by order from config", async () => {
@@ -204,7 +206,7 @@ describe("buildNavigation", () => {
     const result = await buildNavigation(tempDir);
 
     expect(result[0].versions).toHaveLength(1);
-    expect(result[0].versions[0].version).toBe("v1.0.0");
+    expect(result[0].versions[0].version).toBe("v1.0.0 (TestJS)");
   });
 });
 

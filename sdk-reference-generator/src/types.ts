@@ -1,5 +1,16 @@
 type BaseSDKConfig = {
   displayName: string;
+  /**
+   * Short SDK name appended to every version label, e.g. "JS" -> "v2.38.2 (JS)".
+   *
+   * Mintlify's dropdown switcher resolves a destination by version label alone,
+   * ignoring which dropdown it belongs to. Our SDKs reuse version numbers, so
+   * identical labels cross-wire and every option resolves back into the SDK you
+   * are already viewing. These labels must stay unique across SDKs -
+   * `sdks-config.test.ts` asserts it. Falls back to the SDK key, which is
+   * unique by construction.
+   */
+  versionLabel?: string;
   icon: string;
   order: number;
   repo: string;

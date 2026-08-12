@@ -68,6 +68,16 @@ export async function buildNavigation(
 
     log.data(`Found ${sdkKey}: ${versions.length} versions`);
 
+    // Version labels have to be unique across dropdowns.
+    //
+    // Mintlify's dropdown switcher resolves a destination by version label
+    // alone, without accounting for which SDK that version belongs to. Our
+    // SDKs reuse version numbers, so identical labels cross-wire and every
+    // option resolves back into the SDK you are already viewing. Suffixing the
+    // label with the SDK keeps them distinct. Labels are display-only, so page
+    // URLs are unaffected. Confirmed by Mintlify support.
+    const versionLabel = sdkConfig.versionLabel ?? sdkKey;
+
     const dropdown: NavigationDropdownWithOrder = {
       dropdown: sdkConfig.displayName,
       icon: sdkConfig.icon,
@@ -78,7 +88,7 @@ export async function buildNavigation(
           const normalizedVersion = normalizeVersion(version);
 
           return {
-            version: normalizedVersion,
+            version: `${normalizedVersion} (${versionLabel})`,
             default: index === 0,
             pages: modules.map(
               (module) =>

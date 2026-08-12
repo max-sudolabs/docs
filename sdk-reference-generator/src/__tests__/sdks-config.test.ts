@@ -136,3 +136,21 @@ describe("sdks.config - python-sdk version overrides", () => {
     expect(v2_10_1.allowedPackages).toHaveLength(8); // + 5 template packages
   });
 });
+
+describe("versionLabel", () => {
+  it("is set for every SDK", () => {
+    for (const [key, config] of Object.entries(sdks)) {
+      expect(config.versionLabel, `${key} is missing versionLabel`).toBeTruthy();
+    }
+  });
+
+  it("is unique across SDKs", () => {
+    // Mintlify's dropdown switcher resolves by version label alone, so two SDKs
+    // sharing a label would cross-wire their destinations. This is the property
+    // the whole workaround depends on.
+    const labels = Object.values(sdks).map((c) => c.versionLabel);
+    const duplicates = labels.filter((l, i) => labels.indexOf(l) !== i);
+
+    expect(duplicates, `duplicate versionLabel(s): ${duplicates.join(", ")}`).toEqual([]);
+  });
+});
