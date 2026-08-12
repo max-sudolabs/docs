@@ -76,6 +76,17 @@ When `allowPublicTraffic` / `allow_public_traffic` is set to a falsy value, all 
 
 ## Running a firewall inside the sandbox
 
+E2B already blocks every sandbox from sending outbound traffic to private and link-local address ranges. This is enforced outside the guest, applies to every sandbox, and cannot be disabled, so you do not need your own in-sandbox rules to block these ranges:
+
+- `10.0.0.0/8`
+- `100.64.0.0/10`
+- `127.0.0.0/8`
+- `169.254.0.0/16`
+- `172.16.0.0/12`
+- `192.168.0.0/16`
+
+E2B's own control channel to the sandbox runs over an internal address in this space, and its return traffic is accepted before the deny rule is applied, which is why the platform's own connectivity keeps working. If you add your own blanket outbound drop for one of these ranges (for example `iptables -A OUTPUT -d 10.0.0.0/8 -j DROP`) without allowing established and related connections ahead of it, you will cut that control channel and the sandbox will lose contact with the SDK. During a template build this surfaces as the start command failing its readiness check.
+
 <Warning>
 If you are using custom `iptables` or firewall rules inside a sandbox, keep E2B's own connectivity open or the sandbox will lose contact with the SDK:
 
@@ -84,3 +95,5 @@ If you are using custom `iptables` or firewall rules inside a sandbox, keep E2B'
 - Inbound TCP to port `49999`, if you use the [Code Interpreter](/code-interpreting/analyze-data-with-ai) template.
 - Established and related connections, if you filter outbound traffic.
 </Warning>
+
+To restrict which public destinations a sandbox can reach, use the built-in [network configuration](/network/internet-access) (`allowInternetAccess`, `denyOut`, `allowOut`) rather than in-sandbox firewall rules.
