@@ -1,6 +1,7 @@
 ---
 title: "Why does my template build fail with a Docker push authentication error?"
 sidebarTitle: Docker push authentication error
+"og:image": "/images/og/generated/faq/docker-push-authentication-error.png"
 ---
 
 When the CLI pushes a Docker image to the build registry, you may hit an authentication error because Docker doesn't send any credentials to the registry. The fix is to mark E2B's local registry proxy as an insecure registry so Docker routes through it.

@@ -1,0 +1,15 @@
+{
+  "name": "e2b-docs-og-generator",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node src/cli.js",
+    "check": "node src/cli.js --check",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "gray-matter": "4.0.3",
+    "satori": "0.29.0"
+  }
+}

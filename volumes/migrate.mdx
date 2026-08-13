@@ -1,6 +1,7 @@
 ---
 title: "Migrating data between volumes"
 description: "Copy all data from one E2B volume to another by mounting both into a sandbox and using rsync."
+"og:image": "/images/og/generated/volumes/migrate.png"
 ---
 
 When you need to move data from an old volume to a new one, the simplest approach is to mount both volumes into a single sandbox and copy the files across. This page walks through a script that does exactly that: it spins up a sandbox from the **base** template, mounts a source and a destination volume, and copies all data from source to destination.

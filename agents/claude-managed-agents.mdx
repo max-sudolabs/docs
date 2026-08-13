@@ -2,6 +2,7 @@
 title: "Claude Managed Agents"
 description: "Use E2B as the sandbox runtime for Claude Managed Agents self-hosted environments."
 icon: "/images/icons/claude-code.svg"
+"og:image": "/images/og/generated/agents/claude-managed-agents.png"
 ---
 
 [Claude Managed Agents](https://platform.claude.com/docs/en/managed-agents/overview) can use a self-hosted environment when you want tool calls to run in your own infrastructure. Claude runs the agentic loop and reasoning process; E2B provides isolated sandbox infrastructure for the environment where tool calls execute. The reusable `E2B/claude-managed-agents-webhooks` template receives webhooks and routes each Claude Managed Agents session to a persistent E2B worker sandbox.

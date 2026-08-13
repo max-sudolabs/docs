@@ -1,6 +1,7 @@
 ---
 title: "Why does iptables fail with 'xt_owner module missing' in a sandbox?"
 sidebarTitle: iptables xt_owner module
+"og:image": "/images/og/generated/faq/iptables-xt-owner.png"
 ---
 
 The `xt_owner` kernel module is not currently available in E2B's sandbox kernel. As a result, iptables rules that depend on it (most commonly `NAT REDIRECT` with `--uid-owner` or `--gid-owner`, used in transparent proxy setups) will fail with:
