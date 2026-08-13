@@ -15,6 +15,9 @@ pnpm test
 Generated PNGs are committed under `images/og/generated`. The generator adds
 the corresponding quoted `og:image` property to each page's frontmatter and
 normalizes both social-image properties across all SDK-reference snapshots.
+The pull-request workflow runs generation automatically and commits any changes
+back to same-repository PR branches. The local commands remain available for
+previewing and verifying generator changes.
 
 ## Design choices
 
