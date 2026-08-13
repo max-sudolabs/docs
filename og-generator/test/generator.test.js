@@ -75,8 +75,9 @@ test('getOgPages reads tab navigation and skips SDK reference routes', () => {
   ])
 })
 
-test('documentation root uses the shared static image', () => {
+test('static routes use their custom images', () => {
   assert.equal(STATIC_OG_IMAGES.get('index'), '/images/og/opengraph-image.png')
+  assert.equal(STATIC_OG_IMAGES.get('changelog'), '/images/og/changelog.png')
 })
 
 test('validateRoute rejects traversal and absolute routes', () => {

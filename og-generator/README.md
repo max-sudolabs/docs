@@ -1,9 +1,9 @@
 # Documentation Open Graph images
 
 This package generates a 1200×630 social card for every public MDX page in
-`docs.json`. The documentation root and SDK reference use shared static cards;
-all other routes use the nearest navigation group as the section label and the
-page frontmatter `title` as the main label.
+`docs.json`. The documentation root, changelog, and SDK reference use static
+cards; all other routes use the nearest navigation group as the section label
+and the page frontmatter `title` as the main label.
 
 ```bash
 pnpm install

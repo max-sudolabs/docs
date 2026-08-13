@@ -5,6 +5,7 @@ on:
     paths:
       - "**/*.mdx"
       - "docs.json"
+      - "images/og/changelog.png"
       - "images/og/opengraph-image.png"
       - "images/og/sdk-reference.png"
       - "images/og/generated/**"

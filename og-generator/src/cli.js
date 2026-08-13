@@ -146,7 +146,7 @@ async function main() {
   }
 
   console.log(
-    `${check ? 'Checked' : 'Generated'} ${generatedCount} route images, ${STATIC_OG_IMAGES.size} static default, and ${sdkReferencePages.length} SDK-reference pages.`,
+    `${check ? 'Checked' : 'Generated'} ${generatedCount} generated route images, ${STATIC_OG_IMAGES.size} static route images, and ${sdkReferencePages.length} SDK-reference pages.`,
   )
 }
 

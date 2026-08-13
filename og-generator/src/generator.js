@@ -10,6 +10,7 @@ export const HEIGHT = 630
 export const SDK_REFERENCE_IMAGE_URL = '/images/og/sdk-reference.png'
 export const STATIC_OG_IMAGES = new Map([
   ['index', '/images/og/opengraph-image.png'],
+  ['changelog', '/images/og/changelog.png'],
 ])
 const INTERFACE_ORANGE = '#e32a01'
 
