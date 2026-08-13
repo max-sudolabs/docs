@@ -1,11 +1,14 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "maple",
+  "theme": "mint",
   "name": "E2B Docs",
   "colors": {
-    "primary": "#ff8800",
-    "light": "#ff8800",
-    "dark": "#E57B00"
+    "primary": "#e32a01",
+    "light": "#e32a01",
+    "dark": "#e32a01"
+  },
+  "fonts": {
+    "family": "IBM Plex Sans"
   },
   "styling": {
     "codeblocks": {
@@ -15,14 +18,17 @@
       }
     }
   },
+  "interaction": {
+    "drilldown": false
+  },
   "favicon": {
     "light": "/favicon.svg",
     "dark": "/favicon-dark.svg"
   },
   "navigation": {
-    "anchors": [
+    "tabs": [
       {
-        "anchor": "Documentation",
+        "tab": "Sandboxes",
         "icon": "book-open-cover",
         "groups": [
           {
@@ -40,20 +46,177 @@
                 ]
               },
               "api-key",
-              "projects",
               "cookbook",
               "support",
-              "billing"
+              "billing",
+              {
+                "group": "Sandbox",
+                "expanded": false,
+                "pages": [
+                  "sandbox",
+                  "sandbox/lifecycle-events-api",
+                  "sandbox/lifecycle-events-webhooks",
+                  "sandbox/persistence",
+                  "sandbox/snapshots",
+                  "sandbox/fork",
+                  "sandbox/auto-resume",
+                  "sandbox/filesystem-only-snapshots",
+                  "sandbox/git-integration",
+                  "sandbox/metrics",
+                  "sandbox/otel-telemetry-export",
+                  "sandbox/metadata",
+                  "sandbox/environment-variables",
+                  "sandbox/list",
+                  "sandbox/connect",
+                  "sandbox/pty",
+                  "sandbox/ssh-access",
+                  "sandbox/secured-access"
+                ]
+              },
+              {
+                "group": "Templates",
+                "expanded": false,
+                "pages": [
+                  "template/quickstart",
+                  "template/how-it-works",
+                  "template/user-and-workdir",
+                  "template/caching",
+                  "template/base-image",
+                  "template/private-registries",
+                  "template/defining-template",
+                  "template/start-ready-command",
+                  "template/build",
+                  "template/names",
+                  "template/tags",
+                  "template/logging",
+                  "template/error-handling",
+                  {
+                    "group": "Examples",
+                    "pages": [
+                      "template/examples/nextjs",
+                      "template/examples/nextjs-bun",
+                      "template/examples/expo",
+                      "template/examples/desktop",
+                      "template/examples/claude-code",
+                      "template/examples/docker"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Storage",
+                "expanded": false,
+                "pages": [
+                  {
+                    "group": "Filesystem",
+                    "expanded": false,
+                    "pages": [
+                      "filesystem",
+                      "filesystem/read-write",
+                      "filesystem/info",
+                      "filesystem/metadata",
+                      "filesystem/watch",
+                      "filesystem/upload",
+                      "filesystem/download"
+                    ]
+                  },
+                  {
+                    "group": "Volumes",
+                    "expanded": false,
+                    "pages": [
+                      "volumes",
+                      "volumes/manage",
+                      "volumes/mount",
+                      "volumes/read-write",
+                      "volumes/info",
+                      "volumes/upload",
+                      "volumes/download",
+                      "volumes/migrate"
+                    ]
+                  },
+                  "storage/cloud-buckets",
+                  "storage/archil"
+                ]
+              },
+              {
+                "group": "Network",
+                "expanded": false,
+                "pages": [
+                  "network/internet-access",
+                  "network/public-url",
+                  "network/restrict-public-access",
+                  "network/ip-tunneling",
+                  "network/custom-domain"
+                ]
+              },
+              {
+                "group": "Commands",
+                "expanded": false,
+                "pages": [
+                  "commands",
+                  "commands/streaming",
+                  "commands/background"
+                ]
+              },
+              {
+                "group": "CLI",
+                "expanded": false,
+                "pages": [
+                  "cli",
+                  "cli/auth",
+                  "cli/list-sandboxes",
+                  "cli/create-sandbox",
+                  "cli/connect-to-sandbox",
+                  "cli/exec-command",
+                  "cli/shutdown-sandboxes"
+                ]
+              }
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Use cases",
+        "icon": "lightbulb",
+        "pages": [
+          "use-cases/coding-agents",
+          "use-cases/computer-use",
+          "use-cases/ci-cd",
+          "use-cases/k3s",
+          "use-cases/remote-browser",
           {
-            "group": "Use cases",
+            "group": "Code interpreting",
+            "icon": "chart-line",
+            "root": "code-interpreting/analyze-data-with-ai",
             "pages": [
-              "use-cases/coding-agents",
-              "use-cases/computer-use",
-              "use-cases/ci-cd",
-              "use-cases/k3s",
-              "use-cases/remote-browser"
+              {
+                "group": "Analyze data with AI",
+                "pages": [
+                  "code-interpreting/analyze-data-with-ai/pre-installed-libraries"
+                ]
+              },
+              {
+                "group": "Charts & visualizations",
+                "pages": [
+                  "code-interpreting/create-charts-visualizations",
+                  "code-interpreting/create-charts-visualizations/static-charts",
+                  "code-interpreting/create-charts-visualizations/interactive-charts"
+                ]
+              },
+              "code-interpreting/streaming",
+              "code-interpreting/contexts",
+              "code-interpreting/customize-template",
+              {
+                "group": "Supported languages",
+                "pages": [
+                  "code-interpreting/supported-languages",
+                  "code-interpreting/supported-languages/python",
+                  "code-interpreting/supported-languages/javascript",
+                  "code-interpreting/supported-languages/r",
+                  "code-interpreting/supported-languages/java",
+                  "code-interpreting/supported-languages/bash"
+                ]
+              }
             ]
           },
           {
@@ -90,142 +253,6 @@
             ]
           },
           {
-            "group": "Storage",
-            "pages": [
-              "storage/archil",
-              "storage/cloud-buckets"
-            ]
-          },
-          {
-            "group": "Code interpreting",
-            "pages": [
-              {
-                "group": "Analyze data with AI",
-                "pages": [
-                  "code-interpreting/analyze-data-with-ai",
-                  "code-interpreting/analyze-data-with-ai/pre-installed-libraries"
-                ]
-              },
-              {
-                "group": "Charts & visualizations",
-                "pages": [
-                  "code-interpreting/create-charts-visualizations",
-                  "code-interpreting/create-charts-visualizations/static-charts",
-                  "code-interpreting/create-charts-visualizations/interactive-charts"
-                ]
-              },
-              "code-interpreting/streaming",
-              "code-interpreting/contexts",
-              "code-interpreting/customize-template",
-              {
-                "group": "Supported languages",
-                "pages": [
-                  "code-interpreting/supported-languages",
-                  "code-interpreting/supported-languages/python",
-                  "code-interpreting/supported-languages/javascript",
-                  "code-interpreting/supported-languages/r",
-                  "code-interpreting/supported-languages/java",
-                  "code-interpreting/supported-languages/bash"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "Sandbox",
-            "pages": [
-              "sandbox",
-              "sandbox/lifecycle-events-api",
-              "sandbox/lifecycle-events-webhooks",
-              "sandbox/persistence",
-              "sandbox/snapshots",
-              "sandbox/fork",
-              "sandbox/auto-resume",
-              "sandbox/filesystem-only-snapshots",
-              "sandbox/git-integration",
-              "sandbox/metrics",
-              "sandbox/otel-telemetry-export",
-              "sandbox/metadata",
-              "sandbox/environment-variables",
-              "sandbox/list",
-              "sandbox/connect",
-              "sandbox/pty",
-              "sandbox/ssh-access",
-              "sandbox/secured-access"
-            ]
-          },
-          {
-            "group": "Templates",
-            "pages": [
-              "template/quickstart",
-              "template/how-it-works",
-              "template/user-and-workdir",
-              "template/caching",
-              "template/base-image",
-              "template/private-registries",
-              "template/defining-template",
-              "template/start-ready-command",
-              "template/build",
-              "template/names",
-              "template/tags",
-              "template/logging",
-              "template/error-handling",
-              {
-                "group": "Examples",
-                "pages": [
-                  "template/examples/nextjs",
-                  "template/examples/nextjs-bun",
-                  "template/examples/expo",
-                  "template/examples/desktop",
-                  "template/examples/claude-code",
-                  "template/examples/docker"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "Network",
-            "pages": [
-              "network/internet-access",
-              "network/public-url",
-              "network/restrict-public-access",
-              "network/ip-tunneling",
-              "network/custom-domain"
-            ]
-          },
-          {
-            "group": "Filesystem",
-            "pages": [
-              "filesystem",
-              "filesystem/read-write",
-              "filesystem/info",
-              "filesystem/metadata",
-              "filesystem/watch",
-              "filesystem/upload",
-              "filesystem/download"
-            ]
-          },
-          {
-            "group": "Volumes",
-            "pages": [
-              "volumes",
-              "volumes/manage",
-              "volumes/mount",
-              "volumes/read-write",
-              "volumes/info",
-              "volumes/upload",
-              "volumes/download",
-              "volumes/migrate"
-            ]
-          },
-          {
-            "group": "Commands",
-            "pages": [
-              "commands",
-              "commands/streaming",
-              "commands/background"
-            ]
-          },
-          {
             "group": "MCP gateway",
             "pages": [
               "mcp",
@@ -235,55 +262,11 @@
               "mcp/custom-servers",
               "mcp/examples"
             ]
-          },
-          {
-            "group": "CLI",
-            "pages": [
-              "cli",
-              "cli/auth",
-              "cli/list-sandboxes",
-              "cli/create-sandbox",
-              "cli/connect-to-sandbox",
-              "cli/exec-command",
-              "cli/shutdown-sandboxes"
-            ]
-          },
-          {
-            "group": "Deployment",
-            "pages": [
-              "byoc",
-              "deployment/dscp-marking"
-            ]
-          },
-          {
-            "group": "Migration",
-            "pages": [
-              "migration/v2",
-              "migration/template-v2",
-              "migration/access-token-deprecation",
-              "migration/v1-build-deprecation"
-            ]
-          },
-          {
-            "group": "FAQ",
-            "pages": [
-              "faq/calculate-sandbox-price",
-              "faq/increase-concurrency",
-              "faq/paused-sandboxes-concurrency",
-              "faq/template-limit",
-              "faq/public-templates",
-              "faq/eu-region",
-              "faq/egress-ip-ranges",
-              "faq/iptables-xt-owner",
-              "faq/pip-install-error",
-              "faq/port-49999-not-open",
-              "faq/docker-push-authentication-error"
-            ]
           }
         ]
       },
       {
-        "anchor": "SDK Reference",
+        "tab": "SDK Reference",
         "icon": "brackets-curly",
         "dropdowns": [
           {
@@ -5405,7 +5388,7 @@
         ]
       },
       {
-        "anchor": "API reference",
+        "tab": "API Reference",
         "icon": "code",
         "openapi": {
           "source": "openapi-public.yml",
@@ -5413,10 +5396,54 @@
         }
       },
       {
-        "anchor": "Changelog",
+        "tab": "Changelog",
         "icon": "clock-rotate-left",
         "pages": [
           "changelog"
+        ]
+      },
+      {
+        "tab": "FAQ",
+        "icon": "circle-question",
+        "groups": [
+          {
+            "group": "Account, billing & limits",
+            "pages": [
+              "projects",
+              "faq/calculate-sandbox-price",
+              "faq/increase-concurrency",
+              "faq/paused-sandboxes-concurrency"
+            ]
+          },
+          {
+            "group": "Templates & builds",
+            "pages": [
+              "faq/template-limit",
+              "faq/public-templates",
+              "faq/pip-install-error",
+              "faq/docker-push-authentication-error"
+            ]
+          },
+          {
+            "group": "Networking & deployment",
+            "pages": [
+              "faq/eu-region",
+              "faq/egress-ip-ranges",
+              "faq/iptables-xt-owner",
+              "faq/port-49999-not-open",
+              "byoc",
+              "deployment/dscp-marking"
+            ]
+          },
+          {
+            "group": "Migrations & deprecations",
+            "pages": [
+              "migration/v2",
+              "migration/template-v2",
+              "migration/access-token-deprecation",
+              "migration/v1-build-deprecation"
+            ]
+          }
         ]
       }
     ],

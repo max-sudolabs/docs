@@ -111,23 +111,29 @@ async function verifyDocsJson(docsDir: string): Promise<boolean> {
   try {
     const docsJson = await fs.readJSON(docsJsonPath);
 
+    const tabs = docsJson.navigation?.tabs;
     const anchors = docsJson.navigation?.anchors;
-    if (!Array.isArray(anchors)) {
-      log.error('Invalid docs.json: navigation.anchors is not an array');
+    const usesTabs = Array.isArray(tabs);
+    const sections = usesTabs ? tabs : anchors;
+    const labelKey = usesTabs ? 'tab' : 'anchor';
+
+    if (!Array.isArray(sections)) {
+      log.error('Invalid docs.json: navigation.tabs or navigation.anchors must be an array');
       return false;
     }
 
-    const sdkRefAnchor = anchors.find(
-      (a: { anchor?: string }) => a.anchor === CONSTANTS.SDK_REFERENCE_ANCHOR
+    const sdkRefSection = sections.find(
+      (section: Record<string, unknown>) =>
+        section[labelKey] === CONSTANTS.SDK_REFERENCE_ANCHOR
     );
 
-    if (!sdkRefAnchor) {
-      log.error(`${CONSTANTS.SDK_REFERENCE_ANCHOR} anchor not found in docs.json`);
+    if (!sdkRefSection) {
+      log.error(`${CONSTANTS.SDK_REFERENCE_ANCHOR} ${labelKey} not found in docs.json`);
       return false;
     }
 
-    if (!Array.isArray(sdkRefAnchor.dropdowns)) {
-      log.error('SDK Reference anchor has no dropdowns array');
+    if (!Array.isArray(sdkRefSection.dropdowns)) {
+      log.error(`SDK Reference ${labelKey} has no dropdowns array`);
       return false;
     }
 
@@ -138,4 +144,3 @@ async function verifyDocsJson(docsDir: string): Promise<boolean> {
     return false;
   }
 }
-

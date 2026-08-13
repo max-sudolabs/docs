@@ -331,7 +331,7 @@ describe("mergeNavigation", () => {
     );
   });
 
-  it("throws when docs.json has no anchors", async () => {
+  it("throws when docs.json has no tabs or anchors", async () => {
     await fs.writeJSON(docsJsonPath, { navigation: {} });
 
     const navigation = [
@@ -343,7 +343,7 @@ describe("mergeNavigation", () => {
     ];
 
     await expect(mergeNavigation(navigation, tempDir)).rejects.toThrow(
-      "No anchors found"
+      "No tabs or anchors found"
     );
   });
 
@@ -394,6 +394,33 @@ describe("mergeNavigation", () => {
     expect(result.navigation.anchors).toHaveLength(2);
     expect(result.navigation.anchors[1].dropdowns).toHaveLength(1);
     expect(result.navigation.anchors[1].dropdowns[0].dropdown).toBe("Test SDK");
+  });
+
+  it("updates existing SDK Reference tab", async () => {
+    await fs.writeJSON(docsJsonPath, {
+      navigation: {
+        tabs: [
+          { tab: "Sandboxes", groups: [] },
+          { tab: "SDK Reference", icon: "brackets-curly", dropdowns: [] },
+        ],
+      },
+    });
+
+    const navigation = [
+      {
+        dropdown: "Test SDK",
+        icon: "square-js",
+        versions: [{ version: "v1.0.0", default: true, pages: ["test/page"] }],
+      },
+    ];
+
+    await mergeNavigation(navigation, tempDir);
+
+    const result = await fs.readJSON(docsJsonPath);
+    expect(result.navigation.tabs).toHaveLength(2);
+    expect(result.navigation.tabs[1].tab).toBe("SDK Reference");
+    expect(result.navigation.tabs[1].dropdowns).toHaveLength(1);
+    expect(result.navigation.tabs[1].dropdowns[0].dropdown).toBe("Test SDK");
   });
 
   it("preserves other anchors in docs.json", async () => {

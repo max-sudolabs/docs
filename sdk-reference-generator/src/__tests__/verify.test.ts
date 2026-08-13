@@ -135,6 +135,33 @@ describe('verifyDocsJson via verifyGeneratedDocs', () => {
     expect(result.valid).toBe(true);
   });
 
+  it('validates tab-based docs.json structure', async () => {
+    const sdkPath = path.join(tempDir, CONSTANTS.DOCS_SDK_REF_PATH, 'test-sdk', 'v1.0.0');
+    await fs.ensureDir(sdkPath);
+    await fs.writeFile(
+      path.join(sdkPath, 'test.mdx'),
+      '---\nsidebarTitle: "Test"\n---\n\nContent'
+    );
+
+    const docsJson = {
+      navigation: {
+        tabs: [
+          {
+            tab: CONSTANTS.SDK_REFERENCE_ANCHOR,
+            icon: 'brackets-curly',
+            dropdowns: [],
+          },
+        ],
+      },
+    };
+
+    await fs.writeJSON(path.join(tempDir, 'docs.json'), docsJson);
+
+    const result = await verifyGeneratedDocs(tempDir);
+    expect(result.docsJsonValid).toBe(true);
+    expect(result.valid).toBe(true);
+  });
+
   it('fails when docs.json missing', async () => {
     const sdkPath = path.join(tempDir, CONSTANTS.DOCS_SDK_REF_PATH, 'test-sdk', 'v1.0.0');
     await fs.ensureDir(sdkPath);
@@ -148,7 +175,7 @@ describe('verifyDocsJson via verifyGeneratedDocs', () => {
     expect(result.valid).toBe(false);
   });
 
-  it('fails when SDK Reference anchor missing', async () => {
+  it('fails when SDK Reference section is missing', async () => {
     const sdkPath = path.join(tempDir, CONSTANTS.DOCS_SDK_REF_PATH, 'test-sdk', 'v1.0.0');
     await fs.ensureDir(sdkPath);
     await fs.writeFile(
@@ -169,4 +196,3 @@ describe('verifyDocsJson via verifyGeneratedDocs', () => {
     expect(result.valid).toBe(false);
   });
 });
-

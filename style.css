@@ -4,6 +4,115 @@
     background-color: var(--background-white);
 }
 
+header .nav-logo {
+    height: 18px !important;
+}
+
+/* Keep the repository control before Dashboard in the top navigation. */
+nav[aria-label="Main"] li:has(> a[href="https://github.com/e2b-dev/e2b"]) {
+    order: -1;
+    margin-left: 0 !important;
+}
+
+nav[aria-label="Main"] li:has(> a[href="https://e2b.dev/dashboard"]) {
+    margin-inline: 0 !important;
+}
+
+/* Keep Dashboard as link navigation while giving it the primary-action skin. */
+nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"] {
+    height: 2.25rem;
+    padding: 0 1rem;
+    border-radius: 0.25rem;
+    background-color: rgb(var(--primary));
+    color: white !important;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    transition:
+        background-color 250ms cubic-bezier(0.4, 0, 0, 1),
+        color 250ms cubic-bezier(0.4, 0, 0, 1),
+        transform 250ms cubic-bezier(0.4, 0, 0, 1);
+}
+
+nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"]:hover {
+    background-color: #000000;
+    color: #ffffff !important;
+}
+
+.dark nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"]:hover {
+    background-color: #ffffff;
+    color: #000000 !important;
+}
+
+nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"]:active {
+    transform: scale(0.97);
+}
+
+nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"]:focus-visible {
+    outline: 2px solid #000000;
+    outline-offset: 2px;
+    box-shadow:
+        0 0 0 4px #ffffff,
+        0 0 0 6px rgb(var(--primary));
+}
+
+.dark nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"]:focus-visible {
+    outline-color: #ffffff;
+    box-shadow:
+        0 0 0 4px #000000,
+        0 0 0 6px rgb(var(--primary));
+}
+
+@media (forced-colors: active) {
+    nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"]:focus-visible {
+        outline-color: Highlight;
+        box-shadow: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"] {
+        transition: none;
+    }
+}
+
+@media (min-width: 1024px) {
+    nav[aria-label="Main"] li:has(> a[href="https://github.com/e2b-dev/e2b"]) {
+        width: 12.5rem;
+        flex-shrink: 0;
+    }
+
+    nav[aria-label="Main"] a[href="https://github.com/e2b-dev/e2b"] span.truncate {
+        min-width: max-content;
+        flex-shrink: 0;
+        overflow: visible;
+        text-overflow: clip;
+    }
+
+    /* Show the last known count until Mintlify appends the live count. */
+    nav[aria-label="Main"] a[href="https://github.com/e2b-dev/e2b"] > div:not(:has(> div:nth-child(2)))::before {
+        content: "";
+        order: 1;
+        width: 0.875rem;
+        height: 0.875rem;
+        margin-left: 0.25rem;
+        flex-shrink: 0;
+        background-color: currentColor;
+        mask-image: url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/regular/star.svg");
+        mask-repeat: no-repeat;
+        mask-position: center;
+    }
+
+    nav[aria-label="Main"] a[href="https://github.com/e2b-dev/e2b"] > div:not(:has(> div:nth-child(2)))::after {
+        content: var(--e2b-github-stars, "13,375");
+        order: 2;
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+    }
+}
+
 /* Add styles specifically for the Sign In link */
 a[href*="auth/sign-in"].whitespace-nowrap.font-medium {
     background-color: black;
@@ -14,7 +123,7 @@ a[href*="auth/sign-in"].whitespace-nowrap.font-medium {
 }
 
 a[href*="auth/sign-in"].whitespace-nowrap.font-medium:hover {
-    background-color: #333;
+    background-color: #2c2c2c;
     color: white !important;
 }
 
@@ -25,7 +134,7 @@ a[href*="auth/sign-in"].whitespace-nowrap.font-medium:hover {
 }
 
 .dark a[href*="auth/sign-in"].whitespace-nowrap.font-medium:hover {
-    background-color: #f3f3f3;
+    background-color: #f4f4f4;
     color: black !important;
 }
 
@@ -33,62 +142,44 @@ code {
     font-family: "IBM Plex Mono";
 }
 
+/* Match the E2B web reading palette without recoloring navigation or code syntax. */
+.dark .mdx-content {
+    --tw-prose-body: #b8b8b8;
+    --tw-prose-lead: #b8b8b8;
+    --tw-prose-captions: #b8b8b8;
+    --tw-prose-counters: #b8b8b8;
+    --tw-prose-invert-body: #b8b8b8;
+    --tw-prose-invert-lead: #b8b8b8;
+    --tw-prose-invert-captions: #b8b8b8;
+    --tw-prose-invert-counters: #b8b8b8;
+    color: #b8b8b8;
+}
+
+.dark main h1,
+.dark .mdx-content :is(h1, h2, h3, h4, h5, h6, strong) {
+    color: #ffffff;
+}
+
 .callout[data-callout-type="note"] {
-    border-color: rgb(249 115 22 / 0.2) !important;
-    /* orange-500 at 20% opacity */
-    background-color: rgb(255 247 237 / 0.5) !important;
-    /* orange-50 at 50% opacity */
+    border-color: rgb(227 42 1 / 0.25) !important;
+    background-color: rgb(227 42 1 / 0.05) !important;
 }
 
 .dark .callout[data-callout-type="note"] {
-    border-color: rgb(249 115 22 / 0.3) !important;
-    /* orange-500 at 30% opacity */
-    background-color: rgb(249 115 22 / 0.1) !important;
-    /* orange-500 at 10% opacity */
+    border-color: rgb(227 42 1 / 0.35) !important;
+    background-color: rgb(227 42 1 / 0.12) !important;
 }
 
 /* Note callout text & icon colors - light mode */
 .callout[data-callout-type="note"],
 .callout[data-callout-type="note"] *:not(a) {
-    color: rgb(124 45 18) !important;
+    color: rgb(160 48 23) !important;
 }
 
 /* Note callout text & icon colors - dark mode */
 .dark .callout[data-callout-type="note"],
 .dark .callout[data-callout-type="note"] *:not(a) {
-    color: rgb(255, 183, 102) !important;
-}
-
-/* Version switcher styles - subtle highlight */
-#sidebar ul:last-child:not(.sidebar-group) li button,
-#sidebar ul:last-child:not(.sidebar-group) li select {
-    background-color: rgba(255, 136, 0, 0.1) !important;   /* 10% orange tint */
-    color: #ff8800 !important;                              /* Orange text */
-    border: 1px solid rgba(255, 136, 0, 0.3) !important;   /* 30% orange border */
-    border-radius: 6px !important;
-    padding: 0.5rem 1rem !important;
-    font-weight: 500 !important;
-    transition: all 0.2s ease !important;
-}
-
-#sidebar ul:last-child:not(.sidebar-group) li button:hover,
-#sidebar ul:last-child:not(.sidebar-group) li select:hover {
-    background-color: rgba(255, 136, 0, 0.15) !important;  /* Slightly darker on hover */
-    border-color: rgba(255, 136, 0, 0.5) !important;
-}
-
-/* Dark mode version switcher */
-.dark #sidebar ul:last-child:not(.sidebar-group) li button,
-.dark #sidebar ul:last-child:not(.sidebar-group) li select {
-    background-color: rgba(255, 136, 0, 0.15) !important;  /* Slightly more visible in dark */
-    color: #ffaa44 !important;                              /* Lighter orange for contrast */
-    border-color: rgba(255, 136, 0, 0.4) !important;
-}
-
-.dark #sidebar ul:last-child:not(.sidebar-group) li button:hover,
-.dark #sidebar ul:last-child:not(.sidebar-group) li select:hover {
-    background-color: rgba(255, 136, 0, 0.25) !important;
-    border-color: rgba(255, 136, 0, 0.6) !important;
+    color: rgb(255 109 76) !important;
 }
 
 /* Hide scrollbar on sidebar API endpoint rows with deprecated badges */
@@ -101,12 +192,54 @@ code {
     display: none !important;
 }
 
-/* Constrain navbar logo to 18px height */
-#navbar img,
-#header img,
-img[alt$="logo" i] {
-    height: 18px !important;
-    width: auto !important;
+/* Keep sidebar rows compact and remove Mintlify's one-pixel list gaps. */
+nav[aria-label="Pages"] li > :is(a, button) {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+}
+
+nav[aria-label="Pages"] .space-y-px > :not([hidden]) {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+nav[aria-label="Pages"]:has(li[data-title="Sandbox"] > button) li[data-title="Sandbox"] {
+    margin-top: 20px !important;
+}
+
+/* Keep changelog filters on the right without showing its single-item sidebar. */
+body:has(#changelog-filters) #sidebar {
+    display: none !important;
+}
+
+/* Keep Code interpreting visually grouped with the primary use cases. */
+#sidebar .sidebar-group:has(> li[id="/code-interpreting/analyze-data-with-ai"]) {
+    margin-top: 0 !important;
+}
+
+/* Promote the collapsible Sandboxes sections to primary sidebar headings. */
+nav[aria-label="Pages"]:has(li[data-title="Sandbox"] > button) li:is(
+    [data-title="Sandbox"],
+    [data-title="Templates"],
+    [data-title="Storage"],
+    [data-title="Network"],
+    [data-title="Commands"],
+    [data-title="CLI"]
+) > button {
+    color: rgb(44 44 44) !important;
+    font-weight: 600;
+    text-shadow: none !important;
+}
+
+.dark nav[aria-label="Pages"]:has(li[data-title="Sandbox"] > button) li:is(
+    [data-title="Sandbox"],
+    [data-title="Templates"],
+    [data-title="Storage"],
+    [data-title="Network"],
+    [data-title="Commands"],
+    [data-title="CLI"]
+) > button {
+    color: rgb(237 237 237) !important;
 }
 
 /* Force left-alignment on table first column cells and their contents */

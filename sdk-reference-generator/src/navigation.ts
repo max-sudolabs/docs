@@ -166,9 +166,14 @@ export async function mergeNavigation(
 
   const docsJson = await fs.readJSON(docsJsonPath);
 
+  const tabs = docsJson.navigation?.tabs;
   const anchors = docsJson.navigation?.anchors;
-  if (!anchors) {
-    throw new Error("No anchors found in docs.json");
+  const usesTabs = Array.isArray(tabs);
+  const sections = usesTabs ? tabs : anchors;
+  const labelKey = usesTabs ? "tab" : "anchor";
+
+  if (!Array.isArray(sections)) {
+    throw new Error("No tabs or anchors found in docs.json");
   }
 
   const validDropdowns = navigation.filter(
@@ -180,21 +185,25 @@ export async function mergeNavigation(
     return;
   }
 
-  const sdkRefAnchor = {
-    anchor: CONSTANTS.SDK_REFERENCE_ANCHOR,
+  const sdkRefSection = {
+    [labelKey]: CONSTANTS.SDK_REFERENCE_ANCHOR,
     icon: "brackets-curly",
     dropdowns: validDropdowns,
   };
 
-  const sdkRefIndex = anchors.findIndex(
-    (a: { anchor?: string }) => a.anchor === CONSTANTS.SDK_REFERENCE_ANCHOR
+  const sdkRefIndex = sections.findIndex(
+    (section: Record<string, unknown>) =>
+      section[labelKey] === CONSTANTS.SDK_REFERENCE_ANCHOR
   );
 
   if (sdkRefIndex === -1) {
-    log.info(`Creating new ${CONSTANTS.SDK_REFERENCE_ANCHOR} anchor`, 1);
-    anchors.push(sdkRefAnchor);
+    log.info(
+      `Creating new ${CONSTANTS.SDK_REFERENCE_ANCHOR} ${labelKey}`,
+      1
+    );
+    sections.push(sdkRefSection);
   } else {
-    anchors[sdkRefIndex] = sdkRefAnchor;
+    sections[sdkRefIndex] = sdkRefSection;
   }
 
   // Refresh the "latest" redirects so they track the newest version. Existing
