@@ -4,6 +4,40 @@ description: "Weekly updates on what shipped in E2B"
 rss: true
 ---
 
+<Update label="August 10, 2026" description="Self-hosted proxy retirement, template cert repair, and SDK install fixes" tags={["Self-hosted", "Templates", "SDK"]} rss={{ title: "Self-Hosted Proxy Retirement & Template Cert Repair", description: "This week retires the deprecated reverse-proxy service on self-hosted clusters, repairs SSL trust stores baked into templates, and unblocks Python SDK installs alongside newer wcmatch." }}>
+
+## Self-Hosted Proxy Retirement & Template Cert Repair
+
+This week retires the deprecated reverse-proxy service on self-hosted clusters, repairs SSL trust stores baked into templates, and unblocks Python SDK installs alongside newer `wcmatch`.
+
+### Reverse-proxy service retired on self-hosted clusters
+
+Self-hosted deployments no longer build or ship the reverse-proxy service. `DOCKER_REVERSE_PROXY_VERSION` is removed from both `.env.aws.template` and `.env.gcp.template`, and a new `DOCKER_REVERSE_PROXY_ENABLED` toggle (default on) controls whether the AWS ECR repository is created and whether the GCP deployment runs. Clusters without a prebuilt `docker-reverse-proxy:latest` image must set the toggle to `false`. ([`d153bbe`](https://github.com/e2b-dev/infra/commit/d153bbe9d1e2ccd5e087d7c1dece5b8974175b54))
+
+### Repaired SSL trust store in template builds
+
+Template builds that install SSL-related packages such as `ca-certificates` or `openjdk` no longer leave the finalized template with a half-configured package or a silently broken Java trust store. Directory paths under `/etc/ssl/certs` claimed by installed packages are restored before the certificate bundle is packed. Existing broken templates need a rebuild. ([`6f17229a`](https://github.com/e2b-dev/infra/commit/6f17229a2a75695de19cbbba4f8f65a7f13ec6c5))
+
+### Separate egress marking for template builds and sandboxes
+
+On [BYOC](/byoc) clusters that opt in to [DSCP marking](/deployment/dscp-marking), template-build traffic can now carry a different DSCP value from sandbox traffic, so a downstream firewall or shaper can classify the two separately. An unset build value inherits the sandbox value, and an explicit `0` disables marking for builds only. ([`41c38cbe`](https://github.com/e2b-dev/infra/commit/41c38cbec4681192584139931ef294eaee8297d2))
+
+### Python SDK installs alongside newer wcmatch
+
+The Python SDK 2.37.1 relaxes its `wcmatch` requirement to `>=10.1,<12`, so `pip install e2b 'deepagents>=0.7.0'` and other combinations that pull in `wcmatch` 11 resolve without a conflict. ([#1638](https://github.com/e2b-dev/E2B/pull/1638))
+
+### Public Git argument and status types in the JavaScript SDK
+
+The JavaScript SDK 2.38.1 exports `GitResetMode`, `GitResetOpts`, `GitRestoreOpts`, and `GitStatusLabel` from the `e2b` package entry, so you can annotate wrappers around `sandbox.git.reset()`, `sandbox.git.restore()`, and `sandbox.git.status()` without inferring types. ([#1642](https://github.com/e2b-dev/E2B/pull/1642))
+
+### Fixes
+
+- Aligned the Python SDK 2.37.1 `strip_ansi_escape_codes` with the JavaScript SDK 2.38.1 `stripAnsi`, so template build logs are cleaned identically across languages and OSC, CSI, DCS, SOS, PM, and APC control sequences no longer leak into cleaned output. ([#1545](https://github.com/e2b-dev/E2B/pull/1545))
+- Reliability and security hardening across platform services, including dependency and base image CVE patches.
+
+
+</Update>
+
 <Update label="August 3, 2026" description="Access tokens disabled, multi-distro templates, and CLI session flags" tags={["Templates", "CLI", "SDK", "API"]} rss={{ title: "Access Tokens Disabled & Multi-Distro Templates", description: "Access tokens are now disabled; authenticate the CLI with E2B_API_KEY instead. This week also improves templates and terminal workflows with Fedora, Alpine, Arch, and NixOS base images, CLI session flags, and cross-runtime detection of web platform objects." }}>
 
 ## Access Tokens Disabled & Multi-Distro Templates
