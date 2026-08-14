@@ -1,0 +1,211 @@
+---
+title: "Workload identity"
+sidebarTitle: Workload identity
+description: "Give sandbox workloads short-lived identity tokens instead of long-lived secrets."
+"og:image": "/images/og/generated/sandbox/workload-identity.png"
+---
+
+Workload identity lets code running in a sandbox prove who it is with short-lived identity tokens instead of long-lived credentials.
+Rather than baking cloud API keys into a template or passing them as environment variables, you define named workload tokens when creating the sandbox.
+Each token is scoped to an audience, the external service that will verify it, such as AWS STS. That service can exchange the token for its own temporary credentials.
+
+<Note>
+Workload identity is currently in private beta.
+If you'd like access, please reach out to us at [support@e2b.dev](mailto:support@e2b.dev).
+</Note>
+
+## Configure
+
+Pass the `iam` option when creating a sandbox. A non-empty `tokens` map enables workload identity for the sandbox.
+Each entry maps a token name you choose to a token definition, which you can create with the `Secret` helper.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox, Secret } from 'e2b'
+
+const sandbox = await Sandbox.create({
+  iam: {
+    tokens: {
+      aws: Secret.iamToken({
+        audience: 'sts.amazonaws.com',
+        tokenType: 'JWT-SVID',
+      }),
+    },
+  },
+})
+```
+```python Python
+from e2b import Sandbox, Secret
+
+sandbox = Sandbox.create(
+    iam={
+        "tokens": {
+            "aws": Secret.iam_token(
+                audience="sts.amazonaws.com",
+                token_type="JWT-SVID",
+            ),
+        },
+    },
+)
+```
+</CodeGroup>
+
+You can also pass plain token definitions instead of using the `Secret` helper: `{ audience, tokenType }` objects in JavaScript, `{"audience": ..., "token_type": ...}` dicts in Python.
+
+## Inject tokens into egress requests
+
+Registered tokens can be injected into the sandbox's outbound requests through [per-host request transforms](/network/internet-access#per-host-request-transforms). Pass a callback as a network rule's `transform`. It receives the registered tokens as `iam.tokens.<name>`:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox, Secret } from 'e2b'
+
+const sandbox = await Sandbox.create({
+  iam: {
+    tokens: {
+      aws: Secret.iamToken({ audience: 'sts.amazonaws.com', tokenType: 'JWT-SVID' }),
+    },
+  },
+  network: {
+    // Only allow egress to hosts that have rules registered.
+    allowOut: ({ rules }) => [...rules.keys()],
+    // Deny all other traffic
+    denyOut: ({ allTraffic }) => [allTraffic],
+    rules: {
+      'api.internal.example.com': [
+        {
+          transform: ({ iam }) => ({
+            headers: { Authorization: `Bearer ${iam.tokens.aws}` },
+          }),
+        },
+      ],
+    },
+  },
+})
+```
+```python Python
+from e2b import Sandbox, Secret
+
+sandbox = Sandbox.create(
+    iam={
+        "tokens": {
+            "aws": Secret.iam_token(audience="sts.amazonaws.com", token_type="JWT-SVID"),
+        },
+    },
+    network={
+        # Only allow egress to hosts that have rules registered.
+        "allow_out": lambda ctx: list(ctx.rules.keys()),
+        # Deny all other traffic
+        "deny_out": lambda ctx: [ctx.all_traffic],
+        "rules": {
+            "api.internal.example.com": [
+                {
+                    "transform": lambda ctx: {
+                        "headers": {"Authorization": f"Bearer {ctx.iam.tokens['aws']}"},
+                    },
+                },
+            ],
+        },
+    },
+)
+```
+</CodeGroup>
+
+`iam.tokens.<name>` is not the token value. It's a placeholder string (`${e2b.identity.tokens.<name>}`) that goes on the wire as-is. The egress proxy replaces it with a freshly minted token each time it forwards a matching request, so the token value never reaches your code or the sandbox.
+
+Referencing a token name that isn't registered in `iam.tokens` fails at sandbox creation with `InvalidArgumentError` (JavaScript) / `InvalidArgumentException` (Python), listing the names that are registered. You can check whether a name is registered without failing by using `'aws' in iam.tokens` in JavaScript or `"aws" in ctx.iam.tokens` in Python.
+
+## Federate with external services
+
+External systems can verify workload identity tokens with E2B's [OpenID Connect discovery document](https://id.e2b.dev/.well-known/openid-configuration). The document identifies the issuer and the `jwks_uri` where E2B publishes its public signing keys. Verify tokens with ES256 and require the expected `iss`, `aud`, `exp`, and `nbf` claims. Also verify that the `sub` claim belongs to your project (it starts with `spiffe://id.e2b.dev/<project-id>/`), so tokens minted for other projects are rejected.
+
+Each token identifies one sandbox execution with a SPIFFE subject in this format:
+
+```
+spiffe://id.e2b.dev/<project-id>/<sandbox-id>/<execution-id>
+```
+
+### Configure AWS IAM
+
+AWS can exchange an E2B workload identity token with the `sts.amazonaws.com` audience for temporary role credentials.
+
+<Steps>
+<Step title="Create an OIDC identity provider">
+
+In the AWS IAM console, open **Identity providers**, choose **Add provider**, and select **OpenID Connect**. Use these values:
+
+- **Provider URL:** `https://id.e2b.dev`
+- **Audience:** `sts.amazonaws.com`
+
+You only need to create this provider once per AWS account. See the [AWS OIDC provider documentation](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html) for other setup methods.
+
+</Step>
+<Step title="Create a role for E2B workloads">
+
+Create an IAM role with a custom trust policy. Replace `<AWS_ACCOUNT_ID>` and `<E2B_PROJECT_ID>` with your values:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "E2BSandboxWorkloadIdentity",
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::<AWS_ACCOUNT_ID>:oidc-provider/id.e2b.dev"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "id.e2b.dev:aud": "sts.amazonaws.com"
+        },
+        "StringLike": {
+          "id.e2b.dev:sub": "spiffe://id.e2b.dev/<E2B_PROJECT_ID>/*"
+        }
+      }
+    }
+  ]
+}
+```
+
+The `sub` condition limits access to sandbox executions from one E2B project. You can find the project ID in the token's `project_id` claim and as the first path segment after `spiffe://id.e2b.dev/` in `sub`.
+
+Attach a permissions policy that grants only the AWS actions and resources these workloads need.
+
+</Step>
+<Step title="Exchange the token">
+
+After your external system receives the E2B workload identity token, it can exchange the token without long-lived AWS credentials:
+
+```bash
+aws sts assume-role-with-web-identity \
+  --role-arn "$AWS_ROLE_ARN" \
+  --role-session-name "$SESSION_NAME" \
+  --web-identity-token "$E2B_WORKLOAD_JWT"
+```
+
+The response contains temporary AWS credentials for the role. See the [`AssumeRoleWithWebIdentity` API documentation](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRoleWithWebIdentity.html) for SDK examples and response details.
+
+</Step>
+</Steps>
+
+<Warning>
+AWS credentials have their own lifetime. They remain valid after the E2B workload identity token expires or the sandbox ends. Configure the shortest role session duration that fits your workload.
+</Warning>
+
+## Token definitions
+
+Each token definition has two fields:
+
+| Field | Description |
+|-------|-------------|
+| `audience` | Required. The audience of the workload token, the identifier of the service that will verify it. Stored exactly as provided. |
+| `tokenType` (JavaScript) / `token_type` (Python) | Required. The workload token type. `"JWT-SVID"` is the only type supported today. More types may be added later. |
+
+Token names (the keys of the `tokens` map) are yours to choose.
+
+Creating a sandbox without the `iam` option, or with an empty `tokens` map, leaves workload identity disabled.
+
+## Limits
+
+A sandbox can define up to **5** workload tokens. Exceeding the limit fails at sandbox creation with a `400` error.

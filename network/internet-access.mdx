@@ -292,6 +292,67 @@ await Sandbox.create({
 })
 ```
 
+#### Transform callbacks
+
+A rule's `transform` can also be a callback instead of a static object. The callback receives a context with the sandbox's [workload identity](/sandbox/workload-identity) tokens as `iam.tokens.<name>`, letting you inject a workload token into requests to a host:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox, Secret } from 'e2b'
+
+await Sandbox.create({
+  iam: {
+    tokens: {
+      aws: Secret.iamToken({ audience: 'sts.amazonaws.com', tokenType: 'JWT-SVID' }),
+    },
+  },
+  network: {
+    allowOut: ({ rules }) => [...rules.keys()],
+    denyOut: ({ allTraffic }) => [allTraffic],
+    rules: {
+      'api.internal.example.com': [
+        {
+          transform: ({ iam }) => ({
+            headers: { Authorization: `Bearer ${iam.tokens.aws}` },
+          }),
+        },
+      ],
+    },
+  },
+})
+```
+```python Python
+from e2b import Sandbox, Secret
+
+sandbox = Sandbox.create(
+    iam={
+        "tokens": {
+            "aws": Secret.iam_token(audience="sts.amazonaws.com", token_type="JWT-SVID"),
+        },
+    },
+    network={
+        "allow_out": lambda ctx: list(ctx.rules.keys()),
+        "deny_out": lambda ctx: [ctx.all_traffic],
+        "rules": {
+            "api.internal.example.com": [
+                {
+                    "transform": lambda ctx: {
+                        "headers": {"Authorization": f"Bearer {ctx.iam.tokens['aws']}"},
+                    },
+                },
+            ],
+        },
+    },
+)
+```
+</CodeGroup>
+
+The value read from `iam.tokens.<name>` is a placeholder string (`${e2b.identity.tokens.<name>}`) sent on the wire as-is. The egress proxy replaces it with a freshly minted token on each matching request, so the token value never passes through your code or the sandbox. Referencing a name that isn't registered in the sandbox's `iam.tokens` fails at creation with `InvalidArgumentError` (JavaScript) / `InvalidArgumentException` (Python).
+
+The callback must be synchronous and return a plain transform object. A promise (from an `async` callback) or any other return value is rejected with an error. Static `transform` objects keep working unchanged, including hand-written `${e2b.identity.tokens.<name>}` strings.
+
+See [Workload identity](/sandbox/workload-identity) for how to register tokens.
+
 ### Updating network settings on a running sandbox
 
 You can update the network configuration of an already running sandbox using `updateNetwork` (JavaScript) or `update_network` (Python). This replaces the current egress rules with the provided configuration without restarting the sandbox.

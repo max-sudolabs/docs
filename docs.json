@@ -70,7 +70,8 @@
                   "sandbox/connect",
                   "sandbox/pty",
                   "sandbox/ssh-access",
-                  "sandbox/secured-access"
+                  "sandbox/secured-access",
+                  "sandbox/workload-identity"
                 ]
               },
               {
