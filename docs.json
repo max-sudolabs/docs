@@ -5455,7 +5455,7 @@
     "dark": "/logo/dark.svg"
   },
   "appearance": {
-    "default": "dark"
+    "default": "system"
   },
   "background": {
     "color": {
