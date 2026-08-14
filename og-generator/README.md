@@ -21,10 +21,11 @@ previewing and verifying generator changes.
 
 ## Design choices
 
-- The section label uses PP Supply Sans Regular at 32px in Interface Orange
-  `#e32a01`.
-- The page title uses PP Supply Sans Light at 72px in Clarity White `#ffffff`,
-  with the brand display treatment of 85% line height and −4% tracking.
-- Both labels remain anchored 48px from the left and bottom edges.
+- The section label uses PP Supply Sans Semibold at 40px in Interface Orange
+  `#e32a01`, with 100% line height and −1% tracking.
+- The page title uses PP Supply Sans Light at 80px in Clarity White `#ffffff`,
+  with 90% line height and −1% tracking.
+- The labels are separated by 16px and anchored 78px from the left and bottom
+  edges.
 - The licensed PP Supply Sans faces are committed only because this repository
   is private. Do not copy or redistribute them outside licensed E2B projects.

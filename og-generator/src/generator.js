@@ -167,23 +167,23 @@ export function upsertSdkReferenceImages(source) {
 }
 
 export async function loadRendererAssets(rootDirectory) {
-  const [background, lightFont, regularFont] = await Promise.all([
+  const [background, lightFont, semiboldFont] = await Promise.all([
     readFile(path.join(rootDirectory, 'og-generator/assets/og-bg.png')),
     readFile(path.join(rootDirectory, 'og-generator/assets/PPSupplySans-Light.ttf')),
-    readFile(path.join(rootDirectory, 'og-generator/assets/PPSupplySans-Regular.ttf')),
+    readFile(path.join(rootDirectory, 'og-generator/assets/PPSupplySans-Semibold.ttf')),
   ])
 
   return {
     backgroundUrl: `data:image/png;base64,${background.toString('base64')}`,
     lightFont,
-    regularFont,
+    semiboldFont,
   }
 }
 
 export async function renderOgImage({
   backgroundUrl,
   lightFont,
-  regularFont,
+  semiboldFont,
   section,
   title,
 }) {
@@ -221,12 +221,12 @@ export async function renderOgImage({
             type: 'div',
             props: {
               style: {
-                bottom: 48,
+                bottom: 78,
                 display: 'flex',
                 flexDirection: 'column',
-                left: 48,
+                left: 78,
                 position: 'absolute',
-                width: WIDTH - 96,
+                width: WIDTH - 156,
               },
               children: [
                 {
@@ -235,8 +235,9 @@ export async function renderOgImage({
                     style: {
                       color: INTERFACE_ORANGE,
                       display: 'flex',
-                      fontSize: 32,
-                      fontWeight: 400,
+                      fontSize: 40,
+                      fontWeight: 600,
+                      letterSpacing: '-0.01em',
                       lineHeight: 1,
                       textTransform: 'uppercase',
                     },
@@ -249,10 +250,10 @@ export async function renderOgImage({
                     style: {
                       color: '#ffffff',
                       display: 'flex',
-                      fontSize: 72,
+                      fontSize: 80,
                       fontWeight: 300,
-                      letterSpacing: '-0.04em',
-                      lineHeight: 0.85,
+                      letterSpacing: '-0.01em',
+                      lineHeight: 0.9,
                       marginTop: 16,
                       textTransform: 'uppercase',
                     },
@@ -274,10 +275,10 @@ export async function renderOgImage({
           weight: 300,
         },
         {
-          data: regularFont,
+          data: semiboldFont,
           name: 'PP Supply Sans',
           style: 'normal',
-          weight: 400,
+          weight: 600,
         },
       ],
       height: HEIGHT,
