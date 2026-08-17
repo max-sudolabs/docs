@@ -5,6 +5,37 @@ rss: true
 "og:image": "/images/og/changelog.png"
 ---
 
+<Update label="August 17, 2026" description="Workload identity in SDKs, faster Python HTTP, and clearer placement errors" tags={["SDK", "API", "Dashboard", "Sandboxes"]} rss={{ title: "Workload Identity in the SDKs & Faster Python HTTP", description: "This week ships sandbox workload identity in both SDKs, moves the Python SDK onto a Rust HTTP stack, and returns detailed sandbox placement failure reasons." }}>
+
+## Workload Identity in the SDKs & Faster Python HTTP
+
+This week ships sandbox workload identity in both SDKs, moves the Python SDK onto a Rust HTTP stack, and returns detailed sandbox placement failure reasons.
+
+### Sandbox workload identity in the SDKs
+
+`Sandbox.create` now takes an `iam` option with a `tokens` map defining short-lived [workload identity](/sandbox/workload-identity) tokens by audience and type, via the new `Secret.iamToken` helper (`Secret.iam_token` in Python). A network rule's `transform` can be a callback receiving token placeholders, so a token reaches egress request headers without the SDK seeing its value. Shipped in the JavaScript and Python SDKs 2.39.0. ([#1606](https://github.com/e2b-dev/E2B/pull/1606), [#1616](https://github.com/e2b-dev/E2B/pull/1616))
+
+### Python SDK moves to a Rust HTTP stack
+
+The Python SDK 2.38.0 routes the control plane, sandbox file transfers, volume content, and template build-context uploads through `pyqwest`, a Rust transport for `httpx`. Connection pools are now process-global per proxy, and `request_timeout` is a whole-transfer deadline. `E2B_MAX_CONNECTIONS` is no longer read. ([#1601](https://github.com/e2b-dev/E2B/pull/1601), [#1602](https://github.com/e2b-dev/E2B/pull/1602), [#1603](https://github.com/e2b-dev/E2B/pull/1603), [#1623](https://github.com/e2b-dev/E2B/pull/1623))
+
+### Detailed sandbox placement failure reasons
+
+A failed sandbox create or resume now returns a message naming the reason: cluster at capacity, no compatible node, placement timed out, snapshot files missing, or repeated create failures. Every case previously returned a bare `Failed to place sandbox`. ([`063aa20`](https://github.com/e2b-dev/infra/commit/063aa20c871116c80915ab1f5c2e81d804e6b2d0))
+
+### Sandbox concurrency add-on management in the dashboard
+
+The billing page in the [dashboard](https://e2b.dev/dashboard) lets you buy multiple sandbox concurrency add-on units, schedule a reduction or cancellation at the end of the billing period, and see plan and add-on costs itemized in the monthly total.
+
+### Fixes
+
+- Fixed sandbox proxy errors returning the HTML error page to browser `fetch()` and `XMLHttpRequest` callers that expected JSON, by using `Accept`, `Sec-Fetch-Mode`, and `X-Requested-With` before the User-Agent sniff. ([`d70ca24`](https://github.com/e2b-dev/infra/commit/d70ca24dbe1325b8f773b1435224efa862ae5156))
+- Fixed sandboxes resumed from large snapshots losing the working set the platform preloads on resume when the snapshot upload took longer than expected, which made the next resume slower than it should be. ([`aeab31d`](https://github.com/e2b-dev/infra/commit/aeab31df792a293066a28286a80829e75db28463))
+- Restored the `http2` parameter on the Python SDK 2.39.1 transport factories, so `http2=False` again returns a transport pinned to HTTP/1.1. ([#1671](https://github.com/e2b-dev/E2B/pull/1671))
+- Reliability and security hardening across platform services, including dependency and base image CVE patches.
+
+</Update>
+
 <Update label="August 10, 2026" description="Self-hosted proxy retirement, template cert repair, and SDK install fixes" tags={["Self-hosted", "Templates", "SDK"]} rss={{ title: "Self-Hosted Proxy Retirement & Template Cert Repair", description: "This week retires the deprecated reverse-proxy service on self-hosted clusters, repairs SSL trust stores baked into templates, and unblocks Python SDK installs alongside newer wcmatch." }}>
 
 ## Self-Hosted Proxy Retirement & Template Cert Repair
