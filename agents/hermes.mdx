@@ -1,0 +1,180 @@
+---
+title: "Hermes Agent"
+description: "Run Hermes Agent in a secure E2B sandbox with persistent sessions, memory, and self-improving skills."
+icon: "/images/icons/hermes.svg"
+"og:image": "/images/og/generated/agents/hermes.png"
+---
+
+[Hermes Agent](https://github.com/NousResearch/hermes-agent) is an open-source, model-agnostic agent with terminal and file tools, persistent memory, resumable sessions, and reusable skills it can create and improve. E2B provides a pre-built `hermes` template with the Hermes CLI and bundled skills already installed.
+
+## CLI
+
+Create a sandbox with the [E2B CLI](/cli).
+
+```bash
+e2b sbx create hermes
+```
+
+Once inside the sandbox, configure a provider or start Hermes if your credentials are already available.
+
+```bash
+hermes model
+hermes
+```
+
+## Run headless
+
+Use `chat -q` for a single non-interactive turn and `-Q` to keep stdout suitable for scripts. `--yolo` lets Hermes use terminal, file, browser, memory, and skill tools without waiting for approval. The sandbox isolates those tools from your host machine, but sandboxes can reach the open internet by default — restrict outbound traffic with [network rules](/network/internet-access) when the agent processes untrusted input or handles secrets.
+
+Hermes supports multiple model providers. The examples below use OpenRouter; pass a different provider key and select it with `--provider` and `--model` if needed.
+
+<Note>
+Auto-approved tool calls can modify the sandbox filesystem and make outbound requests, but cannot access your host files or credentials unless you explicitly copy or pass them into the sandbox. Use [outbound network rules](/network/internet-access) to limit access by CIDR or hostname. Hostname rules apply to HTTP(S) traffic only; use CIDR rules for other protocols.
+</Note>
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('hermes', {
+  envs: { OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY },
+  timeoutMs: 600_000,
+})
+
+const result = await sandbox.commands.run(
+  `hermes chat -Q --yolo --provider openrouter --model anthropic/claude-sonnet-4.6 -q "Inspect this workspace and summarize its purpose"`
+)
+
+console.log(result.stdout)
+await sandbox.kill()
+```
+```python Python
+import os
+from e2b import Sandbox
+
+sandbox = Sandbox.create("hermes", envs={
+    "OPENROUTER_API_KEY": os.environ["OPENROUTER_API_KEY"],
+}, timeout=600)
+
+result = sandbox.commands.run(
+    'hermes chat -Q --yolo --provider openrouter '
+    '--model anthropic/claude-sonnet-4.6 '
+    '-q "Inspect this workspace and summarize its purpose"',
+)
+
+print(result.stdout)
+sandbox.kill()
+```
+</CodeGroup>
+
+## Teach Hermes a reusable skill
+
+Hermes can turn a successful procedure into a skill and reuse it in a fresh session. Keep both turns in one E2B sandbox so `~/.hermes`, the workspace, and the created skill remain available.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('hermes', {
+  envs: { OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY },
+  timeoutMs: 900_000,
+})
+
+await sandbox.commands.run('mkdir -p /home/user/incidents')
+await sandbox.files.write('/home/user/runbook.md', `
+# Checkout incident runbook
+- Compare error rates by endpoint and release.
+- Check dependency latency before proposing a rollback.
+- Write findings to /home/user/reports/incident.md.
+`)
+await sandbox.files.write('/home/user/incidents/first.json', JSON.stringify({
+  release: 'checkout-42',
+  errorRate: 0.08,
+  paymentsP95Ms: 1700,
+}))
+const common =
+  'hermes chat -Q --yolo --provider openrouter ' +
+  '--model anthropic/claude-sonnet-4.6 '
+
+await sandbox.commands.run(
+  common +
+  `-q "Study /home/user/runbook.md, apply it to /home/user/incidents/first.json, and create a reusable skill named incident-triage"`,
+)
+
+await sandbox.files.write('/home/user/incidents/next.json', JSON.stringify({
+  release: 'checkout-43',
+  errorRate: 0.11,
+  errorsByRelease: { 'checkout-42': 3, 'checkout-43': 417 },
+}))
+
+const nextIncident = await sandbox.commands.run(
+  common +
+  `--skills incident-triage -q "Use the incident-triage skill to investigate the newest incident"`,
+)
+
+console.log(nextIncident.stdout)
+await sandbox.kill()
+```
+```python Python
+import json
+import os
+from e2b import Sandbox
+
+sandbox = Sandbox.create("hermes", envs={
+    "OPENROUTER_API_KEY": os.environ["OPENROUTER_API_KEY"],
+}, timeout=900)
+
+sandbox.commands.run("mkdir -p /home/user/incidents")
+sandbox.files.write("/home/user/runbook.md", """
+# Checkout incident runbook
+- Compare error rates by endpoint and release.
+- Check dependency latency before proposing a rollback.
+- Write findings to /home/user/reports/incident.md.
+""")
+sandbox.files.write("/home/user/incidents/first.json", json.dumps({
+    "release": "checkout-42",
+    "error_rate": 0.08,
+    "payments_p95_ms": 1700,
+}))
+common = (
+    "hermes chat -Q --yolo --provider openrouter "
+    "--model anthropic/claude-sonnet-4.6 "
+)
+
+sandbox.commands.run(
+    common
+    + '-q "Study /home/user/runbook.md, apply it to '
+    '/home/user/incidents/first.json, and create a reusable skill named '
+    'incident-triage"',
+)
+
+sandbox.files.write("/home/user/incidents/next.json", json.dumps({
+    "release": "checkout-43",
+    "error_rate": 0.11,
+    "errors_by_release": {"checkout-42": 3, "checkout-43": 417},
+}))
+
+next_incident = sandbox.commands.run(
+    common
+    + '--skills incident-triage '
+    '-q "Use the incident-triage skill to investigate the newest incident"',
+)
+
+print(next_incident.stdout)
+sandbox.kill()
+```
+</CodeGroup>
+
+Hermes stores user-created skills under `~/.hermes/skills/` and curated memory under `~/.hermes/memories/`. Both remain available for the lifetime of the sandbox. If you pause and resume the same sandbox, its filesystem state is preserved; killing the sandbox removes it.
+
+## Resume a session
+
+Hermes saves conversation sessions inside the sandbox. Use `-c` to continue the most recent session, or `--resume <session>` to select one by ID or title.
+
+```bash
+hermes chat -Q --yolo -c -q "Continue the investigation and implement the first fix"
+```
+
+## How it works
+
+Hermes itself runs inside E2B. Its local terminal and file tools therefore operate on the E2B filesystem and processes, while E2B owns sandbox lifecycle, isolation, resource limits, and network policy. No separate Hermes terminal-backend integration is required for this setup.
