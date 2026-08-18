@@ -155,6 +155,28 @@ print(check.exit_code != 0)  # True — process no longer running
 ```
 </CodeGroup>
 
+## Picking up envd updates
+
+`envd` is E2B's in-sandbox daemon. The `envd` version a sandbox runs is pinned by its
+template, so by default a long-lived paused sandbox stays on that version for its whole
+lifetime and does not pick up later `envd` fixes and improvements.
+
+A filesystem-only resume cold-boots the sandbox from disk, and that reboot can bring the
+sandbox up on a newer `envd` than its template shipped. The filesystem is untouched. This
+is how a long-lived sandbox can adopt `envd` improvements - for example around memory
+management, stability, and speed - without losing the data on disk.
+
+To move an existing sandbox onto a newer `envd`:
+
+1. Resume the sandbox.
+2. Pause it filesystem-only with `keepMemory: false` (JavaScript) / `keep_memory=False` (Python).
+3. Resume it again. This cold boot can bring it up on a newer `envd`.
+
+<Note>
+A sandbox has to be resumable to use this flow. A sandbox whose snapshot already fails to
+resume cannot be paused filesystem-only in the first place, so it cannot be upgraded this way.
+</Note>
+
 ## Related
 
 - [Sandbox persistence](/sandbox/persistence) — full (memory + filesystem) pause and resume.
