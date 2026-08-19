@@ -147,6 +147,7 @@
                   "network/public-url",
                   "network/restrict-public-access",
                   "network/ip-tunneling",
+                  "network/byop",
                   "network/custom-domain"
                 ]
               },

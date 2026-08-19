@@ -1,0 +1,182 @@
+---
+title: "Bring your own proxy"
+sidebarTitle: "Bring your own proxy"
+description: "Route outbound sandbox traffic through a SOCKS5 proxy you run"
+"og:image": "/images/og/generated/network/byop.png"
+---
+
+<Note>
+Bring your own proxy is currently in private beta.
+If you'd like access, please reach out to us at [support@e2b.dev](mailto:support@e2b.dev).
+</Note>
+
+You can give E2B the address of a SOCKS5 proxy you operate, and every outbound TCP connection from the sandbox is dialed through it.
+
+Unlike [proxy tunneling](/network/ip-tunneling), nothing runs inside the sandbox. There is no custom template, no proxy client, and no in-guest configuration, so the code running in the sandbox cannot see the proxy or route around it.
+
+Typical reasons to use it:
+
+- Give all sandbox traffic a stable, allowlistable source IP. E2B does not offer static egress IPs on any plan, see [Egress IP ranges](/faq/egress-ip-ranges).
+- Reach a corporate network, a VPN, or internal services that only accept traffic from your own network.
+- Log or inspect sandbox egress in your own infrastructure.
+
+## How it works
+
+- **Tunneling happens on the host, after filtering.** Your allow and deny lists are evaluated first, so a connection that `denyOut` blocks never reaches your proxy. See [Internet access](/network/internet-access) for the filtering rules.
+- **TCP only.** UDP based traffic, including DNS and QUIC or HTTP/3, is not tunneled. It leaves the sandbox the usual way and stays subject to your allow and deny lists.
+- **Domain matched connections use remote DNS.** When a connection is allowed by a domain entry in `allowOut`, E2B hands the hostname to your proxy (SOCKS5 `ATYP=domain`) rather than an IP, so your proxy does the final resolution.
+- **Per-host request transforms still apply.** Header injection and [workload identity](/sandbox/workload-identity) token resolution happen before the connection is dialed through your proxy.
+- **The proxy hostname is re-resolved at dial time** and the resolved address is pinned for that connection, so a DNS change cannot redirect a connection that is already being established.
+- **Egress fails closed.** If the proxy is unreachable, or the address does not speak SOCKS5, outbound connections from the sandbox fail instead of falling back to a direct connection. Make sure the proxy is reachable from the public internet before you point sandboxes at it.
+
+## Configuring a proxy
+
+Pass `network.egressProxy` / `network["egress_proxy"]` when you create the sandbox:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create({
+  network: {
+    egressProxy: {
+      address: 'proxy.example.com:1080',
+      username: 'proxy-user',
+      password: 'proxy-password',
+    },
+  },
+})
+```
+```python Python
+from e2b import Sandbox
+
+sandbox = Sandbox.create(
+    network={
+        "egress_proxy": {
+            "address": "proxy.example.com:1080",
+            "username": "proxy-user",
+            "password": "proxy-password",
+        },
+    }
+)
+```
+</CodeGroup>
+
+You can combine it with the rest of the network configuration. Here all traffic is denied except `api.example.com`, and the traffic that is allowed goes through your proxy:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create({
+  network: {
+    allowOut: ['api.example.com'],
+    denyOut: ({ allTraffic }) => [allTraffic],
+    egressProxy: { address: 'proxy.example.com:1080' },
+  },
+})
+```
+```python Python
+from e2b import Sandbox
+
+sandbox = Sandbox.create(
+    network={
+        "allow_out": ["api.example.com"],
+        "deny_out": lambda ctx: [ctx.all_traffic],
+        "egress_proxy": {"address": "proxy.example.com:1080"},
+    }
+)
+```
+</CodeGroup>
+
+### Fields
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `address` | yes | SOCKS5 proxy address in `host:port` form, for example `proxy.example.com:1080`. The host can be a hostname or an IP literal, and the port must be between 1 and 65535. |
+| `username` | no | SOCKS5 username ([RFC 1929](https://datatracker.ietf.org/doc/html/rfc1929)), up to 255 bytes. |
+| `password` | no | SOCKS5 password, up to 255 bytes. Only valid together with `username`. |
+
+The proxy has to be reachable from E2B's infrastructure. A hostname that does not resolve, or that resolves to a private or otherwise internal address range, is rejected at creation time, before the sandbox exists.
+
+## Updating a running sandbox
+
+`updateNetwork` / `update_network` sets or replaces the proxy on a sandbox that is already running, with no restart:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create()
+
+// Start tunneling on the running sandbox
+await sandbox.updateNetwork({
+  allowOut: ['api.example.com'],
+  denyOut: ({ allTraffic }) => [allTraffic],
+  egressProxy: { address: 'proxy.example.com:1080' },
+})
+
+// Stop tunneling: an update without egressProxy clears it
+await sandbox.updateNetwork({})
+```
+```python Python
+from e2b import Sandbox
+
+sandbox = Sandbox.create()
+
+# Start tunneling on the running sandbox
+sandbox.update_network({
+    "allow_out": ["api.example.com"],
+    "deny_out": lambda ctx: [ctx.all_traffic],
+    "egress_proxy": {"address": "proxy.example.com:1080"},
+})
+
+# Stop tunneling: an update without egress_proxy clears it
+sandbox.update_network({})
+```
+</CodeGroup>
+
+<Warning>
+The update replaces the whole configuration instead of merging into it, so omitting the proxy clears it. A network update that leaves the field out stops tunneling and sends the sandbox's traffic out directly, even when the update was only meant to change the allow and deny lists. Repeat the proxy configuration in every update where you want to keep it.
+</Warning>
+
+An update that fails validation changes nothing, so the sandbox keeps tunneling through the proxy it already had.
+
+## Reading the current configuration
+
+The sandbox info reports the active proxy under `network`:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+const info = await sandbox.getInfo()
+
+console.log(info.network?.egressProxy)
+// { address: 'proxy.example.com:1080', username: 'proxy-user' }
+```
+```python Python
+info = sandbox.get_info()
+
+print(info.network["egress_proxy"])
+# {'address': 'proxy.example.com:1080', 'username': 'proxy-user'}
+```
+</CodeGroup>
+
+The password is never returned.
+
+## Errors
+
+An invalid proxy configuration is rejected when the sandbox is created, so a rejected create leaves nothing behind.
+
+| Error | Cause |
+| --- | --- |
+| `Egress proxy (network.egressProxy) is not enabled for this team.` | Your team is not in the private beta yet. |
+| `Invalid egress proxy config: egress proxy address must be in host:port form` | `address` is missing the port or is not in `host:port` form. |
+| `Invalid egress proxy config: egress proxy port ... is not a valid 1-65535 value` | The port is out of range or not a number. |
+| `Invalid egress proxy config: resolve egress proxy host ...` | The proxy hostname does not resolve. |
+| `Invalid egress proxy config: egress proxy endpoint resolves to an internal / denied IP range` | The proxy address points into a private or internal range. |
+| `Invalid egress proxy config: egress proxy password must be empty when username is empty` | A password was set without a username. |
+| `validation error: ... maximum string length is 255` | The username or password is over the 255 byte SOCKS5 limit. This one is a schema error rather than a proxy config error, because the request is rejected before the proxy configuration is read. |
+
+## Self-hosted deployments
+
+BYOP is available on E2B Cloud and in [BYOC](/byoc) environments. Deployments built from the open source [e2b-dev/infra](https://github.com/e2b-dev/infra) repository cannot tunnel sandbox egress through a SOCKS5 proxy, and a sandbox that names one is rejected as unsupported by the orchestrator build.

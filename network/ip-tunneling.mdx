@@ -4,6 +4,10 @@ description: "How to tunnel Sandbox network traffic through a proxy server"
 "og:image": "/images/og/generated/network/ip-tunneling.png"
 ---
 
+<Note>
+This guide runs the proxy client inside the sandbox, which means it needs a custom template and the code in the sandbox can bypass it. If you want E2B to tunnel the sandbox's outbound traffic through your own SOCKS5 proxy with nothing running in the guest, see [Bring your own proxy](/network/byop).
+</Note>
+
 ## Setting up proxy tunneling
 
 We will set up a proxy server on a GCP VM instance running [Shadowsocks](https://shadowsocks.org) and use it to tunnel the Sandbox network traffic.
