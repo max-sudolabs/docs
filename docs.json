@@ -242,6 +242,7 @@
               "agents/mastra",
               "agents/crewai",
               "agents/openai-agents-sdk",
+              "agents/vercel-ai-sdk",
               {
                 "group": "OpenClaw",
                 "icon": "https://mintlify.s3.us-west-1.amazonaws.com/e2b-openclaw-icon/images/icons/openclaw.svg",

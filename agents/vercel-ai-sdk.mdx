@@ -1,0 +1,182 @@
+---
+title: "Vercel AI SDK"
+description: "Run AI SDK agents and tools on E2B sandboxes with the @e2b/ai-sdk-sandbox provider."
+icon: "/images/icons/vercel-ai-sdk.svg"
+"og:image": "/images/og/generated/agents/vercel-ai-sdk.png"
+---
+
+The [AI SDK](https://ai-sdk.dev) is Vercel's TypeScript toolkit for building agents. AI SDK 7 introduces a sandbox interface — a standard surface (`run`, `spawn`, file I/O) that tools and [harness agents](https://ai-sdk.dev/v7/docs/ai-sdk-harnesses/overview) execute code against. [`@e2b/ai-sdk-sandbox`](https://www.npmjs.com/package/@e2b/ai-sdk-sandbox) implements that interface on E2B: your agent's code runs in an isolated Firecracker microVM instead of your server, with a real Debian toolchain, pause/resume persistence, and outbound network controls.
+
+The package is the E2B counterpart to `@ai-sdk/sandbox-vercel`. It is **experimental** and targets AI SDK 7.
+
+## Install
+
+```bash
+npm install @e2b/ai-sdk-sandbox
+```
+
+Set `E2B_API_KEY` (get one from the [dashboard](https://e2b.dev/dashboard?tab=keys)), or pass `apiKey` in the settings.
+
+## Quickstart
+
+`createE2BSandbox()` configures the provider without reaching E2B; the sandbox is created when you call `createSession()`.
+
+```typescript
+import { createE2BSandbox } from '@e2b/ai-sdk-sandbox'
+
+const session = await createE2BSandbox({ template: 'base' }).createSession()
+
+await session.writeTextFile({ path: 'hello.txt', content: 'hi from e2b' })
+
+const { stdout } = await session.run({ command: 'cat hello.txt' })
+console.log(stdout) // "hi from e2b"
+
+await session.destroy()
+```
+
+The session also supports `readTextFile`, and `spawn` for long-running processes with streamed stdout/stderr and `kill()`.
+
+## Hand tools a sandbox
+
+`session.restricted()` returns the same sandbox narrowed to the tool-safe surface — file I/O, `run`, `spawn` — with the lifecycle and network controls (`stop`, `destroy`, `ports`, `getPortUrl`, `setNetworkPolicy`) removed. That is the security boundary: pass the restricted view to an AI SDK tool's `execute()` via `experimental_sandbox`, and keep the full session with your application. Code the model drives can execute commands, but it cannot kill the box or loosen its network policy.
+
+```typescript
+import { generateText, tool } from 'ai'
+import { anthropic } from '@ai-sdk/anthropic'
+import { z } from 'zod'
+
+const session = await createE2BSandbox({ template: 'base' }).createSession()
+const sandbox = session.restricted()
+
+const result = await generateText({
+  model: anthropic('claude-sonnet-4-5'),
+  prompt: 'Check which Python version is installed.',
+  tools: {
+    bash: tool({
+      description: 'Run a shell command in an isolated E2B sandbox',
+      inputSchema: z.object({ command: z.string() }),
+      execute: async ({ command }) => {
+        const { stdout, stderr, exitCode } = await sandbox.run({ command })
+        return { stdout, stderr, exitCode }
+      },
+    }),
+  },
+})
+
+console.log(result.text)
+await session.destroy()
+```
+
+See the [harness docs](https://ai-sdk.dev/v7/docs/ai-sdk-harnesses/overview) for the `restricted()` contract and the `experimental_sandbox` wiring in harness-managed tools.
+
+## Settings
+
+Everything goes in the object passed to `createE2BSandbox(...)`. Any of E2B's `SandboxOpts` (`template`, `envs`, `metadata`, `network`, …) are forwarded straight through, and the provider adds two options of its own:
+
+```typescript
+const provider = createE2BSandbox({
+  template: 'base',                              // any E2B SandboxOpts
+  envs: { NODE_ENV: 'production' },
+  timeoutMs: 10 * 60 * 1000,                     // defaults to 30 min
+  ports: [3000],                                 // provider option
+  setupCommands: ['sudo npm install -g pnpm@9'], // provider option
+})
+```
+
+| Option | Default | What it does |
+| --- | --- | --- |
+| `ports` | `[]` | Ports advertised on `session.ports`. The harness bridge binds to the first one; E2B can expose any listening port through `getHost`, so this is the list the session advertises. |
+| `setupCommands` | `[]` | Commands run once on a fresh sandbox, before the harness bootstraps. For setup you control ahead of time, a prebuilt [template](/template/quickstart) is lighter. |
+
+Already have a sandbox? Pass it as `sandbox` to reuse it. The provider then never touches its lifecycle — `stop()` and `destroy()` become no-ops and cleanup stays yours.
+
+```typescript
+import { Sandbox } from 'e2b'
+
+const provider = createE2BSandbox({
+  sandbox: await Sandbox.create({ timeoutMs: 10 * 60_000 }),
+})
+```
+
+## Run a coding agent in the sandbox
+
+The provider plugs into AI SDK harness agents: the harness adapter (Claude Code, Codex) runs *inside* the E2B sandbox, and the host talks to it over a WebSocket bridge on the first advertised port.
+
+```typescript
+import { HarnessAgent } from '@ai-sdk/harness/agent'
+import { createClaudeCode } from '@ai-sdk/harness-claude-code'
+import { createE2BSandbox } from '@e2b/ai-sdk-sandbox'
+
+const agent = new HarnessAgent({
+  harness: createClaudeCode({
+    auth: { anthropic: { apiKey: process.env.ANTHROPIC_API_KEY! } },
+    startupTimeoutMs: 300_000, // first boot installs the CLI in the sandbox
+  }),
+  sandbox: createE2BSandbox({
+    template: 'pnpm-base', // custom template with pnpm preinstalled
+    ports: [4000],         // bridge port — the adapter binds to ports[0]
+    timeoutMs: 30 * 60 * 1000,
+  }),
+})
+
+const session = await agent.createSession()
+const result = await agent.generate({
+  session,
+  prompt: 'Write fizzbuzz.js and run it with node. Show me the output.',
+})
+console.log(result.text)
+await session.destroy()
+```
+
+The claude-code adapter installs its own pinned CLI and bridge inside the sandbox with pnpm, so pass a [template](/template/quickstart) with pnpm preinstalled.
+
+## Pause and resume
+
+`stop()` **pauses** the sandbox — filesystem and memory preserved — rather than killing it; `destroy()` removes it for good. Resume works off a session-id tag in the sandbox metadata, so pass a `sessionId` to `createSession` if you plan to resume, then reconnect with `resumeSession` — even from a different process.
+
+```typescript
+const provider = createE2BSandbox({ template: 'base' })
+
+const first = await provider.createSession({ sessionId: 'demo-1' })
+await first.writeTextFile({ path: 'state.txt', content: 'survived the pause' })
+await first.stop() // pause (resumable)
+
+// later — possibly a different process
+const resumed = await provider.resumeSession({ sessionId: 'demo-1' })
+console.log(await resumed.readTextFile({ path: 'state.txt' })) // "survived the pause"
+await resumed.destroy()
+```
+
+## Network policy
+
+Outbound access can be tightened or loosened on a running sandbox — from the full session only, never from the restricted view:
+
+```typescript
+await session.setNetworkPolicy({
+  mode: 'custom',
+  allowedHosts: ['api.example.com'],
+  deniedCIDRs: ['169.254.169.254/32'],
+})
+```
+
+Hostname rules apply to HTTP(S) traffic only; use CIDR rules for other protocols. See [internet access](/network/internet-access).
+
+## Good to know
+
+- `run` and `spawn` switch off E2B's 60-second per-command timeout, so long builds and background servers don't get cut off. The overall sandbox `timeoutMs` still applies.
+- Relative paths in file operations and commands resolve against the session's working directory (`/home/user`).
+- The default sandbox timeout is 30 minutes; pass `timeoutMs` to change it.
+
+## Related guides
+
+<CardGroup cols={3}>
+  <Card title="Templates" icon="layer-group" href="/template/quickstart">
+    Build custom sandbox templates with pre-installed dependencies
+  </Card>
+  <Card title="Sandbox persistence" icon="clock" href="/sandbox/persistence">
+    Pause, resume, and manage sandbox lifecycle
+  </Card>
+  <Card title="Internet access" icon="globe" href="/network/internet-access">
+    Restrict outbound traffic with network rules
+  </Card>
+</CardGroup>
