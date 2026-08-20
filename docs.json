@@ -229,6 +229,7 @@
               "agents/claude-code",
               "agents/claude-managed-agents",
               "agents/codex",
+              "agents/hermes",
               "agents/crabbox",
               "agents/devin",
               "agents/devin-outposts",
