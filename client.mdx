@@ -1,0 +1,132 @@
+---
+title: "SDK client"
+icon: "plug"
+description: "Create a custom client with options"
+"og:image": "/images/og/generated/client.png"
+---
+
+The top-level `Sandbox`, `Volume`, `Template`, and `Secret` exports read their configuration from the environment variables (`E2B_API_KEY`, `E2B_DOMAIN`, …). If you need an explicit configuration — for example several API keys, teams, or [self-hosted deployments](/byoc) in a single process — create an `E2B` client and use the resources it exposes.
+
+<Note>
+Per-call options take precedence over the client's options, which take precedence over the environment variables.
+</Note>
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { E2B } from 'e2b'
+
+const client = new E2B({ apiKey: 'YOUR_API_KEY', domain: 'e2b.app' })
+
+const sandbox = await client.Sandbox.create()
+const result = await sandbox.commands.run('echo "Hello from E2B!"')
+console.log(result.stdout) // Hello from E2B!
+```
+```python Python
+from e2b import E2B
+
+client = E2B(api_key="YOUR_API_KEY", domain="e2b.app")
+
+sandbox = client.Sandbox.create()
+result = sandbox.commands.run('echo "Hello from E2B!"')
+print(result.stdout)  # Hello from E2B!
+```
+```python Python (async)
+from e2b import E2B
+
+client = E2B(api_key="YOUR_API_KEY", domain="e2b.app")
+
+sandbox = await client.AsyncSandbox.create()
+result = await sandbox.commands.run('echo "Hello from E2B!"')
+print(result.stdout)  # Hello from E2B!
+```
+</CodeGroup>
+
+The classes exposed by the client behave exactly like the top-level exports of the same name — only the defaults change. You can also destructure them and use them as usual.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+const { Sandbox, Volume, Template, Secret } = new E2B({ apiKey: 'YOUR_API_KEY' })
+
+const sandbox = await Sandbox.create()
+const volume = await Volume.create('my-volume')
+const exists = await Template.exists('my-template')
+await Secret.create('openai-api-key', 'sk-***')
+```
+```python Python
+client = E2B(api_key="YOUR_API_KEY")
+Sandbox, Volume, Template, Secret = (
+    client.Sandbox,
+    client.Volume,
+    client.Template,
+    client.Secret,
+)
+
+sandbox = Sandbox.create()
+volume = Volume.create("my-volume")
+exists = Template.exists("my-template")
+Secret.create("openai-api-key", "sk-***")
+```
+```python Python (async)
+client = E2B(api_key="YOUR_API_KEY")
+Sandbox, Volume, Template, Secret = (
+    client.AsyncSandbox,
+    client.AsyncVolume,
+    client.AsyncTemplate,
+    client.AsyncSecret,
+)
+
+sandbox = await Sandbox.create()
+volume = await Volume.create("my-volume")
+exists = await Template.exists("my-template")
+await Secret.create("openai-api-key", "sk-***")
+```
+</CodeGroup>
+
+## Client options
+
+The client accepts the same options as the individual SDK calls, for example `apiKey`/`api_key`, `domain`, `requestTimeoutMs`/`request_timeout`, `proxy`, `apiHeaders`/`api_headers`, and `logger`.
+
+In JavaScript, the only exception is `signal`: it cancels a single in-flight request, so it can only be passed per call.
+
+## Multiple clients
+
+Clients are isolated from each other and from the env-configured top-level exports, so you can use as many of them side by side as you need.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { E2B, Sandbox } from 'e2b'
+
+const production = new E2B({ apiKey: 'PRODUCTION_API_KEY' })
+const staging = new E2B({ apiKey: 'STAGING_API_KEY', domain: 'e2b-staging.dev' })
+
+await production.Sandbox.create()
+await staging.Sandbox.create()
+
+// Still uses the E2B_API_KEY environment variable.
+await Sandbox.create()
+```
+```python Python
+from e2b import E2B, Sandbox
+
+production = E2B(api_key="PRODUCTION_API_KEY")
+staging = E2B(api_key="STAGING_API_KEY", domain="e2b-staging.dev")
+
+production.Sandbox.create()
+staging.Sandbox.create()
+
+# Still uses the E2B_API_KEY environment variable.
+Sandbox.create()
+```
+```python Python (async)
+from e2b import E2B, AsyncSandbox
+
+production = E2B(api_key="PRODUCTION_API_KEY")
+staging = E2B(api_key="STAGING_API_KEY", domain="e2b-staging.dev")
+
+await production.AsyncSandbox.create()
+await staging.AsyncSandbox.create()
+
+# Still uses the E2B_API_KEY environment variable.
+await AsyncSandbox.create()
+```
+</CodeGroup>
