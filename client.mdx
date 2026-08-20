@@ -5,7 +5,7 @@ description: "Create a custom client with options"
 "og:image": "/images/og/generated/client.png"
 ---
 
-The top-level `Sandbox`, `Volume`, `Template`, and `Secret` exports read their configuration from the environment variables (`E2B_API_KEY`, `E2B_DOMAIN`, …). If you need an explicit configuration — for example several API keys, teams, or [self-hosted deployments](/byoc) in a single process — create an `E2B` client and use the resources it exposes.
+The top-level `Sandbox`, `Volume`, and `Template` exports read their configuration from the environment variables (`E2B_API_KEY`, `E2B_DOMAIN`, …). If you need an explicit configuration — for example several API keys, teams, or [self-hosted deployments](/byoc) in a single process — create an `E2B` client and use the resources it exposes.
 
 <Note>
 Per-call options take precedence over the client's options, which take precedence over the environment variables.
@@ -45,40 +45,35 @@ The classes exposed by the client behave exactly like the top-level exports of t
 
 <CodeGroup>
 ```js JavaScript & TypeScript
-const { Sandbox, Volume, Template, Secret } = new E2B({ apiKey: 'YOUR_API_KEY' })
+const { Sandbox, Volume, Template } = new E2B({ apiKey: 'YOUR_API_KEY' })
 
 const sandbox = await Sandbox.create()
 const volume = await Volume.create('my-volume')
 const exists = await Template.exists('my-template')
-await Secret.create('openai-api-key', 'sk-***')
 ```
 ```python Python
 client = E2B(api_key="YOUR_API_KEY")
-Sandbox, Volume, Template, Secret = (
+Sandbox, Volume, Template = (
     client.Sandbox,
     client.Volume,
     client.Template,
-    client.Secret,
 )
 
 sandbox = Sandbox.create()
 volume = Volume.create("my-volume")
 exists = Template.exists("my-template")
-Secret.create("openai-api-key", "sk-***")
 ```
 ```python Python (async)
 client = E2B(api_key="YOUR_API_KEY")
-Sandbox, Volume, Template, Secret = (
+Sandbox, Volume, Template = (
     client.AsyncSandbox,
     client.AsyncVolume,
     client.AsyncTemplate,
-    client.AsyncSecret,
 )
 
 sandbox = await Sandbox.create()
 volume = await Volume.create("my-volume")
 exists = await Template.exists("my-template")
-await Secret.create("openai-api-key", "sk-***")
 ```
 </CodeGroup>
 
