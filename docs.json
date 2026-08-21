@@ -5471,8 +5471,8 @@
   "navbar": {
     "links": [
       {
-        "label": "Dashboard",
-        "href": "https://e2b.dev/dashboard"
+        "label": "Console",
+        "href": "https://console.e2b.dev"
       }
     ],
     "primary": {
