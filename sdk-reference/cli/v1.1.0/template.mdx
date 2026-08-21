@@ -32,7 +32,7 @@ e2b template build [options] [template]
  - `-d, --dockerfile <file>: specify path to Dockerfile. By default E2B tries to find e2b.Dockerfile or Dockerfile in root directory. `
  - `-n, --name <template-name>: specify sandbox template name. You can use the template name to start the sandbox with SDK. The template name must be lowercase and contain only letters, numbers, dashes and underscores. `
  - `-c, --cmd <start-command>: specify command that will be executed when the sandbox is started. `
- - `-t, --team <team-id>: specify the team ID that the operation will be associated with. You can find team ID in the team settings in the E2B dashboard (https://e2b.dev/dashboard?tab=team). `
+ - `-t, --team <team-id>: specify the team ID that the operation will be associated with. You can find team ID in the team settings in the E2B dashboard (https://console.e2b.dev/?tab=team). `
  - `--config <e2b-toml>: specify path to the E2B config toml. By default E2B tries to find ./e2b.toml in root directory. `
  - `--cpu-count <cpu-count>: specify the number of CPUs that will be used to run the sandbox. The default value is 2. `
  - `--memory-mb <memory-mb>: specify the amount of memory in megabytes that will be used to run the sandbox. Must be an even number. The default value is 512. `
@@ -53,7 +53,7 @@ e2b template list [options]
 ### Options
 
 
- - `-t, --team <team-id>: specify the team ID that the operation will be associated with. You can find team ID in the team settings in the E2B dashboard (https://e2b.dev/dashboard?tab=team). `
+ - `-t, --team <team-id>: specify the team ID that the operation will be associated with. You can find team ID in the team settings in the E2B dashboard (https://console.e2b.dev/?tab=team). `
 
 
 ## e2b template init
@@ -90,7 +90,7 @@ e2b template delete [options] [template]
  - `-p, --path <path>: change root directory where command is executed to <path> directory `
  - `--config <e2b-toml>: specify path to the E2B config toml. By default E2B tries to find ./e2b.toml in root directory. `
  - `-s, --select: select sandbox template from interactive list `
- - `-t, --team <team-id>: specify the team ID that the operation will be associated with. You can find team ID in the team settings in the E2B dashboard (https://e2b.dev/dashboard?tab=team). `
+ - `-t, --team <team-id>: specify the team ID that the operation will be associated with. You can find team ID in the team settings in the E2B dashboard (https://console.e2b.dev/?tab=team). `
  - `-y, --yes: skip manual delete confirmation `
 
 
@@ -111,7 +111,7 @@ e2b template publish [options] [template]
  - `-p, --path <path>: change root directory where command is executed to <path> directory `
  - `--config <e2b-toml>: specify path to the E2B config toml. By default E2B tries to find ./e2b.toml in root directory. `
  - `-s, --select: select sandbox template from interactive list `
- - `-t, --team <team-id>: specify the team ID that the operation will be associated with. You can find team ID in the team settings in the E2B dashboard (https://e2b.dev/dashboard?tab=team). `
+ - `-t, --team <team-id>: specify the team ID that the operation will be associated with. You can find team ID in the team settings in the E2B dashboard (https://console.e2b.dev/?tab=team). `
  - `-y, --yes: skip manual publish confirmation `
 
 
@@ -132,7 +132,7 @@ e2b template unpublish [options] [template]
  - `-p, --path <path>: change root directory where command is executed to <path> directory `
  - `--config <e2b-toml>: specify path to the E2B config toml. By default E2B tries to find ./e2b.toml in root directory. `
  - `-s, --select: select sandbox template from interactive list `
- - `-t, --team <team-id>: specify the team ID that the operation will be associated with. You can find team ID in the team settings in the E2B dashboard (https://e2b.dev/dashboard?tab=team). `
+ - `-t, --team <team-id>: specify the team ID that the operation will be associated with. You can find team ID in the team settings in the E2B dashboard (https://console.e2b.dev/?tab=team). `
  - `-y, --yes: skip manual unpublish confirmation `
 
 

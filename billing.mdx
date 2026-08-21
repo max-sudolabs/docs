@@ -7,7 +7,7 @@ icon: "credit-card"
 
 E2B uses [usage-based pricing](#usage-based-pricing) - you pay only for what you use. New users receive $100 in free credits to get started.
 
-[Manage billing in dashboard](https://e2b.dev/dashboard?tab=billing)
+[Manage billing in console](https://console.e2b.dev/?tab=billing)
 
 ## Plans
 
@@ -23,7 +23,7 @@ E2B uses [usage-based pricing](#usage-based-pricing) - you pay only for what you
 | **<Tooltip tip="Number of template builds running at the same time.">Concurrent builds</Tooltip>** | 20 | 20 | Custom |
 | **<Tooltip tip="How quickly you can create new sandboxes.">Sandbox creation rate</Tooltip>** | 1 / sec | 5 / sec | Custom |
 
-To upgrade your plan or purchase add-ons, visit the [dashboard billing tab](https://e2b.dev/dashboard?tab=billing). For Enterprise plans, [contact sales](mailto:enterprise@e2b.dev).
+To upgrade your plan or purchase add-ons, visit the [console billing tab](https://console.e2b.dev/?tab=billing). For Enterprise plans, [contact sales](mailto:enterprise@e2b.dev).
 
 ---
 
@@ -74,7 +74,7 @@ Need higher CPU or RAM limits? Contact [support@e2b.dev](mailto:support@e2b.dev)
 
 ## Monitoring usage
 
-Check your usage and costs in the [dashboard usage tab](https://e2b.dev/dashboard?tab=usage).
+Check your usage and costs in the [console usage tab](https://console.e2b.dev/?tab=usage).
 
 ---
 
@@ -90,7 +90,7 @@ Check your usage and costs in the [dashboard usage tab](https://e2b.dev/dashboar
   </Accordion>
 
   <Accordion title="Can I set spending limits?">
-    Yes, you can set spending limits on the [budget page](https://e2b.dev/dashboard?tab=budget) in your dashboard.
+    Yes, you can set spending limits on the [budget page](https://console.e2b.dev/?tab=budget) in your dashboard.
   </Accordion>
 
   <Accordion title="How do I optimize costs?">
@@ -98,7 +98,7 @@ Check your usage and costs in the [dashboard usage tab](https://e2b.dev/dashboar
     - **Pause sandboxes when idle** - Use `sbx.pause()` to stop billing while keeping state available for later
     - **Kill sandboxes you no longer need** - Use `sbx.kill()` to stop billing and release resources permanently
     - **Allocate only what you need** - Start with default resources (2 vCPU, 512 MiB RAM) and increase only if necessary
-    - **Monitor actively running sandboxes** - Use the [CLI](/cli/list-sandboxes) or [dashboard](https://e2b.dev/dashboard?tab=usage) to track active sandboxes
+    - **Monitor actively running sandboxes** - Use the [CLI](/cli/list-sandboxes) or [console](https://console.e2b.dev/?tab=usage) to track active sandboxes
     - **Use lifecycle events** - Set up [webhooks](/sandbox/lifecycle-events-webhooks) to get notified when sandboxes are created
   </Accordion>
 

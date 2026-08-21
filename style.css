@@ -13,18 +13,18 @@ header .nav-logo {
     height: 18px !important;
 }
 
-/* Keep the repository control before Dashboard in the top navigation. */
+/* Keep the repository control before Console in the top navigation. */
 nav[aria-label="Main"] li:has(> a[href="https://github.com/e2b-dev/e2b"]) {
     order: -1;
     margin-left: 0 !important;
 }
 
-nav[aria-label="Main"] li:has(> a[href="https://e2b.dev/dashboard"]) {
+nav[aria-label="Main"] li:has(> a[href^="https://console.e2b.dev"]) {
     margin-inline: 0 !important;
 }
 
-/* Keep Dashboard as link navigation while giving it the primary-action skin. */
-nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"] {
+/* Keep Console as link navigation while giving it the primary-action skin. */
+nav[aria-label="Main"] a[href^="https://console.e2b.dev"] {
     height: 2.25rem;
     padding: 0 1rem;
     border-radius: 0.25rem;
@@ -41,21 +41,21 @@ nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"] {
         transform 250ms cubic-bezier(0.4, 0, 0, 1);
 }
 
-nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"]:hover {
+nav[aria-label="Main"] a[href^="https://console.e2b.dev"]:hover {
     background-color: #000000;
     color: #ffffff !important;
 }
 
-.dark nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"]:hover {
+.dark nav[aria-label="Main"] a[href^="https://console.e2b.dev"]:hover {
     background-color: #ffffff;
     color: #000000 !important;
 }
 
-nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"]:active {
+nav[aria-label="Main"] a[href^="https://console.e2b.dev"]:active {
     transform: scale(0.97);
 }
 
-nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"]:focus-visible {
+nav[aria-label="Main"] a[href^="https://console.e2b.dev"]:focus-visible {
     outline: 2px solid #000000;
     outline-offset: 2px;
     box-shadow:
@@ -63,7 +63,7 @@ nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"]:focus-visible {
         0 0 0 6px rgb(var(--primary));
 }
 
-.dark nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"]:focus-visible {
+.dark nav[aria-label="Main"] a[href^="https://console.e2b.dev"]:focus-visible {
     outline-color: #ffffff;
     box-shadow:
         0 0 0 4px #000000,
@@ -71,14 +71,14 @@ nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"]:focus-visible {
 }
 
 @media (forced-colors: active) {
-    nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"]:focus-visible {
+    nav[aria-label="Main"] a[href^="https://console.e2b.dev"]:focus-visible {
         outline-color: Highlight;
         box-shadow: none;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    nav[aria-label="Main"] a[href="https://e2b.dev/dashboard"] {
+    nav[aria-label="Main"] a[href^="https://console.e2b.dev"] {
         transition: none;
     }
 }
