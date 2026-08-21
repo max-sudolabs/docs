@@ -29,6 +29,30 @@ To filter the sandboxes by their metadata, use the `--metadata` flag.
 e2b sandbox list --metadata key1=value1,key2=value2
 ```
 
+### Filter by template
+
+To filter the sandboxes by the template they were created from, use the `--template` flag with a template ID or alias.
+
+```bash
+e2b sandbox list --template base
+```
+
+### Filter by start time
+
+To return only sandboxes started at or after a given time, use the `--started-after` flag with an ISO 8601 timestamp.
+
+```bash
+e2b sandbox list --started-after 2025-01-01T00:00:00Z
+```
+
+### Sort order
+
+To sort the sandboxes by their start time, use the `--order` flag with `asc` or `desc`.
+
+```bash
+e2b sandbox list --order desc
+```
+
 ### List limit
 
 To limit the amount of sandboxes returned by the command, use the `--limit` flag.
@@ -37,7 +61,7 @@ To limit the amount of sandboxes returned by the command, use the `--limit` flag
 e2b sandbox list --limit 10
 ```
 
-By default, the command will return all sandboxes.
+By default, the command returns up to 1000 sandboxes. Use `--limit 0` to return all sandboxes.
 
 ### Output format
 

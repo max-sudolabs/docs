@@ -171,7 +171,8 @@
                   "cli/create-sandbox",
                   "cli/connect-to-sandbox",
                   "cli/exec-command",
-                  "cli/shutdown-sandboxes"
+                  "cli/shutdown-sandboxes",
+                  "cli/manage-snapshots"
                 ]
               }
             ]

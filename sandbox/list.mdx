@@ -171,6 +171,86 @@ Filter sandboxes by the metadata key value pairs specified during Sandbox creati
     ```
 </CodeGroup>
 
+Filter sandboxes by the template they were created from, using a template ID or alias.
+
+<CodeGroup>
+    ```js JavaScript & TypeScript highlight={5}
+    import { Sandbox } from 'e2b'
+
+    const paginator = Sandbox.list({
+      query: {
+        template: 'base',
+      },
+    })
+
+    const sandboxes = await paginator.nextItems()
+    ```
+    ```python Python highlight={5}
+    from e2b import Sandbox, SandboxQuery
+
+    paginator = Sandbox.list(
+        query=SandboxQuery(
+            template="base",
+        ),
+    )
+
+    sandboxes = paginator.next_items()
+    ```
+</CodeGroup>
+
+Filter sandboxes by their start time. Only sandboxes started at or after the given timestamp are returned.
+
+<CodeGroup>
+    ```js JavaScript & TypeScript highlight={5}
+    import { Sandbox } from 'e2b'
+
+    const paginator = Sandbox.list({
+      query: {
+        startedAfter: new Date('2025-01-01T00:00:00Z'),
+      },
+    })
+
+    const sandboxes = await paginator.nextItems()
+    ```
+    ```python Python highlight={6}
+    from datetime import datetime, timezone
+    from e2b import Sandbox, SandboxQuery
+
+    paginator = Sandbox.list(
+        query=SandboxQuery(
+            started_after=datetime(2025, 1, 1, tzinfo=timezone.utc),
+        ),
+    )
+
+    sandboxes = paginator.next_items()
+    ```
+</CodeGroup>
+
+### Sorting sandboxes
+
+Sort sandboxes by their start time using the `order` parameter with `'asc'` or `'desc'`. The default is `'desc'` (newest first). Sorting applies to the complete result set before pagination.
+
+<CodeGroup>
+    ```js JavaScript & TypeScript highlight={4}
+    import { Sandbox } from 'e2b'
+
+    const paginator = Sandbox.list({
+      order: 'asc',
+    })
+
+    const sandboxes = await paginator.nextItems()
+    ```
+    ```python Python highlight={4}
+    from e2b import Sandbox
+
+    paginator = Sandbox.list(
+        order="asc",
+    )
+
+    sandboxes = paginator.next_items()
+    ```
+</CodeGroup>
+
 ### Advanced pagination
 
 For more granular pagination, you can set custom per-page item limit (default and maximum is **100**) and specify an offset parameter (`nextToken` or `next_token`) to start paginating from.

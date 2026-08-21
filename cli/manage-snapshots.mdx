@@ -1,0 +1,62 @@
+---
+title: "Manage snapshots"
+"og:image": "/images/og/generated/cli/manage-snapshots.png"
+---
+
+You can manage sandbox snapshots with the `e2b sandbox snapshot` (alias `snap`) commands.
+
+### Create a snapshot
+
+To create a snapshot from a sandbox, use the `create` command with the sandbox ID.
+
+<CodeGroup>
+```bash Terminal
+e2b sandbox snapshot create <sandboxID>
+```
+</CodeGroup>
+
+You can name the snapshot template with the `--name` flag. If a template with that name already exists, it is reused.
+
+```bash
+e2b sandbox snapshot create <sandboxID> --name my-snapshot
+```
+
+### List snapshots
+
+To list all snapshots, use the `list` command.
+
+```bash
+e2b sandbox snapshot list
+```
+
+To list only snapshots created from a specific sandbox, pass the sandbox ID.
+
+```bash
+e2b sandbox snapshot list <sandboxID>
+```
+
+You can filter by snapshot name or ID with the `--name` flag, optionally tag-qualified.
+
+```bash
+e2b sandbox snapshot list --name my-snapshot:v1
+```
+
+To limit the amount of snapshots returned, use the `--limit` flag. By default, the command returns up to 1000 snapshots. Use `--limit 0` to return all snapshots.
+
+```bash
+e2b sandbox snapshot list --limit 10
+```
+
+To output the snapshots in JSON format, use the `--format` flag.
+
+```bash
+e2b sandbox snapshot list --format json
+```
+
+### Delete snapshots
+
+To delete one or more snapshots, use the `delete` command with the snapshot IDs.
+
+```bash
+e2b sandbox snapshot delete <snapshotID> [snapshotID...]
+```
