@@ -5,6 +5,47 @@ rss: true
 "og:image": "/images/og/changelog.png"
 ---
 
+<Update label="August 24, 2026" description="SOCKS5 egress proxy, sandbox list filters, and snapshot CLI" tags={["SDK", "CLI", "API", "Sandboxes"]} rss={{ title: "Bring Your Own Proxy & Sandbox List Filters", description: "This week routes sandbox egress through your own SOCKS5 proxy, adds sorting and filters to sandbox listing, and ships snapshot management commands in the CLI." }}>
+
+## Bring Your Own Proxy & Sandbox List Filters
+
+This week routes sandbox egress through your own SOCKS5 proxy, adds sorting and filters to sandbox listing, and ships snapshot management commands in the CLI.
+
+### Bring your own proxy for sandbox egress
+
+`Sandbox.create` accepts a [`network.egressProxy`](/network/byop) option that tunnels every outbound TCP connection through a SOCKS5 proxy you operate, applied on the host after `allowOut` and `denyOut` so code inside the sandbox cannot see or route around it. `updateNetwork` swaps the proxy on a running sandbox, and egress fails closed when the proxy is unreachable. Shipped in the JavaScript and Python SDKs 2.41.0. ([#1688](https://github.com/e2b-dev/E2B/pull/1688))
+
+### Sandbox list sorting and filters
+
+[`Sandbox.list`](/sandbox/list) accepts an `order` option (`asc` or `desc`, default `desc`) that sorts by start time across the paginated dataset, plus `startedAfter` and `template` filters that apply server-side. The `e2b sandbox list` command exposes the same knobs through `--order`, `--started-after`, and `--template`. Shipped in the JavaScript and Python SDKs 2.45.0 and the CLI 2.17.0. ([#1735](https://github.com/e2b-dev/E2B/pull/1735), [`e6de33c`](https://github.com/e2b-dev/infra/commit/e6de33c74602b6ba116bb041e70e8bba73133550))
+
+### Snapshot commands in the CLI
+
+The [`e2b sandbox snapshot`](/cli/manage-snapshots) group adds `create <sandboxID>` with an optional `--name`, `list [sandboxID]` with a `--name` filter, and `delete <snapshotIDs...>`. Shipped in the CLI 2.17.0. ([#1741](https://github.com/e2b-dev/E2B/pull/1741))
+
+### Machine-readable sandbox placement errors
+
+A failed `POST /sandboxes` now returns a machine-readable `error_code` paired with a status: 503 with `cluster_at_capacity` or `no_compatible_node`, 504 with `placement_timeout`, and 500 with `sandbox_create_failed`, instead of a bare 500. ([`c426430`](https://github.com/e2b-dev/infra/commit/c4264309b3776dbd7b0d456d882afbb97187dc78))
+
+### Multi-connection SDK client
+
+The new [`E2B` client](/client) binds a connection config once and exposes `Sandbox`, `Volume`, and `Template` off it, so one process can talk to several API keys, domains, or self-hosted deployments in parallel. Shipped in the JavaScript and Python SDKs 2.44.0. ([#1720](https://github.com/e2b-dev/E2B/pull/1720))
+
+### Refreshed MCP server catalog
+
+The [MCP server catalog](/mcp/available-servers) picks up 49 new servers and drops six retired ones from the `McpServer` type, so `Template().addMcpServer("postgres")` stops compiling. Shipped in the JavaScript and Python SDKs 2.42.0. ([#1716](https://github.com/e2b-dev/E2B/pull/1716))
+
+### Fixes
+
+- Improved pause and resume reliability for sandboxes running systemd units under a slice or a nested container runtime, removing the tail of slow resumes those workloads used to see. ([`f06e9bc`](https://github.com/e2b-dev/infra/commit/f06e9bc1e2d605e1e11b65cc3242a8af0c7a3151))
+- Fixed sandbox create failing with a retryable 500 when `denyOut` or `allowOut` contained a CIDR whose range ended at `255.255.255.255`, such as `240.0.0.0/4`. ([`9f6c2eb`](https://github.com/e2b-dev/infra/commit/9f6c2eb54efcaf32a087e854c689793dd01fd200))
+- Fixed network `transform` rules with a wildcard host key such as `*.github.com` not matching connections whose TLS SNI matched the wildcard. ([`9072e15`](https://github.com/e2b-dev/infra/commit/9072e15e7b8a08fa47fee77f3236fff26ea93ac2))
+- Fixed the Python SDK 2.45.1 buffering streamed request bodies across retries, so `files.write` of a file-like object and `volume.write_file` no longer scale peak memory with file size. ([#1718](https://github.com/e2b-dev/E2B/pull/1718))
+- Fixed the JavaScript SDK 2.42.0 sending `autoResume` and `autoPause` local defaults on create when no lifecycle was configured, so the API can apply its own defaults. ([#1693](https://github.com/e2b-dev/E2B/pull/1693), [#1694](https://github.com/e2b-dev/E2B/pull/1694))
+- Reliability and security hardening across platform services, including dependency and base image CVE patches.
+
+</Update>
+
 <Update label="August 17, 2026" description="Workload identity in SDKs, faster Python HTTP, and clearer placement errors" tags={["SDK", "API", "Dashboard", "Sandboxes"]} rss={{ title: "Workload Identity in the SDKs & Faster Python HTTP", description: "This week ships sandbox workload identity in both SDKs, moves the Python SDK onto a Rust HTTP stack, and returns detailed sandbox placement failure reasons." }}>
 
 ## Workload Identity in the SDKs & Faster Python HTTP
