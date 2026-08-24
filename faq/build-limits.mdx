@@ -1,0 +1,90 @@
+---
+title: "What limits apply to my template builds?"
+sidebarTitle: Build limits
+description: "The limits you can hit when building a template, which ones we can raise, and how to work around the ones we cannot"
+"og:image": "/images/og/generated/faq/build-limits.png"
+---
+
+Two different kinds of limit apply to a [template build](/template/quickstart). Limits tied to your plan can be raised, either by upgrading or by contacting support. Build timeouts are fixed for everyone and are not raised per team, so a build that hits one needs to be restructured rather than escalated.
+
+## Limits tied to your plan
+
+| Limit | Hobby | Pro | Enterprise |
+| :---- | :---- | :-- | :--------- |
+| **Concurrent builds** | 20 | 20 | Custom |
+| **vCPUs per build** | 8 | 8+ | Custom |
+| **Memory per build** | 8 GiB | 8+ GiB | Custom |
+| **Disk space in the built template** | 10 GiB | 20+ GiB | Custom |
+
+See the [Plans table](/billing#plans) for the full list. Need more? Contact [support@e2b.dev](mailto:support@e2b.dev).
+
+Disk space is free space on top of your image contents, not a maximum template size. A template can report a total disk size larger than this figure, which is expected.
+
+<Note>
+  **A CPU or RAM increase does not apply until you rebuild and pass the new values.** `cpuCount`/`cpu_count` and `memoryMB`/`memory_mb` are build parameters, and your plan limit only validates them. Rebuilding without them writes the defaults of 2 vCPU and 1024 MiB, which can leave your sandboxes smaller than before. Disk is different: it is read from your plan at build time, so a plain rebuild is enough.
+</Note>
+
+## Build timeouts
+
+These are the same for every plan and we do not raise them for individual teams.
+
+| Timeout | Limit | Applies to |
+| :------ | :---- | :--------- |
+| **Whole build** | 1 hour | From the moment the build starts running |
+| **A single command** | 1 hour | One `runCmd`/`run_cmd` step |
+| **Ready command** | 10 minutes | Your [ready command](/template/start-ready-command#ready-command) must succeed within this window |
+| **A single file copy** | 10 minutes | One `copy`/`copy_items` operation into the build |
+| **Uploading a layer's files** | 30 minutes | The upload of files for one layer |
+| **A build waiting to start** | 40 minutes | A build that was registered but never started running |
+
+If you are close to any of these, the fix is usually the same: move work into earlier layers so it gets [cached](/template/caching), split large copies, or start from an existing template with [`fromTemplate`](/template/quickstart#scaling-templates) instead of rebuilding shared layers.
+
+## What each failure looks like
+
+<AccordionGroup>
+  <Accordion title="you have reached the maximum number of concurrent template builds (N)">
+    You are running as many builds at once as your plan allows, and the request was rejected with a `429`. Wait for a build to finish, or contact [support@e2b.dev](mailto:support@e2b.dev) if you consistently need more.
+
+    This is a separate limit from [concurrent sandboxes](/faq/increase-concurrency), which also rejects with a `429`. Neither one tells you anything about the other, so match on the message rather than the status code.
+  </Accordion>
+
+  <Accordion title="CPU count can't be higher than N / Memory can't be higher than N MiB">
+    The `cpuCount`/`cpu_count` or `memoryMB`/`memory_mb` you passed is above your plan's ceiling, so the build was rejected with a `400` before it started. Lower the value or contact [support@e2b.dev](mailto:support@e2b.dev) to raise the ceiling.
+  </Accordion>
+
+  <Accordion title="the uncompressed Docker image size ... exceeds the maximum filesystem size">
+    Your base image is too large. This is a limit on the image you start `fromImage`/`from_image` from, and it is separate from the disk space figure above. The error message contains the current maximum for your team.
+
+    Reduce the image with a smaller base, multi-stage builds, or by removing files you do not need. Data added with `copy`/`run_cmd` steps does not count towards this limit, because those run after the image has been unpacked. If your image genuinely needs to be larger, contact [support@e2b.dev](mailto:support@e2b.dev).
+  </Accordion>
+
+  <Accordion title="No space left on device, or a 507 during a build step">
+    You have run out of the disk space your plan gives the template. This is the limit a disk increase moves. After the increase, rebuild the template so the new size is applied.
+  </Accordion>
+
+  <Accordion title="ready command timed out after ...">
+    Your ready command did not succeed within 10 minutes. E2B retries it every 2 seconds for that whole window.
+
+    Make the check cheaper rather than longer. [`waitForPort`](/template/start-ready-command#ready-command) on the port your service actually listens on returns as soon as it is up, where a fixed sleep always waits the full time. If the slow part is setup work rather than startup, move it into a build step so it is cached instead of repeated on every build.
+  </Accordion>
+
+  <Accordion title="build status polling timed out. Maximum build time is 1h0m0s.">
+    The build ran for the full hour and was terminated. Use [layer caching](/template/caching) to avoid repeating expensive steps, put frequently changing steps last, and consider splitting a large template into a base template plus a thin template built with `fromTemplate`/`from_template`.
+  </Accordion>
+
+  <Accordion title="build is in waiting state for too long">
+    The build was accepted but never started running, so it produced no logs and was terminated after 40 minutes. This usually means the process that requested the build stopped before it could start it.
+
+    The build holds one of your concurrent build slots until it is terminated, so you can get a `429` from a build you thought was gone. To free the slot immediately, run the build again with the same template name and tag. That supersedes the stranded build and releases its slot. Deleting the template also works.
+  </Accordion>
+
+  <Accordion title="The build was canceled because it was superseded by a newer one.">
+    Only one build can be in flight for a given template name and tag. Starting another one cancels the earlier build. If you want builds to run in parallel, give them different tags or names.
+  </Accordion>
+</AccordionGroup>
+
+## What is not limited
+
+* **The number of templates you create.** See [Template limit](/faq/template-limit).
+* **The number of steps or layers in a template.**
+* **The number of tags on a build.**

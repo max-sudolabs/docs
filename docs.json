@@ -5424,6 +5424,7 @@
           {
             "group": "Templates & builds",
             "pages": [
+              "faq/build-limits",
               "faq/template-limit",
               "faq/public-templates",
               "faq/pip-install-error",
