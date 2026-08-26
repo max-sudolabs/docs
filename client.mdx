@@ -125,3 +125,72 @@ await staging.AsyncSandbox.create()
 await AsyncSandbox.create()
 ```
 </CodeGroup>
+
+## Multiple regions
+
+<Note>
+Regions do not share state. A project and its API key belong to exactly one region, and the sandboxes, templates, and volumes it owns exist only there. Two things to plan for:
+
+- **Build your own templates once per region.** There is no way to copy a template between regions, so run [`Template.build`](/template/build) through each region's client. The same template name in every region is fine.
+- **A sandbox ID only resolves in its own region.** Connect to a sandbox, list it, or kill it through the client for the region that created it.
+</Note>
+
+If a single process only ever talks to one region, you do not need a client at all. Set `E2B_API_KEY` and `E2B_DOMAIN` to that region's values and keep using the top-level exports.
+
+E2B's managed cloud runs in three regions: US, EU, and APAC. US is the default on every plan. EU and APAC are available on the Pro plan and above, and are enabled for your account by [support](https://console.e2b.dev/?support=true). See [EU region](/faq/eu-region) and [Egress IP ranges](/faq/egress-ip-ranges) for more on where sandboxes run.
+
+There is no `region` option. Each region is a separate deployment with its own API endpoint, so you select one by pointing a client at that region's `domain`. When support enables a region, they give you its domain and help you create a [project](/projects) there. That project has its own API key, so a multiregion setup is one client per region, each with its own key and domain.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { E2B } from 'e2b'
+
+// Support gives you the domain for each region it enables for you.
+const regions = {
+  us: new E2B({ apiKey: 'e2b_YOUR_US_KEY' }), // Default domain: e2b.app
+  eu: new E2B({ apiKey: 'e2b_YOUR_EU_KEY', domain: 'EU_REGION_DOMAIN' }),
+  apac: new E2B({ apiKey: 'e2b_YOUR_APAC_KEY', domain: 'APAC_REGION_DOMAIN' }),
+}
+
+// Route each workload to the region it should run in.
+const client = regions[user.region] ?? regions.us
+
+const sandbox = await client.Sandbox.create('my-template')
+const result = await sandbox.commands.run('echo "Hello from E2B!"')
+console.log(result.stdout) // Hello from E2B!
+```
+```python Python
+from e2b import E2B
+
+# Support gives you the domain for each region it enables for you.
+regions = {
+    "us": E2B(api_key="e2b_YOUR_US_KEY"),  # Default domain: e2b.app
+    "eu": E2B(api_key="e2b_YOUR_EU_KEY", domain="EU_REGION_DOMAIN"),
+    "apac": E2B(api_key="e2b_YOUR_APAC_KEY", domain="APAC_REGION_DOMAIN"),
+}
+
+# Route each workload to the region it should run in.
+client = regions.get(user_region, regions["us"])
+
+sandbox = client.Sandbox.create("my-template")
+result = sandbox.commands.run('echo "Hello from E2B!"')
+print(result.stdout)  # Hello from E2B!
+```
+```python Python (async)
+from e2b import E2B
+
+# Support gives you the domain for each region it enables for you.
+regions = {
+    "us": E2B(api_key="e2b_YOUR_US_KEY"),  # Default domain: e2b.app
+    "eu": E2B(api_key="e2b_YOUR_EU_KEY", domain="EU_REGION_DOMAIN"),
+    "apac": E2B(api_key="e2b_YOUR_APAC_KEY", domain="APAC_REGION_DOMAIN"),
+}
+
+# Route each workload to the region it should run in.
+client = regions.get(user_region, regions["us"])
+
+sandbox = await client.AsyncSandbox.create("my-template")
+result = await sandbox.commands.run('echo "Hello from E2B!"')
+print(result.stdout)  # Hello from E2B!
+```
+</CodeGroup>
