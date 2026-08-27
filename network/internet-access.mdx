@@ -233,7 +233,7 @@ If you have any questions or feedback, please [reach out to us](https://console.
 
 You can register per-host rules under `network.rules` to apply transforms (for example, inject HTTP headers) on outbound requests matching a host. Rules are keyed by host and registering one does **not** grant egress on its own — the host must still be referenced via `allowOut` / `allow_out`.
 
-The `transform.headers` object is sent on the wire as-is and injected by the egress proxy on matching HTTP/HTTPS requests.
+The `transform.headers` object is sent on the wire as-is and injected by the egress proxy on matching HTTPS requests. Transforms apply to intercepted TLS traffic only, so nothing is injected on plain HTTP.
 
 <CodeGroup>
 ```js JavaScript & TypeScript
@@ -293,6 +293,44 @@ await Sandbox.create({
   network: { allowOut: ({ rules }) => [...rules.keys()], rules },
 })
 ```
+
+#### Matching hosts
+
+A rule key is either an exact DNS name (`api.example.com`) or a single leading wildcard label (`*.example.com`).
+
+- One rule can transform requests to subdomains at any depth: `*.example.com` covers `api.example.com` and `a.b.example.com`.
+- The apex is separate: `*.example.com` does not match `example.com`. Register the apex as its own key if you need to transform it too.
+- Exact keys take precedence over wildcard keys.
+- When several wildcards match, the most specific one wins, meaning the longest matching suffix.
+- Exactly one rule applies per request. Matching rule sets are never merged, so a request only ever receives one rule's headers.
+- Keys are stored lowercased, and two keys that differ only in case are rejected.
+- A rule still requires matching `allowOut` / `allow_out` access, where wildcards work the same way.
+
+These keys are rejected with `400: Rule domain "..." is not a valid domain name`:
+
+- A bare `*`.
+- A leading dot, such as `.example.com`.
+- A host with a port, such as `example.com:443`.
+- More than one wildcard label, such as `*.*.example.com` or `api.*.example.com`.
+
+<Warning>
+Keep wildcard scopes narrow. A broad key such as `*.com` is accepted and matches every subdomain beneath it, so a credential you inject is sent to every matching TLS destination the sandbox contacts.
+</Warning>
+
+#### Limits
+
+| Limit | Value |
+| --- | --- |
+| Domains per sandbox | 10 |
+| Transform rules per domain | 1 |
+| Headers per rule | 20 |
+| Rule domain length | 128 characters |
+| Header name length | 64 characters |
+| Header value length | 2048 characters |
+
+- A wildcard key counts as one domain, whatever it matches.
+- Exceeding any limit fails the create or update call with a `400` naming the limit.
+- These values are fixed and cannot be raised for an individual account.
 
 #### Transform callbacks
 
@@ -402,4 +440,6 @@ sandbox.update_network({"allow_internet_access": False})
 `updateNetwork` / `update_network` **replaces** the current egress configuration — it does not merge with the existing rules. Calling it with an empty object (`updateNetwork({})` / `update_network({})`) clears all allow and deny rules set at create time.
 </Note>
 
-Create-only options such as `allowPublicTraffic` / `allow_public_traffic`, `maskRequestHost` / `mask_request_host` and network rules in `network.rules` cannot be changed after the sandbox is created.
+Per-host rules in `network.rules` can be changed on a running sandbox, and are replaced rather than merged like the rest of the egress configuration. An update that omits `rules` therefore clears every rule.
+
+Create-only options such as `allowPublicTraffic` / `allow_public_traffic` and `maskRequestHost` / `mask_request_host` cannot be changed after the sandbox is created.
