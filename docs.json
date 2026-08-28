@@ -5397,7 +5397,7 @@
         "tab": "API Reference",
         "icon": "code",
         "openapi": {
-          "source": "openapi-public.yml",
+          "source": "openapi-public.yaml",
           "directory": "api-reference"
         }
       },
@@ -5526,6 +5526,11 @@
     {
       "source": "/docs/:path*",
       "destination": "/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/openapi-public.yml",
+      "destination": "/openapi-public.yaml",
       "permanent": true
     },
     {

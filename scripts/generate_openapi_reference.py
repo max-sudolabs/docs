@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate a merged OpenAPI spec for the full E2B developer-facing API.
 
-Combines multiple sources into a single openapi-public.yml:
+Combines multiple sources into a single openapi-public.yaml:
 
   Sandbox API (served on the shared sandbox host, sandbox.e2b.app):
     The envd contract the SDKs actually use. The latest SDKs source their
@@ -22,7 +22,7 @@ Usage:
 Options:
     --envd-commit HASH   Commit/branch/tag in e2b-dev/E2B for envd specs (default: main)
     --api-commit HASH    Commit/branch/tag in e2b-dev/infra for platform API spec (default: main)
-    --output FILE        Output path (default: openapi-public.yml in repo root)
+    --output FILE        Output path (default: openapi-public.yaml in repo root)
 
 Requires: Docker, PyYAML (pip install pyyaml).
 """
@@ -1396,7 +1396,7 @@ def filter_paths(spec: dict[str, Any]) -> None:
     # multi-sentence summaries also blow past the macOS 255-byte filename limit
     # Mintlify derives from `summary` (e.g. /fsfreeze), which aborts the whole
     # API-reference build. Exclude them here so a re-add upstream cannot re-leak
-    # them into openapi-public.yml.
+    # them into openapi-public.yaml.
     excluded_exact = {
         "/init",
         "/freeze",
@@ -1636,7 +1636,7 @@ def main() -> None:
     # Parse CLI args
     envd_commit = "main"
     api_commit = "main"
-    output_path = os.path.join(DOCS_REPO_ROOT, "openapi-public.yml")
+    output_path = os.path.join(DOCS_REPO_ROOT, "openapi-public.yaml")
 
     args = sys.argv[1:]
     i = 0

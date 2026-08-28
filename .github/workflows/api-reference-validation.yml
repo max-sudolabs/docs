@@ -41,10 +41,10 @@ jobs:
       - name: Install dependencies
         run: pip install pyyaml
 
-      # Generate the spec straight into openapi-public.yml; the create-pull-request
+      # Generate the spec straight into openapi-public.yaml; the create-pull-request
       # action below detects drift and only opens a PR when the file changes.
       - name: Generate OpenAPI spec
-        run: python3 scripts/generate_openapi_reference.py --output openapi-public.yml
+        run: python3 scripts/generate_openapi_reference.py --output openapi-public.yaml
 
       - name: Create or update PR
         id: pr
@@ -53,15 +53,15 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           branch: automation/api-reference-update
           delete-branch: true
-          add-paths: openapi-public.yml
+          add-paths: openapi-public.yaml
           author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
           committer: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
-          commit-message: "docs: update openapi-public.yml from source specs"
+          commit-message: "docs: update openapi-public.yaml from source specs"
           title: "docs: update API reference spec"
           body: |
             ## OpenAPI Spec Update
 
-            The generated `openapi-public.yml` has drifted from the source specs.
+            The generated `openapi-public.yaml` has drifted from the source specs.
             This PR updates it to match the latest upstream definitions.
 
             - Workflow: `${{ github.workflow }}`
