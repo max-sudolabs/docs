@@ -69,6 +69,10 @@ paths:
           $ref: '#/components/responses/400'
         '500':
           $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+        '504':
+          $ref: '#/components/responses/504'
       operationId: postSandboxes
     servers:
     - *id001
@@ -98,6 +102,26 @@ paths:
             $ref: '#/components/schemas/SandboxState'
         style: form
         explode: false
+      - name: order
+        in: query
+        description: Sort direction by sandbox start time. Defaults to desc (newest
+          first).
+        required: false
+        schema:
+          $ref: '#/components/schemas/OrderDirection'
+      - name: startedAfter
+        in: query
+        description: Return sandboxes started at or after this timestamp.
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: template
+        in: query
+        description: Filter sandboxes by a template ID or alias.
+        required: false
+        schema:
+          type: string
       - $ref: '#/components/parameters/paginationNextToken'
       - $ref: '#/components/parameters/paginationLimit'
       responses:
@@ -392,7 +416,7 @@ paths:
       parameters:
       - $ref: '#/components/parameters/sandboxID'
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema:
@@ -408,10 +432,16 @@ paths:
           $ref: '#/components/responses/409'
         '404':
           $ref: '#/components/responses/404'
+        '400':
+          $ref: '#/components/responses/400'
         '401':
           $ref: '#/components/responses/401'
         '500':
           $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+        '504':
+          $ref: '#/components/responses/504'
       operationId: postSandboxResume
     servers:
     - *id001
@@ -454,6 +484,8 @@ paths:
           $ref: '#/components/responses/401'
         '500':
           $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
       operationId: postSandboxFork
     servers:
     - *id001
@@ -493,8 +525,14 @@ paths:
           $ref: '#/components/responses/401'
         '404':
           $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
         '500':
           $ref: '#/components/responses/500'
+        '503':
+          $ref: '#/components/responses/503'
+        '504':
+          $ref: '#/components/responses/504'
       operationId: postSandboxConnect
     servers:
     - *id001
@@ -706,7 +744,6 @@ paths:
       - Templates
       security:
       - ApiKeyAuth: []
-      - AccessTokenAuth: []
       parameters:
       - in: query
         required: false
@@ -774,7 +811,6 @@ paths:
       tags:
       - Templates
       security:
-      - AccessTokenAuth: []
       - ApiKeyAuth: []
       parameters:
       - $ref: '#/components/parameters/templateID'
@@ -811,7 +847,6 @@ paths:
       - Templates
       security:
       - ApiKeyAuth: []
-      - AccessTokenAuth: []
       parameters:
       - in: query
         required: false
@@ -839,8 +874,7 @@ paths:
       deprecated: true
       tags:
       - Templates
-      security:
-      - AccessTokenAuth: []
+      security: []
       requestBody:
         required: true
         content:
@@ -896,8 +930,7 @@ paths:
       deprecated: true
       tags:
       - Templates
-      security:
-      - AccessTokenAuth: []
+      security: []
       parameters:
       - $ref: '#/components/parameters/templateID'
       requestBody:
@@ -925,7 +958,6 @@ paths:
       - Templates
       security:
       - ApiKeyAuth: []
-      - AccessTokenAuth: []
       parameters:
       - $ref: '#/components/parameters/templateID'
       responses:
@@ -944,7 +976,6 @@ paths:
       - Templates
       security:
       - ApiKeyAuth: []
-      - AccessTokenAuth: []
       parameters:
       - $ref: '#/components/parameters/templateID'
       requestBody:
@@ -976,8 +1007,7 @@ paths:
       deprecated: true
       tags:
       - Templates
-      security:
-      - AccessTokenAuth: []
+      security: []
       parameters:
       - $ref: '#/components/parameters/templateID'
       - $ref: '#/components/parameters/buildID'
@@ -1032,7 +1062,6 @@ paths:
       - Templates
       security:
       - ApiKeyAuth: []
-      - AccessTokenAuth: []
       parameters:
       - $ref: '#/components/parameters/templateID'
       requestBody:
@@ -1064,7 +1093,6 @@ paths:
       tags:
       - Templates
       security:
-      - AccessTokenAuth: []
       - ApiKeyAuth: []
       parameters:
       - $ref: '#/components/parameters/templateID'
@@ -1114,7 +1142,6 @@ paths:
       tags:
       - Templates
       security:
-      - AccessTokenAuth: []
       - ApiKeyAuth: []
       parameters:
       - $ref: '#/components/parameters/templateID'
@@ -2524,8 +2551,7 @@ paths:
       description: List all teams
       tags:
       - Teams
-      security:
-      - AccessTokenAuth: []
+      security: []
       responses:
         '200':
           description: Successfully returned all teams
@@ -2641,6 +2667,201 @@ paths:
       operationId: getTeamMetricsMax
     servers:
     - *id001
+  /secrets:
+    get:
+      summary: List project secrets
+      description: List the project's secrets. No response carries a secret value.
+      tags:
+      - secrets
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/paginationNextToken'
+      - $ref: '#/components/parameters/paginationLimit'
+      responses:
+        '200':
+          description: Successfully listed the project's secrets
+          headers:
+            X-Next-Token:
+              $ref: '#/components/headers/XNextToken'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Secret'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+        '502':
+          $ref: '#/components/responses/502'
+        '504':
+          $ref: '#/components/responses/504'
+      operationId: listSecrets
+    post:
+      summary: Create a secret
+      description: Create a secret by storing a runtime marker as its first version.
+        The response carries metadata only.
+      tags:
+      - secrets
+      security:
+      - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewSecret'
+      responses:
+        '201':
+          description: Successfully created the secret
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Secret'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+        '502':
+          $ref: '#/components/responses/502'
+        '504':
+          $ref: '#/components/responses/504'
+      operationId: postSecrets
+    servers:
+    - *id001
+  /secrets/{secretID}:
+    get:
+      summary: Get a secret
+      description: Get one secret's metadata, selected by identifier or name.
+      tags:
+      - secrets
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/secretID'
+      responses:
+        '200':
+          description: Successfully retrieved the secret
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Secret'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+        '502':
+          $ref: '#/components/responses/502'
+        '504':
+          $ref: '#/components/responses/504'
+      operationId: getSecret
+    post:
+      summary: Update a secret
+      description: Replace the secret's stored marker by appending a new version.
+        The response carries metadata only.
+      tags:
+      - secrets
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/secretID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecretUpdate'
+      responses:
+        '200':
+          description: Successfully updated the secret
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Secret'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+        '502':
+          $ref: '#/components/responses/502'
+        '504':
+          $ref: '#/components/responses/504'
+      operationId: postSecret
+    delete:
+      summary: Delete a secret
+      description: Revoke the secret and schedule its versions for cleanup.
+      tags:
+      - secrets
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/secretID'
+      responses:
+        '204':
+          description: Successfully deleted the secret
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+        '409':
+          $ref: '#/components/responses/409'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+        '502':
+          $ref: '#/components/responses/502'
+        '504':
+          $ref: '#/components/responses/504'
+      operationId: deleteSecret
+    servers:
+    - *id001
 components:
   securitySchemes:
     AccessTokenAuth:
@@ -2698,6 +2919,21 @@ components:
         used with the signature parameter.
       schema:
         type: integer
+    clusterID:
+      name: clusterID
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Identifier of the cluster
+    rigID:
+      name: rigID
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Rig identifier (e.g. "default")
     templateID:
       name: templateID
       in: path
@@ -2730,12 +2966,6 @@ components:
         type: string
     apiKeyID:
       name: apiKeyID
-      in: path
-      required: true
-      schema:
-        type: string
-    accessTokenID:
-      name: accessTokenID
       in: path
       required: true
       schema:
@@ -2778,6 +3008,16 @@ components:
       required: true
       schema:
         type: string
+    secretID:
+      name: secretID
+      in: path
+      required: true
+      schema:
+        type: string
+        description: 'Identifier of the secret (sec_ prefixed), or its canonical lower-case
+          name
+
+          '
   requestBodies:
     File:
       required: true
@@ -2900,14 +3140,38 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    '410':
-      description: Gone
+    '429':
+      description: Too many requests
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
     '500':
       description: Server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '501':
+      description: Not implemented by this deployment
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '502':
+      description: Backend error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '503':
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    '504':
+      description: Backend timeout
       content:
         application/json:
           schema:
@@ -2922,6 +3186,11 @@ components:
           type: integer
           format: int32
           description: Error code
+        error_code:
+          type: string
+          description: 'Machine-readable semantic error code. Not a closed set; initial
+            values: sandbox_capacity_unavailable, sandbox_placement_timeout, sandbox_no_compatible_node,
+            sandbox_create_failed, internal_server_error.'
         message:
           type: string
           description: Error
@@ -3811,6 +4080,13 @@ components:
       enum:
       - running
       - paused
+    OrderDirection:
+      type: string
+      description: Sort direction
+      default: desc
+      enum:
+      - asc
+      - desc
     SnapshotInfo:
       type: object
       required:
@@ -3856,21 +4132,22 @@ components:
           items:
             type: string
         egressProxy:
-          allOf:
-          - $ref: '#/components/schemas/SandboxEgressProxyConfig'
-          description: SOCKS5 proxy for sandbox egress. Outbound TCP is tunneled through
-            the proxy after allow/deny filtering; the sandbox is unaware. Domain-matched
-            flows use remote DNS (ATYP=domain).
-          x-not-implemented: true
+          $ref: '#/components/schemas/SandboxEgressProxyConfig'
         maskRequestHost:
           type: string
           description: Specify host mask which will be used for all sandbox requests
         rules:
           type: object
-          description: 'Per-domain transform rules applied to matching egress HTTP/HTTPS
-            requests. Keys are domains (e.g. "api.example.com", "example.com"). A
-            domain listed here is not automatically allowed - use allowOut to permit
-            the traffic.
+          description: 'Per-domain transform rules applied to matching outbound HTTPS
+            requests. Keys may be exact DNS names (for example, "api.example.com")
+            or a leading wildcard (for example, "*.example.com"), and are normalized
+            to lowercase on write. Wildcards match subdomains at any depth but not
+            the apex domain; a bare "*" is invalid. Exact rules take precedence, followed
+            by the longest matching wildcard suffix, and matching rule sets are not
+            merged. Broad wildcards such as "*.com" are allowed and may expose transformed
+            credentials to every matching destination the sandbox contacts. Rules
+            do not grant network access; configure allowOut separately to permit the
+            destination.
 
             '
           additionalProperties:
@@ -3898,16 +4175,21 @@ components:
           items:
             type: string
         egressProxy:
-          allOf:
-          - $ref: '#/components/schemas/SandboxEgressProxyConfig'
-          description: SOCKS5 proxy for sandbox egress. Outbound TCP is tunneled through
-            the proxy after allow/deny filtering; the sandbox is unaware. Domain-matched
-            flows use remote DNS (ATYP=domain).
-          x-not-implemented: true
+          $ref: '#/components/schemas/SandboxEgressProxyConfig'
         rules:
           type: object
-          description: Per-domain transform rules. Replaces all existing rules when
-            provided.
+          description: 'Per-domain transform rules applied to matching outbound HTTPS
+            requests. Replaces all existing rules when provided. Keys may be exact
+            DNS names or a single leading wildcard (for example, "*.example.com"),
+            and are normalized to lowercase on write. Wildcards match subdomains at
+            any depth but not the apex domain; a bare "*" is invalid. Exact rules
+            take precedence, followed by the longest matching wildcard suffix, and
+            matching rule sets are not merged. Broad wildcards such as "*.com" are
+            allowed and may expose transformed credentials to every matching destination
+            the sandbox contacts. Rules do not grant network access; configure allowOut
+            separately to permit the destination.
+
+            '
           additionalProperties:
             type: array
             items:
@@ -3938,7 +4220,6 @@ components:
     SandboxEgressProxyConfig:
       type: object
       nullable: true
-      x-not-implemented: true
       description: SOCKS5 proxy for sandbox egress. Outbound TCP is tunneled through
         the proxy after allow/deny filtering; the sandbox is unaware. Domain-matched
         flows use remote DNS (ATYP=domain).
@@ -4373,6 +4654,15 @@ components:
           type: boolean
           deprecated: true
           description: Automatically pauses the sandbox after the timeout
+        memory:
+          type: boolean
+          x-not-implemented: true
+          description: 'Defaults to true. When false, resume from disk state only:
+            the sandbox cold-boots fresh and any memory in the snapshot is ignored,
+            never modified or deleted. Disk state has crash-recovery semantics — writes
+            not flushed before the pause may be lost. A no-op for snapshots that contain
+            no memory. Rejected with an error in environments where this capability
+            is not enabled, never silently downgraded to a memory restore.'
       type: object
     ConnectSandbox:
       type: object
@@ -4385,6 +4675,16 @@ components:
           type: integer
           format: int32
           minimum: 0
+        memory:
+          type: boolean
+          x-not-implemented: true
+          description: 'Defaults to true. When false and the sandbox is paused, resume
+            from disk state only: the sandbox cold-boots fresh and any memory in the
+            snapshot is ignored, never modified or deleted. Disk state has crash-recovery
+            semantics — writes not flushed before the pause may be lost. A no-op for
+            snapshots that contain no memory. Rejected with an error in environments
+            where this capability is not enabled, never silently downgraded to a memory
+            restore.'
     SandboxTimeoutRequest:
       type: object
       required:
@@ -5172,6 +5472,17 @@ components:
         token:
           type: string
           description: Auth token to use for interacting with volume content
+        domain:
+          type: string
+          description: 'Domain to use as the destination for volume content requests,
+
+            replacing the default `api.<E2B_DOMAIN>`. Only returned when the
+
+            team is connected to a custom (BYOC) cluster; absent otherwise, in
+
+            which case the default domain is used.
+
+            '
       required:
       - volumeID
       - name
@@ -5185,6 +5496,81 @@ components:
           pattern: ^[a-zA-Z0-9_-]+$
       required:
       - name
+    SecretMetadata:
+      type: object
+      description: 'Customer metadata of the secret. Always present, empty when unset.
+        At most 32 entries; keys are limited to 128 bytes, values to 1024 bytes, and
+        a secret''s metadata to 8192 bytes in total.
+
+        '
+      maxProperties: 32
+      additionalProperties:
+        type: string
+        maxLength: 1024
+    Secret:
+      type: object
+      description: Metadata of a secret. It never carries the secret value.
+      required:
+      - secretID
+      - name
+      - currentVersion
+      - metadata
+      - createdAt
+      - updatedAt
+      properties:
+        secretID:
+          type: string
+          description: Identifier of the secret
+        name:
+          type: string
+          description: Name of the secret, unique within the project
+        currentVersion:
+          type: integer
+          format: int64
+          description: Version served to readers that do not name one
+        metadata:
+          $ref: '#/components/schemas/SecretMetadata'
+        createdAt:
+          type: string
+          format: date-time
+          description: Time when the secret was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Time when the secret was last updated
+    NewSecret:
+      type: object
+      required:
+      - name
+      - value
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+          pattern: ^[a-zA-Z0-9_-]+$
+          description: 'Name of the secret, unique within the project. Names are lower-cased
+            before storage and returned in that canonical form; the sec_ prefix is
+            reserved for secret identifiers.
+
+            '
+        value:
+          type: string
+          description: Runtime marker stored as the secret's first version. The runtime
+            resolves it to a value at sandbox egress.
+        metadata:
+          $ref: '#/components/schemas/SecretMetadata'
+    SecretUpdate:
+      type: object
+      required:
+      - value
+      properties:
+        value:
+          type: string
+          description: Runtime marker stored as the secret's new version. The runtime
+            resolves it to a value at sandbox egress.
+        metadata:
+          $ref: '#/components/schemas/SecretMetadata'
   headers:
     XNextToken:
       description: Cursor to fetch the next page of results, if more exist
