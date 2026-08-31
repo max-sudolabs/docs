@@ -34,3 +34,12 @@ With the API key set, you can run CLI commands directly without `e2b auth login`
 Learn more about obtaining and managing your API key on the [API Key page](/api-key).
 </Info>
 
+## Switch the active project
+
+If your E2B account has access to more than one [project](/projects), you can choose which one the CLI uses:
+
+```bash
+e2b auth configure
+```
+
+Run this after signing in with `e2b auth login`. The CLI shows an interactive list of your projects and stores the one you select as the active project, so subsequent CLI commands use that project's API key. You need to be logged in first for this command to work.
