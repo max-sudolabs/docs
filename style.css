@@ -5,6 +5,42 @@ html {
     scrollbar-gutter: stable;
 }
 
+#navbar > [class*="max-w-8xl"] {
+    max-width: 84rem !important;
+}
+
+#navbar [class*="lg:px-12"][class*="mx-4"] {
+    margin-inline: 1.5rem !important;
+}
+
+#navbar + [class*="max-w-8xl"] {
+    max-width: 84rem !important;
+    padding-inline: 1.5rem !important;
+}
+
+@media (min-width: 768px) {
+    #navbar + [class*="max-w-8xl"] {
+        padding-inline: 2rem !important;
+    }
+
+    #navbar [class*="lg:px-12"][class*="mx-4"] {
+        margin-inline: 2rem !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    #navbar [class*="lg:px-12"][class*="mx-4"] {
+        margin-inline: 0 !important;
+        padding-inline: 2rem !important;
+    }
+}
+
+@media (max-width: 1023px) {
+    #content-area {
+        padding-inline: 0 !important;
+    }
+}
+
 #topbar-links {
     background-color: var(--background-white);
 }
