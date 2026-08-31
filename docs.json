@@ -243,6 +243,7 @@
               "agents/eve",
               "agents/flue",
               "agents/google-adk",
+              "agents/agno",
               "agents/mastra",
               "agents/crewai",
               "agents/openai-agents-sdk",
