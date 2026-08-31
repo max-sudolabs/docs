@@ -5,6 +5,45 @@ rss: true
 "og:image": "/images/og/changelog.png"
 ---
 
+<Update label="August 31, 2026" description="Wildcard transform rules and API key validation" tags={["SDK", "CLI", "API", "Self-hosted"]} rss={{ title: "Wildcard Transform Rules & Server-Side API Key Validation", description: "This week improves sandbox networking and authentication with wildcard domains in transform rules, server-side API key validation, and readable proxy errors for browser requests." }}>
+
+## Wildcard Transform Rules & Server-Side API Key Validation
+
+This week improves sandbox networking and authentication with wildcard domains in transform rules, server-side API key validation, and readable proxy errors for browser requests.
+
+### Wildcard domains in network transform rules
+
+[Network transform rules](/network/internet-access) now accept a single leading wildcard label, such as `*.example.com`, so one rule can transform requests to subdomains at any depth. Exact keys take precedence, and when several wildcards match, the most specific one applies. ([`d843e3f`](https://github.com/e2b-dev/infra/commit/d843e3f00d708e292c31a5841a2fe1fcfc1f2997))
+
+### Server-side API key validation
+
+The SDKs no longer check the `e2b_` [API key](/api-key) format on the client; the `validateApiKey` and `validate_api_key` options are deprecated and have no effect. The API validates keys instead and returns a distinct 401 message for a malformed key. Shipped in the JavaScript and Python SDKs 2.46.0. ([#1751](https://github.com/e2b-dev/E2B/pull/1751))
+
+### Readable proxy errors for browser requests
+
+Error responses synthesized in front of a sandbox, such as when the sandbox is unreachable, now carry CORS headers and answer preflight requests, so browser code can read the actual error instead of hitting a generic network failure. ([`32c6b84`](https://github.com/e2b-dev/infra/commit/32c6b84d4bacb515a94d0fa0252560f777faef08))
+
+### Sandbox git module deprecation
+
+The sandbox `git` module is deprecated as of the JavaScript and Python SDKs 2.46.1 and will be removed in the next major version. Run git through [`commands.run`](/commands) instead. ([#1774](https://github.com/e2b-dev/E2B/pull/1774))
+
+### CLI configuration file scope
+
+The CLI no longer reads `e2b.toml` outside `e2b template migrate`; the `sandbox create`, `template delete`, `template publish`, and `template unpublish` commands take the template as an argument instead of the `--config` and `--path` flags. This is a breaking change in CLI 2.18.0. ([#1761](https://github.com/e2b-dev/E2B/pull/1761))
+
+### Fixes
+
+- The CLI now passes flags placed after the command in `e2b sandbox exec` through to the remote command, and `e2b sandbox create --detach` prints only the sandbox ID to stdout. ([#1759](https://github.com/e2b-dev/E2B/pull/1759), [#1762](https://github.com/e2b-dev/E2B/pull/1762))
+- Fixed the JavaScript SDK dropping a malformed `egressProxy` address instead of raising a clear error, and null proxy credentials are no longer sent to the API (SDK 2.46.0). ([#1757](https://github.com/e2b-dev/E2B/pull/1757))
+- Fixed snapshot and template builds staying stuck in a non-terminal status after a client disconnect or a rejected pause. ([`8586a66`](https://github.com/e2b-dev/infra/commit/8586a66a5e84504536b2df9b7e28efe9069d8284), [`42f6997`](https://github.com/e2b-dev/infra/commit/42f699786534f1c0ad625ce9b4b7b922b3a16834), [`0159f8c`](https://github.com/e2b-dev/infra/commit/0159f8c0fa5b03c2a1bbe706f35ceea41bcd23c5))
+- Fixed command starts in a sandbox that has exhausted memory or processes returning a generic error instead of a retryable resource exhaustion error. ([`f733a71`](https://github.com/e2b-dev/infra/commit/f733a713361e65633c2cb437c3de1ad755964a1a))
+- Fixed streamed requests aborted mid-response ending with a cut connection instead of a proper error status. ([`3affe52`](https://github.com/e2b-dev/infra/commit/3affe5280b7e1cf8a182840cc50964a6bc5b569d))
+- Fixed the dashboard webhook editor not offering the `sandbox.lifecycle.checkpointed` [event](/sandbox/lifecycle-events-webhooks).
+- Self-hosted deployments no longer cache a missing platform file on AWS, which kept sandbox startup failing after the file became available, and failed multipart uploads to Google Cloud Storage are aborted instead of orphaning parts. ([`19ad718`](https://github.com/e2b-dev/infra/commit/19ad71816c3eda57d133f8145ef541dc609c2217), [`9e1caea`](https://github.com/e2b-dev/infra/commit/9e1caea40fc75eb2e07cbe75129db7d3eceb7e4e))
+- Reliability and security hardening across platform services, including dependency and base image CVE patches.
+
+</Update>
+
 <Update label="August 24, 2026" description="SOCKS5 egress proxy, sandbox list filters, and snapshot CLI" tags={["SDK", "CLI", "API", "Sandboxes"]} rss={{ title: "Bring Your Own Proxy & Sandbox List Filters", description: "This week routes sandbox egress through your own SOCKS5 proxy, adds sorting and filters to sandbox listing, and ships snapshot management commands in the CLI." }}>
 
 ## Bring Your Own Proxy & Sandbox List Filters
