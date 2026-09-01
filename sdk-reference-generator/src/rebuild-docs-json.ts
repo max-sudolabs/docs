@@ -3,6 +3,7 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import { buildNavigation, mergeNavigation } from "./navigation.js";
+import { syncIndexingDirectives } from "./lib/seo.js";
 import { verifyGeneratedDocs } from "./lib/verify.js";
 import { log } from "./lib/log.js";
 
@@ -22,6 +23,10 @@ async function main(): Promise<void> {
     log.warn("No SDK references found locally");
     process.exit(1);
   }
+
+  log.blank();
+  log.section("Applying indexing directives");
+  await syncIndexingDirectives(navigation, DOCS_DIR);
 
   log.blank();
   log.section("Merging into docs.json");
