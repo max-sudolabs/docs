@@ -1,7 +1,7 @@
 ---
 title: Custom templates
 description: Use MCP servers with custom sandbox templates
-"og:image": "/images/og/generated/mcp/custom-templates.png"
+"og:image": "/images/og/generated/mcp-gateway/custom-templates.png"
 ---
 
 You can prepull MCP server Docker images during template build time to significantly improve runtime performance.
@@ -17,7 +17,7 @@ You must use the MCP gateway enabled template (`mcp-gateway`) as your base templ
 
 Use the `addMcpServer()` method (TypeScript) or `add_mcp_server()` method (Python) to prepull MCP server images during template build. You can pass a single server or an array of servers.
 
-The server names (like `"browserbase"` and `"exa"`) correspond to the keys defined in the [Available Servers](/mcp/available-servers) documentation.
+The server names (like `"browserbase"` and `"exa"`) correspond to the keys defined in the [Available Servers](/mcp-gateway/available-servers) documentation.
 
 <CodeGroup>
 

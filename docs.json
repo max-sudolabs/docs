@@ -261,12 +261,12 @@
           {
             "group": "MCP gateway",
             "pages": [
-              "mcp",
-              "mcp/quickstart",
-              "mcp/available-servers",
-              "mcp/custom-templates",
-              "mcp/custom-servers",
-              "mcp/examples"
+              "mcp-gateway",
+              "mcp-gateway/quickstart",
+              "mcp-gateway/available-servers",
+              "mcp-gateway/custom-templates",
+              "mcp-gateway/custom-servers",
+              "mcp-gateway/examples"
             ]
           }
         ]
@@ -5874,6 +5874,31 @@
       "source": "/sdk-reference/cli/latest/:slug*",
       "destination": "/sdk-reference/cli/v2.16.1/:slug*",
       "permanent": false
+    },
+    {
+      "source": "/mcp/quickstart",
+      "destination": "/mcp-gateway/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/mcp/available-servers",
+      "destination": "/mcp-gateway/available-servers",
+      "permanent": true
+    },
+    {
+      "source": "/mcp/custom-templates",
+      "destination": "/mcp-gateway/custom-templates",
+      "permanent": true
+    },
+    {
+      "source": "/mcp/custom-servers",
+      "destination": "/mcp-gateway/custom-servers",
+      "permanent": true
+    },
+    {
+      "source": "/mcp/examples",
+      "destination": "/mcp-gateway/examples",
+      "permanent": true
     }
   ]
 }
