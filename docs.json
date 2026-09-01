@@ -5418,7 +5418,8 @@
               "projects",
               "faq/calculate-sandbox-price",
               "faq/increase-concurrency",
-              "faq/paused-sandboxes-concurrency"
+              "faq/paused-sandboxes-concurrency",
+              "faq/gpu-support"
             ]
           },
           {

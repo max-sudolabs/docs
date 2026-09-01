@@ -1,0 +1,11 @@
+---
+title: "Does E2B support GPUs?"
+sidebarTitle: GPU support
+"og:image": "/images/og/generated/faq/gpu-support.png"
+---
+
+No. E2B sandboxes are CPU-only.
+
+A sandbox is sized by vCPU and RAM only. There is no GPU option in the SDKs, the CLI, the API, or a [template definition](/template/defining-template), and no GPU dimension in [pricing](/faq/calculate-sandbox-price). [BYOC](/byoc) does not change this, because BYOC sandboxes are created through the same API.
+
+Sandboxes have [internet access](/network/internet-access), so a model provider's inference API works normally from sandbox code. When installing ML libraries, use the CPU-only builds, which is also the fix for a [common pip install failure](/faq/pip-install-error).
