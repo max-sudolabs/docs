@@ -1,0 +1,36 @@
+---
+title: "Is E2B SOC 2 compliant?"
+sidebarTitle: Security & compliance
+"og:image": "/images/og/generated/faq/security-and-compliance.png"
+---
+
+Yes. E2B has a **SOC 2 Type II** report. It and the rest of E2B's security documentation are served from the E2B Trust Center at [trust.e2b.dev](https://trust.e2b.dev), which is the authoritative place to check the current status of each document.
+
+E2B's contracting entity is FoundryLabs, Inc., a Delaware corporation.
+
+## What the Trust Center serves
+
+| Document | How to get it |
+| --- | --- |
+| SOC 2 Type II report | "Request access" form |
+| SOC 2 bridge letter | Opens directly, no request needed |
+| Data Processing Addendum (DPA) template | "Request access" form |
+| Penetration test report | "Request access" form |
+| Certificate of liability insurance | "Request access" form |
+
+## Where sandboxes run
+
+E2B's managed sandboxes run on **Google Cloud**. The available regions, and which plan each is available on, are listed in [Do you publish egress IP ranges (CIDRs)?](/faq/egress-ip-ranges). To keep sandboxes inside your own cloud account and VPC instead, see [BYOC](/byoc).
+
+Sandbox storage on the managed cloud sits under [Google Cloud's default encryption at rest](https://docs.cloud.google.com/docs/security/encryption/default-encryption). E2B adds no encryption layer and holds no key material of its own for it. On a BYOC deployment, storage lives in your account and is covered by your own controls, and traffic between the E2B Cloud and your VPC is encrypted with TLS.
+
+## Things the Trust Center does not cover
+
+Contact [support@e2b.dev](mailto:support@e2b.dev) and we will route it to the right team for:
+
+- A **HIPAA business associate agreement (BAA)**
+- A **signed** DPA, or changes to our standard terms
+- A completed **security questionnaire**, or a question the documents above do not answer
+- A **subprocessor** list
+
+To report a security vulnerability, email [security@e2b.dev](mailto:security@e2b.dev). Note that our [terms of service](https://e2b.dev/terms) do not permit probing, scanning, or testing the service without prior written consent, so contact us before running any test against E2B.

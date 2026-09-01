@@ -5443,6 +5443,12 @@
             ]
           },
           {
+            "group": "Security & compliance",
+            "pages": [
+              "faq/security-and-compliance"
+            ]
+          },
+          {
             "group": "Migrations & deprecations",
             "pages": [
               "migration/v2",
