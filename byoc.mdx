@@ -12,6 +12,21 @@ BYOC is currently only available for AWS and Google Cloud (GCP). We are working 
 
 <EnterpriseBanner />
 
+## BYOC is not self-hosting
+
+BYOC and self-hosting are often conflated. They are different deployment models:
+
+| | E2B Cloud | BYOC | Self-hosted |
+| --- | --- | --- | --- |
+| Where sandboxes run | E2B's Google Cloud account | Your own AWS or GCP account, inside your VPC | Your own AWS or GCP account |
+| Who provisions and monitors the cluster | E2B | E2B, using Terraform and machine images | You |
+| Templates, snapshots and runtime logs stored in | E2B Cloud | Your VPC | Your account |
+| Sandbox traffic and template build sources | E2B Cloud | Never leave your VPC | Never leave your account |
+| SDK, CLI and API | Same | Same | Same |
+| How to get it | [Sign up](https://console.e2b.dev) | [Contact us](mailto:enterprise@e2b.dev) | Run [e2b-dev/infra](https://github.com/e2b-dev/infra) (Apache-2.0) yourself |
+
+With BYOC you get a managed deployment inside your own cloud account. E2B provisions the cluster, monitors it, and creates a project under your E2B account, and you then use the same SDK, CLI, and API as you would against the E2B Cloud. Sandboxes themselves work identically, including [pause and resume persistence](/sandbox/persistence). Self-hosting means running E2B's open-source infrastructure yourself, in which case operating the cluster is your responsibility.
+
 ## Architecture
 
 Sandbox templates, snapshots, and runtime logs are stored within the customer's BYOC VPC.

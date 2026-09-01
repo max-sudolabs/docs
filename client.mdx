@@ -5,7 +5,7 @@ description: "Create a custom client with options"
 "og:image": "/images/og/generated/client.png"
 ---
 
-The top-level `Sandbox`, `Volume`, and `Template` exports read their configuration from the environment variables (`E2B_API_KEY`, `E2B_DOMAIN`, …). If you need an explicit configuration — for example several API keys, teams, or [self-hosted deployments](/byoc) in a single process — create an `E2B` client and use the resources it exposes.
+The top-level `Sandbox`, `Volume`, and `Template` exports read their configuration from the environment variables (`E2B_API_KEY`, `E2B_DOMAIN`, …). If you need an explicit configuration — for example several API keys, teams, or [BYOC or self-hosted deployments](/byoc) in a single process — create an `E2B` client and use the resources it exposes.
 
 <Note>
 Per-call options take precedence over the client's options, which take precedence over the environment variables.
