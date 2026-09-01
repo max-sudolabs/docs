@@ -5418,6 +5418,7 @@
               "projects",
               "faq/calculate-sandbox-price",
               "faq/increase-concurrency",
+              "faq/sandbox-lifetime",
               "faq/paused-sandboxes-concurrency",
               "faq/gpu-support"
             ]

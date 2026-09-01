@@ -1,0 +1,79 @@
+---
+title: "How long does a sandbox live?"
+sidebarTitle: Sandbox lifetime & state
+"og:image": "/images/og/generated/faq/sandbox-lifetime.png"
+---
+
+A sandbox is not session-scoped. There are two separate limits, and only the first one is a time limit:
+
+- **How long a sandbox can run continuously** is capped by your plan.
+- **How long a sandbox can stay paused** is not capped at all. Paused sandboxes are kept indefinitely.
+
+## Continuous runtime limits
+
+| Plan | Max continuous runtime |
+| --- | --- |
+| Hobby | 1 hour |
+| Pro | 24 hours |
+| Enterprise | Custom |
+
+This is the time a sandbox can run **without being paused**. Pausing and resuming resets it, so a sandbox that pauses and resumes can be kept alive and reused for as long as you want. See [Billing & limits](/billing#plans).
+
+## What happens when the timeout expires
+
+Every sandbox has a timeout. What happens when it expires is up to you, and the default is destructive:
+
+- `onTimeout: 'kill'` (the default) terminates the sandbox and releases its resources. A killed sandbox cannot be resumed, and its state is gone.
+- `onTimeout: 'pause'` pauses the sandbox instead. Both the filesystem **and** the memory are saved, which includes running processes and loaded variables.
+
+Set `autoResume` to have a paused sandbox wake up on the next SDK call or HTTP request to one of its URLs.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create({
+  timeoutMs: 10 * 60 * 1000, // 10 minutes of running time
+  lifecycle: {
+    onTimeout: 'pause', // Defaults to 'kill'
+    autoResume: true, // Wake on the next SDK call or HTTP request
+  },
+})
+```
+```python Python
+from e2b import Sandbox
+
+sandbox = Sandbox.create(
+    timeout=10 * 60,  # 10 minutes of running time
+    lifecycle={
+        "on_timeout": "pause",  # Defaults to "kill"
+        "auto_resume": True,    # Wake on the next SDK call or HTTP request
+    },
+)
+```
+</CodeGroup>
+
+Auto-pause is persistent. If the sandbox resumes and later times out again, it pauses again. See [Persistence](/sandbox/persistence#auto-pause) and [AutoResume](/sandbox/auto-resume).
+
+## Paused sandboxes do not expire
+
+Paused sandboxes have **no time-to-live**. There is no automatic deletion, no archiving, and no expiry after a fixed number of days. E2B never kills a paused sandbox on its own.
+
+A paused sandbox is removed only when you explicitly kill it:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+await Sandbox.kill(sandboxId)
+```
+```python Python
+Sandbox.kill(sandbox_id)
+```
+</CodeGroup>
+
+While a sandbox is paused it is **not billed** and does **not** count toward your concurrency limit, so keeping paused sandboxes around costs nothing in compute or concurrency. See [Do paused sandboxes count toward the concurrency limit?](/faq/paused-sandboxes-concurrency).
+
+## Related
+
+- [Sandbox persistence](/sandbox/persistence) for the full pause and resume flow
+- [Filesystem-only snapshots](/sandbox/filesystem-only-snapshots) for a lighter pause that drops memory
+- [Snapshots](/sandbox/snapshots) for named, reusable checkpoints

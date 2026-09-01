@@ -8,6 +8,8 @@ The sandbox persistence allows you to pause your sandbox and resume it later fro
 
 This includes not only state of the sandbox's filesystem but also the sandbox's memory. This means all running processes, loaded variables, data, etc.
 
+A paused sandbox is kept **indefinitely**. There is no time-to-live and no automatic deletion, and E2B never kills a paused sandbox on its own. It is removed only when you explicitly kill it. See [How long does a sandbox live?](/faq/sandbox-lifetime).
+
 ## Sandbox state transitions
 
 Understanding how sandboxes transition between different states is crucial for managing their lifecycle effectively. Here's a diagram showing the possible state transitions:
