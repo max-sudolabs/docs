@@ -53,6 +53,7 @@ header .nav-logo {
 nav[aria-label="Main"] li:has(> a[href="https://github.com/e2b-dev/e2b"]) {
     order: -1;
     margin-left: 0 !important;
+    margin-right: 1rem !important;
 }
 
 nav[aria-label="Main"] li:has(> a[href^="https://console.e2b.dev"]) {
@@ -121,36 +122,46 @@ nav[aria-label="Main"] a[href^="https://console.e2b.dev"]:focus-visible {
 
 @media (min-width: 1024px) {
     nav[aria-label="Main"] li:has(> a[href="https://github.com/e2b-dev/e2b"]) {
-        width: 12.5rem;
+        width: auto;
         flex-shrink: 0;
+    }
+
+    nav[aria-label="Main"] a[href="https://github.com/e2b-dev/e2b"] {
+        min-width: max-content;
+    }
+
+    nav[aria-label="Main"] a[href="https://github.com/e2b-dev/e2b"] > div {
+        gap: 0.5rem;
     }
 
     nav[aria-label="Main"] a[href="https://github.com/e2b-dev/e2b"] span.truncate {
-        min-width: max-content;
-        flex-shrink: 0;
-        overflow: visible;
-        text-overflow: clip;
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    nav[aria-label="Main"] a[href="https://github.com/e2b-dev/e2b"] > div > div:nth-child(2) {
+        gap: 0;
+        margin-left: 0 !important;
+    }
+
+    nav[aria-label="Main"] a[href="https://github.com/e2b-dev/e2b"] > div > div:nth-child(2) > :is(svg, span) {
+        display: none;
     }
 
     /* Show the last known count until Mintlify appends the live count. */
-    nav[aria-label="Main"] a[href="https://github.com/e2b-dev/e2b"] > div:not(:has(> div:nth-child(2)))::before {
-        content: "";
-        order: 1;
-        width: 0.875rem;
-        height: 0.875rem;
-        margin-left: 0.25rem;
-        flex-shrink: 0;
-        background-color: currentColor;
-        mask-image: url("https://d3gk2c5xim1je2.cloudfront.net/fontawesome/v7.2.0/regular/star.svg");
-        mask-repeat: no-repeat;
-        mask-position: center;
-    }
-
+    nav[aria-label="Main"] a[href="https://github.com/e2b-dev/e2b"] > div > div:nth-child(2)::after,
     nav[aria-label="Main"] a[href="https://github.com/e2b-dev/e2b"] > div:not(:has(> div:nth-child(2)))::after {
-        content: var(--e2b-github-stars, "13,375");
-        order: 2;
+        content: var(--e2b-github-stars, "13.6K");
         font-size: 0.875rem;
         line-height: 1.25rem;
+        font-variant-numeric: tabular-nums;
     }
 }
 

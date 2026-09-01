@@ -6,10 +6,16 @@
   const repositoryHref = "https://github.com/e2b-dev/e2b";
   const countPattern = /^\d{1,3}(?:,\d{3})*$/;
 
-  const setFallbackCount = (count) => {
+  const formatCount = (count) =>
+    new Intl.NumberFormat("en-US", {
+      notation: "compact",
+      maximumFractionDigits: 1,
+    }).format(Number(count.replaceAll(",", "")));
+
+  const setDisplayCount = (count) => {
     document.documentElement.style.setProperty(
       "--e2b-github-stars",
-      JSON.stringify(count)
+      JSON.stringify(formatCount(count))
     );
   };
 
@@ -47,12 +53,12 @@
 
     if (!countPattern.test(count || "")) return;
 
-    setFallbackCount(count);
+    setDisplayCount(count);
     writeCachedCount(count);
   };
 
   const cachedCount = readCachedCount();
-  if (cachedCount) setFallbackCount(cachedCount);
+  if (cachedCount) setDisplayCount(cachedCount);
 
   const start = () => {
     new MutationObserver(captureLiveCount).observe(document.body, {
