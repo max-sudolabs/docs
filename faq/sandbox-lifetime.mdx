@@ -22,7 +22,9 @@ This is the time a sandbox can run **without being paused**. Pausing and resumin
 
 ## What happens when the timeout expires
 
-Every sandbox has a timeout. What happens when it expires is up to you, and the default is destructive:
+Every sandbox has a timeout, and it defaults to **5 minutes** if you do not set one. Pass `timeoutMs` (JavaScript, milliseconds) or `timeout` (Python, seconds) to `Sandbox.create()` to change it, or call `setTimeout()` / `set_timeout()` on a running sandbox to reset the clock from that moment.
+
+What happens when the timeout expires is up to you, and the default is destructive:
 
 - `onTimeout: 'kill'` (the default) terminates the sandbox and releases its resources. A killed sandbox cannot be resumed, and its state is gone.
 - `onTimeout: 'pause'` pauses the sandbox instead. Both the filesystem **and** the memory are saved, which includes running processes and loaded variables.
