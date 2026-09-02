@@ -1,5 +1,6 @@
 ---
 title: "Billing & limits"
+description: "E2B plans, limits, and usage-based pricing. Covers the Hobby, Pro, and Enterprise plan table (max continuous runtime, concurrent sandboxes, vCPU, memory, disk) and how per-second compute billing works."
 sidebarTitle: "Billing & limits"
 icon: "credit-card"
 "og:image": "/images/og/generated/billing.png"
@@ -22,6 +23,9 @@ E2B uses [usage-based pricing](#usage-based-pricing) - you pay only for what you
 | **<Tooltip tip="Number of sandboxes running at the same time.">Concurrent sandboxes</Tooltip>** | 20 | <Tooltip tip="Includes 100 concurrent sandboxes. Higher concurrency up to 1,100 is available as an add-on for $500/month.">100 - 1,100</Tooltip> | 1,100+ |
 | **<Tooltip tip="Number of template builds running at the same time.">Concurrent builds</Tooltip>** | 20 | 20 | Custom |
 | **<Tooltip tip="How quickly you can create new sandboxes.">Sandbox creation rate</Tooltip>** | 1 / sec | 5 / sec | Custom |
+| **Paused sandbox retention** | Unlimited | Unlimited | Unlimited |
+
+Max continuous runtime is the time a sandbox can run **without being paused**, not a cap on how long a sandbox can exist. Pausing and resuming resets it, and a paused sandbox is kept indefinitely with no time-to-live. See [How long does a sandbox live?](/faq/sandbox-lifetime).
 
 To upgrade your plan or purchase add-ons, visit the [console billing tab](https://console.e2b.dev/?tab=billing). For Enterprise plans, [contact sales](mailto:enterprise@e2b.dev).
 
