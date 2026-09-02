@@ -1,0 +1,151 @@
+---
+title: "Cursor"
+description: "Run Cursor Self-Hosted Machines in isolated E2B sandboxes."
+icon: "/images/icons/cursor.svg"
+"og:image": "/images/og/generated/agents/cursor.png"
+---
+
+The public `cursor-agents` template connects
+[Cursor Self-Hosted Machines](https://cursor.com/docs/cloud-agent/bring-your-own-machine)
+to E2B. A dispatcher watches one Cursor
+[pool](https://cursor.com/docs/cloud-agent/bring-your-own-machine/pools) and
+creates a dedicated `cursor-agents-worker` sandbox for each request. Cursor
+runs the agent loop in its cloud, while tool calls execute in the sandbox.
+
+Create the dispatcher and connect to its terminal with the E2B CLI:
+
+```bash
+e2b sbx create cursor-agents
+```
+
+When the dispatcher is ready, the terminal prints its authenticated setup UI
+URL. You can also launch it from the
+[E2B console](https://console.e2b.dev/terminal?template=cursor-agents), or
+from TypeScript:
+
+```ts
+import { Sandbox } from "e2b"
+
+const sandbox = await Sandbox.create("cursor-agents", {
+  timeoutMs: 60 * 60_000,
+  domain: process.env.E2B_DOMAIN,
+  lifecycle: { onTimeout: "pause", autoResume: true },
+})
+
+const { stdout } = await sandbox.commands.run(
+  'node /opt/cursor-agents/create-launch-url.mjs "$E2B_DOMAIN"',
+  { envs: { E2B_DOMAIN: process.env.E2B_DOMAIN ?? "e2b.app" } },
+)
+
+console.log(stdout.trim())
+```
+
+## Prerequisites
+
+- an E2B API key
+- a Cursor Enterprise plan with Self-Hosted Machines enabled
+- a Cursor **service-account** API key from **Settings → Service accounts**
+- the assigned repository URL when using a repository-scoped service account
+- optionally, a git token for private repositories
+
+Personal, team-admin, and organization keys cannot start pool workers. See
+[Cursor's Self-Hosted Machines guide](https://cursor.com/docs/cloud-agent/bring-your-own-machine)
+for current key and pool requirements.
+
+## Set up the dispatcher
+
+<Steps>
+  <Step title="Launch the template">
+    Run the SDK example or open the console link above. Open the setup URL
+    printed by the sandbox. It works once and expires after 10 minutes, so do
+    not share it or leave it in logs.
+  </Step>
+  <Step title="Connect Cursor">
+    Enter the Cursor service-account API key and choose **Verify account**.
+  </Step>
+  <Step title="Choose the pool">
+    Select an existing pool or enter a name to create one. For a
+    repository-scoped service account, enter its exact repository URL.
+  </Step>
+  <Step title="Configure E2B workers">
+    Enter the E2B API key and select its domain: `e2b.app` for US/default,
+    `e2b-juliett.dev` for EU, or `e2b-tango.dev` for APAC. Keep
+    `cursor-agents-worker` unless you have a custom worker template.
+
+    Under **Advanced**, set the maximum concurrent workers and enable computer
+    use if workers should control Chromium. Hibernation is enabled by default,
+    so idle workers pause and resume for follow-up messages.
+  </Step>
+  <Step title="Add git access and start">
+    Add a git token for private repositories, or choose **Skip - public repo**.
+    Choose **Save & start dispatcher** and wait until it is watching the pool.
+  </Step>
+</Steps>
+
+## Run a task
+
+Use **Start your first session** in the dispatcher to test the configuration.
+For regular work, send a task to the configured pool from Cursor, Slack,
+GitHub, Linear, or the Cursor API.
+
+1. The dispatcher claims the request and creates a `cursor-agents-worker`
+   sandbox.
+2. The worker clones the request's repositories under `/workspace` and
+   connects to Cursor.
+3. Follow the session in Cursor or use the dispatcher dashboard to view its
+   sandbox and status.
+
+Each request gets an isolated worker. When the worker becomes idle, it pauses
+and resumes for a follow-up. If hibernation is disabled, the dispatcher removes
+the worker instead.
+
+The dispatcher claims requests up to **Max concurrent workers** (default 20).
+Additional requests remain queued in Cursor until capacity is available.
+
+## Private repositories
+
+The dispatcher supplies git credentials through the E2B egress proxy instead
+of writing them to the worker. Scope the token to only the repositories the
+pool needs.
+
+Use `x-access-token` as the git username for GitHub or `oauth2` for GitLab.
+
+## Lifecycle
+
+Keep the dispatcher running while it needs to accept tasks. Cursor queue
+traffic cannot wake a paused dispatcher. The dispatcher renews its E2B timeout
+while it watches the pool and reconnects to the queue after a restart or
+resume.
+
+Stop the dispatcher and let active sessions finish before changing the pool,
+credentials, E2B domain, worker template, hibernation, or git settings.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The Cursor account check fails">
+    Confirm the key is an Enterprise **service-account** API key. If it is
+    repository-scoped, enter its exact repository URL during setup.
+  </Accordion>
+  <Accordion title="Tasks stay queued">
+    Confirm the dispatcher is running and the task targets the same pool. Also
+    check whether the dispatcher has reached its worker limit.
+  </Accordion>
+  <Accordion title="The worker template is unavailable">
+    Confirm the E2B API key can create the public `cursor-agents-worker`
+    template. Custom templates must belong to the same E2B project as the key.
+  </Accordion>
+  <Accordion title="A private repository fails to clone">
+    Confirm the git token can access the repository and the git username
+    matches the provider.
+  </Accordion>
+  <Accordion title="Inspect the dispatcher">
+    Open its terminal and run:
+
+    ```bash
+    tail -200 /home/user/cursor-supervisor.log
+    jq '{state, detail, activeCount, provisioningCount}' \
+      /home/user/.config/cursor-agents/worker-status.json
+    ```
+  </Accordion>
+</AccordionGroup>

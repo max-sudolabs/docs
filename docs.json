@@ -230,6 +230,7 @@
               "agents/claude-code",
               "agents/claude-managed-agents",
               "agents/codex",
+              "agents/cursor",
               "agents/hermes",
               "agents/crabbox",
               "agents/devin",
