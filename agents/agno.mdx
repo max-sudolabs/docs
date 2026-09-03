@@ -1,0 +1,90 @@
+---
+title: "Agno"
+description: "Run Agno agents with E2B's secure Python sandbox."
+icon: "/images/icons/agno.svg"
+"og:image": "/images/og/generated/agents/agno.png"
+---
+
+[Agno](https://agno.com/) is a Python framework for building agents, teams, and workflows. Its official [`E2BTools`](https://docs.agno.com/tools/toolkits/others/e2b) toolkit gives an Agno agent an E2B sandbox for Python execution, file operations, commands, and web servers.
+
+## Install the dependencies
+
+Install Agno, the E2B Code Interpreter SDK, and the OpenAI provider used in the example:
+
+```bash
+uv pip install agno e2b_code_interpreter openai
+```
+
+Set the API keys for E2B and your model provider:
+
+```bash
+export E2B_API_KEY="e2b_..."
+export OPENAI_API_KEY="..."
+```
+
+## Run an agent in an E2B sandbox
+
+Create an `E2BTools` instance and pass it to the agent. The agent can use the toolkit to run Python code in an isolated E2B sandbox instead of on the machine running Agno.
+
+```python
+from agno.agent import Agent
+from agno.models.openai import OpenAIResponses
+from agno.tools.e2b import E2BTools
+
+
+e2b_tools = E2BTools(
+    timeout=600,
+    sandbox_options={"allow_internet_access": False},
+    include_tools=["run_python_code"],
+)
+try:
+    agent = Agent(
+        name="Code Execution Sandbox",
+        id="e2b-sandbox",
+        model=OpenAIResponses(id="gpt-5.4-mini"),
+        tools=[e2b_tools],
+        markdown=True,
+        instructions=[
+            "Use the E2B sandbox to execute Python code for calculations.",
+            "Verify the result before responding.",
+        ],
+    )
+    agent.print_response(
+        "Write Python code to generate the first 10 Fibonacci numbers."
+    )
+finally:
+    e2b_tools.shutdown_sandbox()
+```
+
+## Choose an explicit tool allowlist
+
+Without an explicit allowlist, `E2BTools` can expose tools for code execution, file operations, filesystem access, commands, internet access, and sandbox management. Start with only the capabilities the agent needs:
+
+```python
+e2b_tools = E2BTools(
+    timeout=600,
+    sandbox_options={"allow_internet_access": False},
+    include_tools=[
+        "run_python_code",
+        "list_files",
+        "read_file_content",
+        "write_file_content",
+    ],
+)
+```
+
+An `include_tools` allowlist limits callable function names, not their arguments or paths. The complete toolkit includes host-to-sandbox and sandbox-to-host file-transfer helpers: `upload_file(file_path, sandbox_path=None)` accepts a local path on the machine running Agno, while `download_file_from_sandbox(sandbox_path, local_path=None)` can write sandbox content to a local path on that machine. Do not expose these helpers to an untrusted agent unless your application enforces an allowlist of host paths or provides a safe wrapper that fixes or validates every host path.
+
+## Sandbox lifecycle
+
+An `E2BTools` instance creates one sandbox when it is initialized and reuses it for subsequent tool calls. Set `timeout` to a bounded value appropriate for the workload, and call `shutdown_sandbox()` when the agent no longer needs the sandbox. If you use `include_tools`, keep `shutdown_sandbox` in the allowlist or call it directly from your application during cleanup.
+
+Python code and commands run inside the E2B sandbox, but the toolkit also contains host-side file-transfer helpers. Treat model-generated code and tool output as untrusted data, do not expose host secrets or unrestricted host paths, validate outputs before passing them to trusted systems, and prefer an explicit `include_tools` allowlist.
+
+The tool allowlist does not control outbound network access from code running in the sandbox. Set `sandbox_options={"allow_internet_access": False}` when the workload does not need the internet. When it does, enable access deliberately and apply [network restrictions](/network/internet-access).
+
+## Learn more
+
+- [Agno E2B toolkit documentation](https://docs.agno.com/tools/toolkits/others/e2b)
+- [Agno E2B tools cookbook](https://github.com/agno-agi/agno/blob/main/cookbook/91_tools/e2b_tools.py)
+- [E2B sandbox documentation](/sandbox)
