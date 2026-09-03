@@ -9,6 +9,7 @@ import sdks from "../sdks.config.js";
 import { generateSDK } from "./generator.js";
 import { buildNavigation, mergeNavigation } from "./navigation.js";
 import { syncIndexingDirectives } from "./lib/seo.js";
+import { syncVersionBanners } from "./lib/banner.js";
 import { verifyGeneratedDocs } from "./lib/verify.js";
 import { log } from "./lib/log.js";
 import type { GenerationContext, GenerationResult } from "./types.js";
@@ -81,6 +82,10 @@ async function main(): Promise<void> {
     log.blank();
     log.section("Applying indexing directives");
     await syncIndexingDirectives(navigation, DOCS_DIR);
+
+    log.blank();
+    log.section("Applying version banners");
+    await syncVersionBanners(navigation, DOCS_DIR);
 
     log.blank();
     log.section("Merging into docs.json");

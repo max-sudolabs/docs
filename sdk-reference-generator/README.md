@@ -50,6 +50,8 @@ src/
 │   ├── versions.ts     # Version comparison and filtering
 │   ├── files.ts        # Markdown processing and flattening
 │   ├── install.ts      # Package manager abstraction
+│   ├── seo.ts          # noindex directives for superseded versions
+│   ├── banner.ts       # Old-version banner on superseded pages
 │   └── verify.ts       # Post-generation validation
 └── generators/
     ├── typedoc.ts      # JavaScript/TypeScript docs
