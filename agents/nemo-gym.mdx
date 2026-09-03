@@ -1,0 +1,106 @@
+---
+title: "NVIDIA NeMo Gym"
+sidebarTitle: "NeMo Gym"
+description: "Run NVIDIA NeMo Gym agent evaluation and training environments in E2B sandboxes."
+icon: "/images/icons/nvidia.svg"
+"og:image": "/images/og/generated/agents/nemo-gym.png"
+---
+
+[NVIDIA NeMo Gym](https://github.com/NVIDIA-NeMo/Gym) is a library for evaluating and training models and agents against environments — a dataset of tasks, an agent harness, a verifier, and per-task execution state. NeMo Gym itself keeps running on your own machine or cluster; its `e2b` sandbox provider moves each task's shell commands and verification script into an isolated E2B sandbox instead of executing them on that host.
+
+## Install
+
+The E2B provider ships in NeMo Gym's `sandbox` extra. Install it from a checkout of the repository:
+
+```bash
+uv sync --extra sandbox
+```
+
+<Note>
+The `e2b` provider is not part of a published NeMo Gym release yet — the latest `nemo-gym` on PyPI (0.5.0) does not include it. Install from the repository until a release ships it, after which `pip install "nemo-gym[sandbox]"` works. The provider requires `e2b>=2.36.0,<3.0.0`.
+</Note>
+
+Set your E2B API key:
+
+```bash
+export E2B_API_KEY="e2b_..."
+```
+
+## Configure the E2B provider
+
+NeMo Gym ships a ready-to-use provider config at `nemo_gym/sandbox/providers/e2b/configs/e2b.yaml`. The fields that matter most for an E2B run:
+
+```yaml
+sandbox:
+  default_metadata:
+    sandbox-api: e2b
+  e2b:
+    connection:
+      api_key: ${oc.env:E2B_API_KEY,null}
+      api_url: ${oc.env:E2B_API_URL,null}
+      sandbox_url: ${oc.env:E2B_SANDBOX_URL,null}
+      request_timeout_s: 120.0
+    create:
+      template: null
+      template_map: {}
+      timeout_s: 3600.0
+      secure: true
+      allow_internet_access: true
+      strict_resources: false
+    exec:
+      default_timeout_s: 180.0
+      background: true
+      reconnect_attempts: 2
+```
+
+Leave `api_url` and `sandbox_url` unset for the hosted E2B service. For an E2B-compatible gateway, set both to the endpoints supplied by the gateway operator.
+
+## Wire the provider into a run
+
+Layer the provider config alongside an agent and model config. Every shipped provider config binds the same instance name, `sandbox`, so switching sandbox backends means swapping this one path — any harness that reads `sandbox_provider: sandbox` works the same way:
+
+```bash
+gym env start \
+  --config responses_api_agents/mini_swe_agent_2/configs/mini_swe_agent_2.yaml \
+  --config nemo_gym/sandbox/providers/e2b/configs/e2b.yaml \
+  --config responses_api_models/vllm_model/configs/vllm_model.yaml
+```
+
+For each task, NeMo Gym creates an E2B sandbox from the resolved template, runs the agent's commands and file transfers through it, and tears it down when the task finishes. Teardown is best-effort and runs off the critical path, so treat the sandbox lifetime — `create.timeout_s`, or a harness's own `sandbox_spec.ttl_s` where it overrides that — as the backstop that reclaims orphaned sandboxes.
+
+<Note>
+Two provider rules apply before a run reaches E2B. The provider accepts only `template` under `provider_options` and rejects anything else before allocating a sandbox, and it will not start from an OCI image reference that has no `create.template_map` entry. A harness that sets other provider options, or that supplies image references, needs those adjusted in your own config layer.
+</Note>
+
+## Build templates from OCI images
+
+E2B starts a sandbox from a template name or ID, not an OCI image reference directly. NeMo Gym includes a provisioning CLI that builds an E2B template from an OCI image ahead of a run:
+
+```bash
+python -m nemo_gym.sandbox.providers.e2b.build \
+  --image ghcr.io/acme/task:1.0 \
+  --cpu-count 8 \
+  --memory-mb 16384 \
+  --output template_map.yaml
+```
+
+Paste the generated mapping under the provider's `create` block:
+
+```yaml
+sandbox:
+  e2b:
+    create:
+      template_map:
+        "ghcr.io/acme/task:1.0": task-1-0__f00ee9d593d9
+```
+
+Generated template names are deterministic for the image, CPU count, and memory size, so a matching template is reused rather than rebuilt. Template builds can create E2B resources and are never triggered implicitly by sandbox creation.
+
+## Security considerations
+
+- The shipped config keeps `secure: true`, so the sandbox `envd` service requires an access token.
+- Outbound internet access is enabled by default. Set `create.allow_internet_access: false` for offline or untrusted workloads, or use [outbound network rules](/network/internet-access) to restrict traffic by CIDR or hostname.
+- `mini_swe_agent_2` strips `e2b.connection.api_key`, `headers`, and `api_headers` from the per-instance worker config it writes to disk and passes them through the worker environment instead, so the API key never lands in a serialized config file.
+- NeMo Gym identifies its traffic by appending `nemo-gym/<version>` to the E2B SDK's `User-Agent` through E2B's `set_integration` hook. An explicit custom `User-Agent` in the connection headers takes precedence and hides that attribution.
+
+For the full configuration reference, `SandboxSpec` field mapping, and lifecycle and retry behavior, see the [NeMo Gym E2B provider documentation](https://docs.nvidia.com/nemo/gym/latest/infrastructure/sandbox/e2b).
