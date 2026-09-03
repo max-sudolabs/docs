@@ -246,6 +246,7 @@
               "agents/google-adk",
               "agents/mastra",
               "agents/crewai",
+              "agents/letta",
               "agents/openai-agents-sdk",
               "agents/vercel-ai-sdk",
               "agents/nemo-gym",

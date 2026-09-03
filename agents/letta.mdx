@@ -1,0 +1,146 @@
+---
+title: "Letta"
+description: "Run Letta custom server tools in isolated E2B sandboxes."
+icon: "brain"
+"og:image": "/images/og/generated/agents/letta.png"
+---
+
+[Letta](https://www.letta.com/) (formerly MemGPT) is a platform for building stateful agents with persistent memory. Letta can execute custom server-side tools in an isolated E2B sandbox instead of running user-defined tool code in the Letta server environment.
+
+<Info>
+  This integration uses Letta's [legacy Docker server](https://docs.letta.com/v1-sdk/docker), which is no longer actively maintained. Letta is deprecating the V1 SDK in favor of the [Agent SDK](https://docs.letta.com/agent-sdk) and [App Server](https://docs.letta.com/platform/app-server), which are recommended for new projects. Use this guide to connect E2B to an existing V1 Docker deployment.
+</Info>
+
+## Prerequisites
+
+- Docker
+- A [Letta model provider key](https://docs.letta.com/v1-sdk/docker/#enabling-additional-model-providers)
+- An [E2B API key](https://console.e2b.dev/?tab=keys)
+- Optional: an E2B [sandbox template](/template/quickstart) ID. Without one, Letta uses the default E2B sandbox.
+
+## Enable E2B tool sandboxing
+
+Create a `.env` file for the Letta container. Do not commit this file:
+
+```dotenv
+OPENAI_API_KEY=your_openai_api_key
+E2B_API_KEY=e2b_your_api_key
+# Optional. Omit to use the default E2B sandbox.
+E2B_SANDBOX_TEMPLATE_ID=your_template_id
+LETTA_SERVER_PASSWORD=choose_a_strong_password
+```
+
+Start the Letta Docker server with password protection enabled:
+
+```bash
+docker run \
+  -v ~/.letta/.persist/pgdata:/var/lib/postgresql/data \
+  -p 127.0.0.1:8283:8283 \
+  --env-file .env \
+  -e SECURE=true \
+  letta/letta:latest
+```
+
+When `E2B_API_KEY` is present, Letta runs custom tools created from source code in a sandboxed environment. Set `E2B_SANDBOX_TEMPLATE_ID` to run those tools in your own template instead of the default E2B sandbox. The `LETTA_SERVER_PASSWORD` value is used to authenticate requests to the local server.
+
+Load the same values into the shell where you run the client and `curl` examples:
+
+```bash
+set -a
+source .env
+set +a
+```
+
+## Create and attach a custom tool
+
+Install the Letta Python client:
+
+```bash
+pip install letta-client
+```
+
+Create a source-defined tool with a Google-style docstring so Letta can derive its tool schema:
+
+```python
+import os
+
+from letta_client import Letta
+
+
+client = Letta(
+    base_url="http://localhost:8283",
+    api_key=os.environ["LETTA_SERVER_PASSWORD"],
+)
+
+
+source_code = '''
+def inspect_sandbox() -> str:
+    """List the entries in the current E2B sandbox directory.
+
+    Returns:
+        A newline-separated list of directory entries.
+    """
+    from pathlib import Path
+
+    return "\\n".join(sorted(entry.name for entry in Path(".").iterdir()))
+'''
+
+tool = client.tools.create(source_code=source_code)
+print(f"Created tool: {tool.id}")
+
+agent = client.agents.create(
+    model="openai/gpt-4o-mini",
+    embedding="openai/text-embedding-3-small",
+)
+print(f"Created agent: {agent.id}")
+```
+
+Set `TOOL_ID` and `AGENT_ID` to the IDs printed by the script, then attach the tool:
+
+```bash
+curl --request PATCH \
+  --url "http://localhost:8283/v1/agents/$AGENT_ID/tools/attach/$TOOL_ID" \
+  --header "Authorization: Bearer $LETTA_SERVER_PASSWORD"
+```
+
+Send a message that asks the agent to use the tool:
+
+```bash
+curl --request POST \
+  --url "http://localhost:8283/v1/agents/$AGENT_ID/messages" \
+  --header "Content-Type: application/json" \
+  --header "Authorization: Bearer $LETTA_SERVER_PASSWORD" \
+  --data '{
+    "messages": [
+      {
+        "role": "user",
+        "content": "Use inspect_sandbox and report the entries you find."
+      }
+    ]
+  }'
+```
+
+Letta sends the source-defined tool to the configured E2B sandbox when the agent calls it, so the tool code does not execute in the Letta API server process.
+
+## Tool lifecycle
+
+The legacy Letta integration creates a fresh E2B sandbox for each tool call and terminates it after the call completes, including failed calls. Files, installed packages, and other runtime state do not persist between calls. Put reusable dependencies in a custom E2B template instead.
+
+<Note>
+  E2B tool sandboxing applies to custom server-side tools created from source code. MCP tools execute on their MCP server, and built-in tools such as `memory_insert` are not moved into E2B by these variables. Use client-side tools when code must run in the application that calls Letta.
+</Note>
+
+## Security considerations
+
+- Keep `E2B_API_KEY`, model provider keys, and `LETTA_SERVER_PASSWORD` in a secret store or an untracked `.env` file.
+- Treat tool arguments and tool output as untrusted because they may be influenced by an agent or user.
+- If you use a custom E2B template, give it only the packages and permissions the tool needs.
+- Protect the Letta server with `SECURE=true` before exposing it beyond localhost.
+
+## Learn more
+
+- [Letta tool sandboxing](https://docs.letta.com/v1-sdk/docker/#tool-sandboxing)
+- [Letta custom server tools](https://docs.letta.com/v1-sdk/tools/server-tools)
+- [Letta Docker server](https://docs.letta.com/v1-sdk/docker)
+- [E2B sandbox lifecycle](/sandbox)
+- [E2B templates](/template/quickstart)
