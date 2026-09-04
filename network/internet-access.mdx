@@ -183,6 +183,12 @@ sandbox = Sandbox.create(
 Domain-based filtering only works for HTTP traffic on port 80 (via Host header inspection) and TLS traffic on port 443 (via SNI inspection). Traffic on other ports uses CIDR-based filtering only. UDP-based protocols like QUIC/HTTP3 are not supported for domain filtering.
 </Note>
 
+<Warning>
+Treat a domain allowlist as a routing control, not a strict security boundary on shared infrastructure. The allow decision is made from the hostname presented when the connection is set up (the TLS SNI on port 443, the `Host` header on port 80). On multi-tenant infrastructure where many hostnames are served from the same endpoint - object storage such as Amazon S3, CDNs, and similar shared services - allowing one hostname can leave the sandbox able to reach other destinations served behind that same endpoint.
+
+If you need a strict egress boundary, prefer destinations that run on dedicated infrastructure, or route allowed traffic through a proxy you control (see [Bring your own proxy](/network/byop)) so egress leaves through a single endpoint where you enforce your own destination policy. Pair the allowlist with application-level controls, such as scoping credentials to the exact resource they need and validating the destination in your own code.
+</Warning>
+
 ### Behavior of blocked TCP connections
 
 Due to firewall design, blocked connections may appear successful from inside the sandbox.
