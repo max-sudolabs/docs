@@ -1,0 +1,192 @@
+---
+title: "Muse Code"
+description: "Run Muse Code in a secure E2B sandbox with full filesystem, terminal, and git access."
+icon: "/images/icons/muse.svg"
+"og:image": "/images/og/generated/agents/muse.png"
+---
+
+[Muse Code](https://dev.meta.ai/docs/muse-code) is Meta's coding agent for the terminal and CI, built on Muse Spark. E2B provides a pre-built `muse` template with Muse Code already installed.
+
+## CLI
+
+Create a sandbox with the [E2B CLI](/cli).
+
+```bash
+e2b sbx create muse
+```
+
+Once inside the sandbox, start Muse Code.
+
+```bash
+muse
+```
+
+## Run headless
+
+Use `muse exec` for non-interactive mode and `--yolo` to skip approval prompts, disable Muse Code's own OS sandbox, and trust the workspace. The E2B sandbox is the isolation boundary here, so Muse Code's built-in sandbox is not needed. The sandbox isolates the agent from your host machine, but sandboxes can reach the open internet by default; restrict outbound traffic with [network rules](/network/internet-access). Muse Code authenticates with an API key from the [Meta Model API dashboard](https://dev.meta.ai) via the `META_API_KEY` environment variable.
+
+<Note>
+Auto-approving tool calls is contained by the sandbox: the agent cannot touch your host machine, local files, or credentials. It can still make outbound network requests, since internet access is enabled by default. To limit where an auto-approved agent can connect, configure [outbound network rules](/network/internet-access) (`allowInternetAccess`, plus allow/deny lists by CIDR or hostname). Hostname rules apply to HTTP(S) traffic only; use CIDR rules for other protocols.
+</Note>
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('muse', {
+  envs: { META_API_KEY: process.env.META_API_KEY },
+})
+
+const result = await sandbox.commands.run(
+  `muse exec --yolo "Create a hello world HTTP server in Go"`
+)
+
+console.log(result.stdout)
+await sandbox.kill()
+```
+```python Python
+import os
+from e2b import Sandbox
+
+sandbox = Sandbox.create("muse", envs={
+    "META_API_KEY": os.environ["META_API_KEY"],
+})
+
+result = sandbox.commands.run(
+    'muse exec --yolo "Create a hello world HTTP server in Go"',
+)
+
+print(result.stdout)
+sandbox.kill()
+```
+</CodeGroup>
+
+Add `--json` to emit machine-readable JSONL events instead of plain text, and `--max-model-steps` to cap a run that would otherwise loop.
+
+### Example: work on a cloned repository
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('muse', {
+  envs: { META_API_KEY: process.env.META_API_KEY },
+  timeoutMs: 600_000,
+})
+
+await sandbox.git.clone('https://github.com/your-org/your-repo.git', {
+  path: '/home/user/repo',
+  username: 'x-access-token',
+  password: process.env.GITHUB_TOKEN,
+  depth: 1,
+})
+
+const result = await sandbox.commands.run(
+  `cd /home/user/repo && muse exec --yolo "Add error handling to all API endpoints"`,
+  { onStdout: (data) => process.stdout.write(data) }
+)
+
+const diff = await sandbox.commands.run('cd /home/user/repo && git diff')
+console.log(diff.stdout)
+
+await sandbox.kill()
+```
+```python Python
+import os
+from e2b import Sandbox
+
+sandbox = Sandbox.create("muse", envs={
+    "META_API_KEY": os.environ["META_API_KEY"],
+}, timeout=600)
+
+sandbox.git.clone("https://github.com/your-org/your-repo.git",
+    path="/home/user/repo",
+    username="x-access-token",
+    password=os.environ["GITHUB_TOKEN"],
+    depth=1,
+)
+
+result = sandbox.commands.run(
+    'cd /home/user/repo && muse exec --yolo "Add error handling to all API endpoints"',
+    on_stdout=lambda data: print(data, end=""),
+)
+
+diff = sandbox.commands.run("cd /home/user/repo && git diff")
+print(diff.stdout)
+
+sandbox.kill()
+```
+</CodeGroup>
+
+## Build a custom template
+
+If you need to customize the environment (e.g. pre-install dependencies, add config files), build your own template on top of the pre-built `muse` template.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+// template.ts
+import { Template } from 'e2b'
+
+export const template = Template()
+  .fromTemplate('muse')
+```
+```python Python
+# template.py
+from e2b import Template
+
+template = (
+    Template()
+    .from_template("muse")
+)
+```
+</CodeGroup>
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+// build.ts
+import { Template, defaultBuildLogger } from 'e2b'
+import { template as museTemplate } from './template'
+
+await Template.build(museTemplate, 'my-muse', {
+  cpuCount: 2,
+  memoryMB: 2048,
+  onBuildLogs: defaultBuildLogger(),
+})
+```
+```python Python
+# build.py
+from e2b import Template, default_build_logger
+from template import template as muse_template
+
+Template.build(muse_template, "my-muse",
+    cpu_count=2,
+    memory_mb=2048,
+    on_build_logs=default_build_logger(),
+)
+```
+</CodeGroup>
+
+Run the build script to create the template.
+
+<CodeGroup>
+```bash JavaScript & TypeScript
+npx tsx build.ts
+```
+```bash Python
+python build.py
+```
+</CodeGroup>
+
+## Related guides
+
+<CardGroup cols={3}>
+  <Card title="Sandbox persistence" icon="clock" href="/sandbox/persistence">
+    Auto-pause, resume, and manage sandbox lifecycle
+  </Card>
+  <Card title="Git integration" icon="code-branch" href="/sandbox/git-integration">
+    Clone repos, manage branches, and push changes
+  </Card>
+  <Card title="SSH access" icon="terminal" href="/sandbox/ssh-access">
+    Connect to the sandbox via SSH for interactive sessions
+  </Card>
+</CardGroup>

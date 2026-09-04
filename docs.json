@@ -237,6 +237,7 @@
               "agents/devin-outposts",
               "agents/droid",
               "agents/grok",
+              "agents/muse",
               "agents/pi",
               "agents/prime",
               "agents/deep-agents",
