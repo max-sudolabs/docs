@@ -29,7 +29,7 @@ Use it when you want the same sandbox behavior in local dev, CI, and production,
 
 - Node.js 22 or later
 - An Eve project (`npx eve@latest init my-agent`)
-- An [E2B API key](https://console.e2b.dev/?tab=keys)
+- An <a href="https://console.e2b.dev/?tab=keys" target="_blank" rel="noopener">E2B API key</a>
 
 ## Install
 
@@ -70,7 +70,7 @@ Use the folder layout (`agent/sandbox/sandbox.ts`) instead if you also seed file
 pnpm dev        # or: npx eve dev
 ```
 
-Ask the agent to run a command and it executes in a real E2B sandbox. Sandboxes created this way appear in your [E2B console](https://console.e2b.dev).
+Ask the agent to run a command and it executes in a real E2B sandbox. Sandboxes created this way appear in your <a href="https://console.e2b.dev/sign-in?signup_source=docs_agents_eve" target="_blank" rel="noopener">E2B console</a>.
 
 ## Bootstrap and per-session setup
 
@@ -118,7 +118,7 @@ On the next turn the backend reattaches in this order:
 
 Two consequences worth knowing:
 
-- **The backend's `shutdown()` is intentionally a no-op.** Killing the sandbox on server shutdown would drop background work and force Eve to recreate it without rerunning `onSession`. Sandboxes are left paused and expire on their own — kill them from the [console](https://console.e2b.dev) or the [SDK](/sandbox) if you want them gone sooner. Opt out with `autoPause: false` to kill on timeout instead.
+- **The backend's `shutdown()` is intentionally a no-op.** Killing the sandbox on server shutdown would drop background work and force Eve to recreate it without rerunning `onSession`. Sandboxes are left paused and expire on their own — kill them from the <a href="https://console.e2b.dev/sign-in?signup_source=docs_agents_eve" target="_blank" rel="noopener">console</a> or the [SDK](/sandbox) if you want them gone sooner. Opt out with `autoPause: false` to kill on timeout instead.
 - **Reconnects do not re-apply the configured `networkPolicy`.** A resumed sandbox keeps its live policy, including any tightening `onSession` applied. Re-stamping the create-time default could silently loosen a locked-down session.
 
 ## Network policy

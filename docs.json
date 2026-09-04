@@ -5486,7 +5486,7 @@
     "links": [
       {
         "label": "Console",
-        "href": "https://console.e2b.dev"
+        "href": "https://console.e2b.dev/sign-in?signup_source=docs_nav_console"
       }
     ],
     "primary": {
