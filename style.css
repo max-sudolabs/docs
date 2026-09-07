@@ -1,4 +1,194 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap");
+@font-face {
+    font-family: "Neue Haas Grotesk Text Pro Fallback";
+    src: local("Arial");
+    font-weight: 400;
+    size-adjust: 104%;
+    ascent-override: 79.9%;
+    descent-override: 20.1%;
+    line-gap-override: 22.3%;
+}
+
+@font-face {
+    font-family: "Neue Haas Grotesk Text Pro Fallback";
+    src: local("Arial");
+    font-weight: 500;
+    size-adjust: 107%;
+    ascent-override: 79.9%;
+    descent-override: 20.1%;
+    line-gap-override: 22.3%;
+}
+
+@font-face {
+    font-family: "Commit Mono";
+    src: url("/fonts/CommitMono-400-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Commit Mono";
+    src: url("/fonts/CommitMono-700-Bold.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    --e2b-font-sans: "Neue Haas Grotesk Text Pro", "Neue Haas Grotesk Text Pro Fallback", sans-serif;
+    --e2b-font-mono: "Commit Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    --font-family-headings-custom: var(--e2b-font-sans);
+    --font-weight-headings-custom: 500;
+    --font-family-body-custom: var(--e2b-font-sans);
+    --font-weight-body-custom: 400;
+    --e2b-content-radius: 8px;
+    --e2b-code-surface: #ffffff;
+    --e2b-code-label-surface: #f4f4f4;
+    --e2b-code-blue: #003ee9;
+    --e2b-code-blue-bg: rgb(0 62 233 / 0.12);
+    --e2b-code-purple: #9a0fa4;
+    --e2b-code-purple-bg: rgb(154 15 164 / 0.12);
+    --e2b-code-green: #4d6000;
+    --e2b-code-green-bg: rgb(77 96 0 / 0.12);
+    --e2b-code-orange: #ad2000;
+    --e2b-code-orange-bg: rgb(173 32 0 / 0.12);
+    --e2b-api-method-get: var(--e2b-code-green);
+    --e2b-api-method-get-bg: var(--e2b-code-green-bg);
+    --e2b-api-method-post: var(--e2b-code-blue);
+    --e2b-api-method-post-bg: var(--e2b-code-blue-bg);
+    --e2b-api-method-patch: var(--e2b-code-purple);
+    --e2b-api-method-patch-bg: var(--e2b-code-purple-bg);
+    --e2b-api-method-put: var(--e2b-code-orange);
+    --e2b-api-method-put-bg: var(--e2b-code-orange-bg);
+    --e2b-api-method-delete: var(--e2b-code-orange);
+    --e2b-api-method-delete-bg: var(--e2b-code-orange-bg);
+}
+
+.dark {
+    --e2b-code-surface: #121212;
+    --e2b-code-label-surface: #2c2c2c;
+    --e2b-code-blue: #5696fd;
+    --e2b-code-blue-bg: rgb(86 150 253 / 0.18);
+    --e2b-code-purple: #b57cff;
+    --e2b-code-purple-bg: rgb(181 124 255 / 0.18);
+    --e2b-code-green: #9dc20c;
+    --e2b-code-green-bg: rgb(157 194 12 / 0.18);
+    --e2b-code-orange: #ff795b;
+    --e2b-code-orange-bg: rgb(255 121 91 / 0.18);
+}
+
+body {
+    font-family: var(--e2b-font-sans);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+}
+
+/* Reference-page typography from the new E2B brand scale. */
+#page-title,
+main :is(h1, h2, h3, h4, h5, h6) {
+    font-family: var(--e2b-font-sans);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+}
+
+#page-title {
+    font-size: 2.5rem;
+    line-height: 1.1;
+}
+
+.mdx-content {
+    font-size: 1rem;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+}
+
+.mdx-content h1 {
+    font-size: 2rem;
+    line-height: 1.1;
+}
+
+.mdx-content h2 {
+    font-size: 1.5rem;
+    line-height: 1.1;
+}
+
+.mdx-content [data-component-part="card-title"] {
+    font-size: 1.25rem;
+    line-height: 1.1;
+}
+
+.mdx-content [data-component-part="card-content"] {
+    margin-top: 8px !important;
+}
+
+.mdx-content h3 {
+    font-size: 1.25rem;
+    line-height: 1.1;
+}
+
+.mdx-content h4 {
+    font-size: 1.125rem;
+    line-height: 1.1;
+}
+
+.mdx-content :is(h5, h6) {
+    font-size: 1rem;
+    line-height: 1.1;
+}
+
+.mdx-content :is(p, li) {
+    line-height: 1.6;
+}
+
+.mdx-content strong {
+    font-weight: 500;
+}
+
+.mdx-content a.link {
+    font-weight: 500;
+}
+
+.pagination-prev,
+.pagination-next {
+    font-weight: 500;
+}
+
+#header .prose,
+#header .prose p {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+}
+
+.eyebrow {
+    font-family: var(--e2b-font-mono);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+}
+
+#page-context-menu button {
+    font-family: var(--e2b-font-mono);
+    letter-spacing: 0.01em;
+}
+
+#search-bar-entry {
+    font-family: var(--e2b-font-sans);
+    letter-spacing: -0.01em;
+}
+
+/* Tighten the space between the article and its table of contents. */
+div:has(> #content-side-layout) {
+    gap: 1rem;
+}
+
+@media (max-width: 639px) {
+    #page-title {
+        font-size: 2rem;
+    }
+}
 
 /* Reserve the viewport scrollbar width so navigation between pages does not shift the layout. */
 html {
@@ -45,8 +235,184 @@ html {
     background-color: var(--background-white);
 }
 
+.nav-tabs-item {
+    font-weight: 400;
+}
+
+.nav-tabs-item > svg {
+    transform: translateY(-1px);
+}
+
+.nav-tabs-item[data-active] {
+    font-weight: 400;
+    text-shadow: -0.2px 0 currentColor, 0.2px 0 currentColor;
+}
+
 header .nav-logo {
     height: 28px !important;
+}
+
+@media (min-width: 1024px) {
+    #navbar [class~="lg:px-12"],
+    #navbar div:has(> .nav-tabs) {
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+    }
+}
+
+/* Keep interactive controls aligned with E2B's square visual language. */
+:where(button, input, select, textarea, [role="button"]) {
+    border-radius: 0;
+}
+
+/* Square the visible shells around Cmd+K search and the AI assistant input. */
+:where(
+    [data-component-part="search-modal"],
+    [data-component-part="search-input-container"]
+) {
+    border-radius: 0;
+}
+
+:where(.chat-assistant-floating-input, .chat-assistant-sheet) {
+    --rounded-2xl: 0;
+}
+
+/* Keep floating menus, listboxes, and all of their interactive rows square. */
+:where(
+    [role="menu"],
+    [role="listbox"],
+    [role^="menuitem"],
+    [role="option"],
+    [role="menu"] a,
+    [role="menu"] button
+) {
+    border-radius: 0;
+}
+
+/* Square the bordered icon tiles inside Copy Page action rows. */
+[role="menu"] > [role="menuitem"] > :first-child:has(> svg) {
+    border-radius: 0;
+}
+
+/* Keep tooltip surfaces square. */
+:where([role="tooltip"], [data-component-part="tooltip-content"]) {
+    border-radius: 0;
+}
+
+.code-snippet-feedback-popover-content {
+    border-radius: 0;
+}
+
+/* Keep the expanded API playground shell aligned with its square code panels. */
+html[data-current-path^="/api-reference/"] [role="dialog"]:has(.code-group) {
+    border-radius: 0;
+}
+
+/* Square the endpoint picker and request path in the playground header. */
+html[data-current-path^="/api-reference/"]
+    [role="dialog"]:has(.code-group)
+    #endpoints-menu-trigger
+    > div,
+html[data-current-path^="/api-reference/"]
+    [role="dialog"]:has(.code-group)
+    #endpoints-menu-trigger
+    + div {
+    border-radius: 0;
+}
+
+/* Square expanded input sections and their fields in the API playground. */
+html[data-current-path^="/api-reference/"]
+    [role="dialog"]:has(.code-group)
+    [data-testid^="api-input-section-"]
+    > :not([role="button"]),
+html[data-current-path^="/api-reference/"]
+    [role="dialog"]:has(.code-group)
+    [data-testid^="api-input-section-"]
+    :is(input, textarea, select) {
+    border-radius: 0;
+}
+
+/* Give content cards and code surfaces the compact radius from the E2B visual language. */
+:where(
+    card,
+    code-block,
+    code-group,
+    .card,
+    .code-block,
+    .code-group
+) {
+    --rounded-2xl: var(--e2b-content-radius);
+    border-radius: var(--e2b-content-radius);
+}
+
+/* Match alert corners to the content cards. */
+:where(callout, .callout) {
+    --rounded-2xl: var(--e2b-content-radius);
+    border-radius: var(--e2b-content-radius);
+}
+
+:is(
+    #content-area,
+    #content-side-layout,
+    html[data-current-path^="/api-reference/"] [role="dialog"]
+) :is(
+    code-block,
+    code-group,
+    .code-block,
+    .code-group
+) {
+    background-color: var(--e2b-code-surface);
+}
+
+:is(code-block, code-group, .code-block, .code-group) :is(
+    [data-component-part="code-block-root"],
+    .code-block-background
+) {
+    --rounded-xl: var(--e2b-content-radius);
+    border-radius: var(--e2b-content-radius);
+}
+
+:is(
+    #content-area,
+    #content-side-layout,
+    html[data-current-path^="/api-reference/"] [role="dialog"]
+) :is(
+    [data-component-part="code-block-root"],
+    .code-block-background
+) {
+    background-color: transparent !important;
+}
+
+/* Keep numbered step markers aligned with the square content system. */
+[class~="group/step-indicator"] {
+    border-radius: 0;
+}
+
+/* Keep API endpoint request cards and their path fields square. */
+#content-area :where(
+    div:has(> div > :is(tryit-button, .tryit-button)),
+    div:has(+ :is(tryit-button, .tryit-button))
+) {
+    border-radius: 0;
+}
+
+/* Keep API method, navigation, and schema badges square. */
+html[data-current-path^="/api-reference/"] :where(
+    .method-pill,
+    .method-nav-pill > *,
+    [data-component-part="field-info-pill"],
+    [data-component-part="field-required-pill"],
+    [data-component-part="field-deprecated-pill"],
+    #sidebar-content li > a .rounded-md
+) {
+    border-radius: 0;
+}
+
+/* Keep schema metadata and inline code distinguishable in both themes. */
+[data-component-part="field-info-pill"],
+:is(#content-area, #content-side-layout) code:not(pre code),
+html[data-current-path^="/api-reference/"] [role="dialog"] code:not(pre code) {
+    background-color: var(--e2b-code-label-surface);
 }
 
 /* Keep the repository control before Console in the top navigation. */
@@ -64,10 +430,10 @@ nav[aria-label="Main"] li:has(> a[href^="https://console.e2b.dev"]) {
 nav[aria-label="Main"] a[href^="https://console.e2b.dev"] {
     height: 2.25rem;
     padding: 0 1rem;
-    border-radius: 0.25rem;
+    border-radius: 0;
     background-color: rgb(var(--primary));
     color: white !important;
-    font-family: "IBM Plex Mono", monospace;
+    font-family: var(--e2b-font-mono);
     font-size: 0.875rem;
     font-weight: 500;
     letter-spacing: 0.01em;
@@ -120,6 +486,12 @@ nav[aria-label="Main"] a[href^="https://console.e2b.dev"]:focus-visible {
     }
 }
 
+/* Keep the compact mobile navbar menu and its hoverable rows square. */
+[role="dialog"]:has(nav[aria-label="Mobile menu"]),
+[role="dialog"]:has(nav[aria-label="Mobile menu"]) :is(a, button, [role="menuitem"]) {
+    border-radius: 0;
+}
+
 @media (min-width: 1024px) {
     nav[aria-label="Main"] li:has(> a[href="https://github.com/e2b-dev/e2b"]) {
         width: auto;
@@ -170,7 +542,7 @@ a[href*="auth/sign-in"].whitespace-nowrap.font-medium {
     background-color: black;
     color: white !important;
     padding: 0.5rem 1rem;
-    border-radius: 4px;
+    border-radius: 0;
     transition: background-color 0.2s ease;
 }
 
@@ -191,7 +563,7 @@ a[href*="auth/sign-in"].whitespace-nowrap.font-medium:hover {
 }
 
 code {
-    font-family: "IBM Plex Mono";
+    font-family: var(--e2b-font-mono);
 }
 
 /* Match the E2B web reading palette without recoloring navigation or code syntax. */
@@ -210,6 +582,11 @@ code {
 .dark main h1,
 .dark .mdx-content :is(h1, h2, h3, h4, h5, h6, strong) {
     color: #ffffff;
+}
+
+/* Tint inline code with its alert's foreground in both themes. */
+:is(#content-area, #content-side-layout) .callout code:not(pre code) {
+    background-color: color-mix(in oklab, var(--callout-foreground, currentColor) 10%, transparent);
 }
 
 /* Pin Mintlify's approved callout palette while preserving native anatomy. */
@@ -332,15 +709,128 @@ code {
     display: none !important;
 }
 
-/* Keep sidebar rows compact and remove Mintlify's one-pixel list gaps. */
-nav[aria-label="Pages"] li > :is(a, button) {
+/* Keep sidebar rows compact and square, without Mintlify's one-pixel list gaps. */
+#sidebar-content li > :is(a, button) {
     padding-top: 0.25rem !important;
     padding-bottom: 0.25rem !important;
+    border-radius: 0;
+}
+
+#mobile-nav li > :is(a, button) {
+    border-radius: 0;
+}
+
+/* Give the current page a quiet neutral state with Interface Orange text,
+   using the brand white ramp in light mode. */
+html:not(.dark) :is(#sidebar-content, #mobile-nav)
+    li:not([data-active-nav-item="true"]) > :is(a, button):hover {
+    background-color: #fafafa;
+}
+
+:is(#sidebar-content, #mobile-nav)
+    li[data-active-nav-item="true"] > :is(a, button) {
+    background-color: #f4f4f4;
+    color: #e32a01;
+}
+
+.dark :is(#sidebar-content, #mobile-nav)
+    li[data-active-nav-item="true"] > :is(a, button) {
+    background-color: rgb(255 255 255 / 0.1);
+    color: #e32a01;
+}
+
+/* Match the changelog date tag to the active sidebar state. */
+button[data-component-part="update-label"] {
+    border-radius: 0;
+    background-color: #f4f4f4;
+    color: #e32a01;
+}
+
+.dark button[data-component-part="update-label"] {
+    background-color: rgb(255 255 255 / 0.1);
+}
+
+#mobile-nav [role="group"][aria-label="Theme preference"] {
+    border-radius: 0;
+}
+
+/* Use an integer line box so WebKit and Blink align sidebar labels consistently. */
+nav[aria-label="Pages"] li > :is(a, button) {
+    min-height: 2rem;
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+    align-items: center !important;
+    line-height: 16px !important;
+}
+
+nav[aria-label="Pages"]
+    li
+    > :is(a, button)
+    > div[class~="h-[1lh]"] {
+    transform: translateY(-1px);
 }
 
 nav[aria-label="Pages"] .space-y-px > :not([hidden]) {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
+}
+
+/* Use the brandbook code palette for API method badges in both themes. */
+html[data-current-path^="/api-reference/"] :is(
+    .method-pill.method-pill,
+    .method-nav-pill.method-nav-pill > span
+) {
+    font-weight: 500;
+}
+
+html[data-current-path^="/api-reference/"] :is(
+    .method-pill.method-pill,
+    .method-nav-pill.method-nav-pill > span
+):is(
+    [class*="bg-green-400"],
+    [class*="bg-[#2AB673]"],
+    [class*="bg-[#F7F7F8]"]
+) {
+    background-color: var(--e2b-api-method-get-bg);
+    color: var(--e2b-api-method-get);
+}
+
+html[data-current-path^="/api-reference/"] :is(
+    .method-pill.method-pill,
+    .method-nav-pill.method-nav-pill > span
+):is([class*="bg-blue-400"], [class*="bg-[#3064E3]"]) {
+    background-color: var(--e2b-api-method-post-bg);
+    color: var(--e2b-api-method-post);
+}
+
+html[data-current-path^="/api-reference/"] :is(
+    .method-pill.method-pill,
+    .method-nav-pill.method-nav-pill > span
+):is([class*="bg-orange-400"], [class*="bg-[#DA622B]"]) {
+    background-color: var(--e2b-api-method-patch-bg);
+    color: var(--e2b-api-method-patch);
+}
+
+html[data-current-path^="/api-reference/"] :is(
+    .method-pill.method-pill,
+    .method-nav-pill.method-nav-pill > span
+):is(
+    [class*="bg-yellow-400"],
+    [class*="bg-[#C28C30]"]
+) {
+    background-color: var(--e2b-api-method-put-bg);
+    color: var(--e2b-api-method-put);
+}
+
+html[data-current-path^="/api-reference/"] :is(
+    .method-pill.method-pill,
+    .method-nav-pill.method-nav-pill > span
+):is(
+    [class*="bg-red-400"],
+    [class*="bg-[#CB3A32]"]
+) {
+    background-color: var(--e2b-api-method-delete-bg);
+    color: var(--e2b-api-method-delete);
 }
 
 nav[aria-label="Pages"]:has(li[data-title="Sandbox"] > button) li[data-title="Sandbox"] {
@@ -350,6 +840,18 @@ nav[aria-label="Pages"]:has(li[data-title="Sandbox"] > button) li[data-title="Sa
 /* Keep changelog filters on the right without showing its single-item sidebar. */
 body:has(#changelog-filters) #sidebar {
     display: none !important;
+}
+
+/* Use the approved blog body scale for changelog articles. */
+body:has(#changelog-filters) #content .update .prose-sm {
+    font-size: 1rem;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+}
+
+body:has(#changelog-filters) #content .update .prose-sm :not(pre) > code {
+    font-size: 0.875em;
+    line-height: 1.5;
 }
 
 /* Keep Code interpreting visually grouped with the primary use cases. */
@@ -367,7 +869,11 @@ nav[aria-label="Pages"]:has(li[data-title="Sandbox"] > button) li:is(
     [data-title="CLI"]
 ) > button {
     color: rgb(44 44 44) !important;
-    font-weight: 600;
+    font-family: var(--e2b-font-sans);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
     text-shadow: none !important;
 }
 
@@ -462,7 +968,7 @@ table td button {
 }
 
 .mermaid .nodeLabel :is(b, strong) {
-    font-family: "IBM Plex Mono", monospace;
+    font-family: var(--e2b-font-mono);
     font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.02em;

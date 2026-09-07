@@ -8,7 +8,18 @@
     "dark": "#e32a01"
   },
   "fonts": {
-    "family": "IBM Plex Sans"
+    "heading": {
+      "family": "Neue Haas Grotesk Text Pro",
+      "source": "/fonts/NHaasGroteskTXPro-Medium.woff2",
+      "format": "woff2",
+      "weight": 500
+    },
+    "body": {
+      "family": "Neue Haas Grotesk Text Pro",
+      "source": "/fonts/NHaasGroteskTXPro-Roman.woff2",
+      "format": "woff2",
+      "weight": 400
+    }
   },
   "styling": {
     "codeblocks": {
