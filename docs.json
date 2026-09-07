@@ -5421,6 +5421,7 @@
             "group": "Account, billing & limits",
             "pages": [
               "projects",
+              "workspaces",
               "faq/calculate-sandbox-price",
               "faq/increase-concurrency",
               "faq/sandbox-lifetime",

@@ -1,0 +1,55 @@
+---
+title: "Workspaces"
+description: "A workspace groups your E2B projects under one name. Manage multiple projects, and who has access to them, from a single place in the console."
+"og:image": "/images/og/generated/workspaces.png"
+---
+
+A **workspace** is a group of your [projects](/projects). It gives you one place to see and create projects, and one place to manage who has access to them. Each project inside a workspace keeps its own API keys, sandboxes, templates, and billing.
+
+<Info>
+Workspaces are rolling out now. You will see a workspace picker in the <a href="https://console.e2b.dev/sign-in?signup_source=docs_console" target="_blank" rel="noopener">E2B Console</a>, and your existing projects are already grouped into one. Nothing inside your projects has changed.
+</Info>
+
+## What a workspace is for
+
+- **One place for all your projects.** Switch between projects, create new ones for a new environment or product, and see everything your organization runs on E2B without signing in and out of separate accounts.
+- **One place to manage access.** Add people to the workspace and they can use every project in it. If someone should only see one project, add them to that project instead. Inside a project, all members have the same permissions.
+- **One place for billing, later.** Billing is per project today: each project keeps its own plan and invoice. Consolidated workspace-level billing is on the roadmap.
+
+## Workspace vs project
+
+| | Workspace | Project |
+|:--|:--|:--|
+| **Holds** | Name, members, projects | API keys, templates, sandboxes, volumes |
+| **Access** | Members can use every project in the workspace | A person added to a single project sees only that project |
+| **Billing and limits** | Nothing today (consolidated billing planned) | Plan, tier limits, invoice. See [Billing](/billing) |
+| **API keys** | None. Keys are always scoped to a project | Each key authenticates against one project. See [API key](/api-key) |
+| **Templates** | None | Namespaced by the project slug. See [Template names](/template/names) |
+
+## Existing projects
+
+Every project that existed before workspaces was carried over as-is and placed into a workspace automatically:
+
+- **Self-serve accounts**: projects were grouped together based on their billing data, so projects paid for under the same billing relationship share a workspace.
+- **Enterprise customers**: projects were grouped according to the enterprise relationship. Workspaces were mapped by our team manually.
+
+Project IDs, API keys, templates, sandboxes, volumes, template slugs, and regions are unchanged. Your code keeps working without any modification.
+
+If a project should be in a different workspace, you can move it yourself: you need to be an owner of both the workspace it is in and the workspace it is going to. The project keeps its identity, API keys, templates, sandboxes, and billing through the move. If your workspace does not look the way you expect otherwise, for example a project is missing, contact [support@e2b.dev](mailto:support@e2b.dev) and we will fix the grouping for you.
+
+## Frequently asked questions
+
+**Do I need to change my code?**
+No. API keys are still scoped to a project and continue to work as before.
+
+**Why can a new member see all my projects?**
+Workspace members get access to every project in the workspace. To give someone access to one project only, add them on that project instead of the workspace.
+
+**Can I restrict what a member does inside a project?**
+Not yet. Inside a project, all members have the same permissions.
+
+**Will my bill change?**
+No. Each project keeps its plan and invoice. Workspace-level billing will follow in the future.
+
+**Can I move a project to another workspace?**
+Yes, if you are an owner of both workspaces. Move the project from the console and it keeps its API keys, templates, sandboxes, and billing. If you are not an owner of both, ask an owner to do it or contact [support@e2b.dev](mailto:support@e2b.dev).
