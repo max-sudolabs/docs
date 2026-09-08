@@ -1,0 +1,178 @@
+---
+title: "Reboot on resume"
+sidebarTitle: Reboot on resume
+description: "Resume a paused sandbox from its disk state alone, ignoring the memory in its snapshot."
+"og:image": "/images/og/generated/sandbox/resume-without-memory.png"
+---
+
+Resuming a paused sandbox restores its memory, so it continues from where it
+left off.
+
+A **reboot** resume ignores that memory and boots the sandbox from its disk
+instead. Everything written and flushed before the pause is there; nothing that
+lived only in memory returns — no running processes, no caches, no in-sandbox
+connections. The snapshot itself is left alone, so it can still be restored
+normally afterwards.
+
+Pass `onResume: 'reboot'` (JavaScript) / `on_resume="reboot"` (Python) to
+[`connect()`](/sandbox/connect):
+
+<CodeGroup>
+```js JavaScript & TypeScript highlight={4}
+import { Sandbox } from 'e2b'
+
+// The memory snapshot is ignored — the sandbox reboots from disk
+const sbx = await Sandbox.connect(sandboxId, { onResume: 'reboot' })
+```
+```python Python highlight={4}
+from e2b import Sandbox
+
+# The memory snapshot is ignored — the sandbox reboots from disk
+sbx = Sandbox.connect(sandbox_id, on_resume="reboot")
+```
+</CodeGroup>
+
+`onResume` / `on_resume` defaults to `'restore'`, the memory restore `connect()`
+has always done.
+
+<Note>
+This is a **resume-side** choice, and it is not the same as a
+[filesystem-only snapshot](/sandbox/filesystem-only-snapshots), which is a
+**pause-side** choice. A filesystem-only snapshot never captures memory in the
+first place; `onResume: 'reboot'` / `on_resume="reboot"` skips the memory of a
+snapshot that *has* it.
+</Note>
+
+## When to reboot instead of restoring
+
+A reboot is the way past a memory image that will not restore cleanly: a sandbox
+that ran out of memory before it was paused comes back under the same pressure,
+and the resume can hang instead of completing. A reboot never reads that memory,
+so it cannot hang on it.
+
+Because the choice is made at resume time, it also applies to snapshots taken
+without the caller's involvement: a sandbox
+[auto-paused](/sandbox/persistence#auto-pause) on timeout keeps its memory.
+
+A reboot is slower than a restore, not faster: a memory restore takes about a
+second, while a reboot costs roughly a fresh boot.
+
+## Restore vs. reboot
+
+| | `'restore'` / `"restore"` (default) | `'reboot'` / `"reboot"` |
+|---|---|---|
+| Filesystem (disk) | Preserved | Preserved |
+| Memory (RAM) | Restored | **Ignored** |
+| Running processes | Restored | **Terminated** (reboot) |
+| Unflushed writes | Preserved | **Lost** |
+| The memory snapshot | Consumed as-is | **Left untouched** |
+| Speed | Near-instant | Roughly a fresh boot |
+
+Connections from clients outside the sandbox are not one of the differences:
+they drop when the sandbox pauses and have to be re-established on resume either
+way (see [Persistence](/sandbox/persistence#network)).
+
+## What you get on disk
+
+A reboot from a memory-inclusive snapshot gives you **crash-recovery
+semantics**: the disk image is what a power loss would have left. Filesystem
+metadata is repaired as the disk is mounted, but data writes that had not been
+flushed when the sandbox was paused are gone.
+
+Expect the same losses you would expect from pulling the power on a machine — a
+partially written file, or a database that replays its own log on startup.
+Anything written and flushed survives; anything still sitting in the page cache
+does not.
+
+<Warning>
+Unflushed writes are discarded, not merely at risk. A file written without
+`sync` should be assumed lost after a reboot resume.
+</Warning>
+
+## Keep a snapshot afterwards
+
+Once the sandbox is running again, the memory in the original snapshot is no
+longer reachable. Read or write what you need, then **pause it** — that records
+a new snapshot you can resume normally.
+
+<CodeGroup>
+```js JavaScript & TypeScript highlight={8}
+import { Sandbox } from 'e2b'
+
+const sbx = await Sandbox.connect(sandboxId, { onResume: 'reboot' })
+
+const data = await sbx.files.read('/home/user/important.txt')
+
+// Record a new snapshot before the sandbox times out
+await sbx.pause()
+```
+```python Python highlight={8}
+from e2b import Sandbox
+
+sbx = Sandbox.connect(sandbox_id, on_resume="reboot")
+
+data = sbx.files.read("/home/user/important.txt")
+
+# Record a new snapshot before the sandbox times out
+sbx.pause()
+```
+</CodeGroup>
+
+<Warning>
+Don't just leave the rebooted sandbox running. If it reaches its timeout without
+being paused it is discarded and the sandbox reverts to the snapshot you resumed
+from, memory and all. Your next plain `connect()` then restores that memory and
+puts you back where you started. If the reboot was to get past a memory image
+that would not restore, that image is what the next `connect()` restores.
+
+Killing it instead is final: a deleted sandbox has no resume path, so
+`connect()` afterwards reports that the sandbox does not exist. In Python,
+remember that using the sandbox as a context manager kills it when the block
+exits.
+</Warning>
+
+## Only a paused sandbox is rebooted
+
+- **Already running?** The option is ignored and you get the running sandbox
+  back. `connect()` never shortens a sandbox's lifetime: the new expiry is the
+  later of the current expiry and now plus the timeout you pass
+  ([Persistence](/sandbox/persistence#sandboxs-timeout)). To reboot it,
+  [`pause()`](/sandbox/persistence) it first and then connect with
+  `onResume: 'reboot'` / `on_resume="reboot"`.
+- **Still starting?** A reboot that would drop memory is refused while a start
+  is already in flight, because the reboot cannot join a start that is
+  restoring memory. Let the start finish, then pause, then reboot. This can
+  happen without you doing anything: with
+  [auto-resume](/sandbox/auto-resume) enabled, inbound traffic can start a
+  paused sandbox on its own.
+- **Paused without memory?** A
+  [filesystem-only snapshot](/sandbox/filesystem-only-snapshots) already
+  reboots on every resume, so `onResume: 'reboot'` / `on_resume="reboot"` changes
+  nothing for it and is harmless to pass.
+
+## If the reboot fails
+
+A reboot that starts and then fails to boot leaves the sandbox paused with its
+snapshot intact, so you can retry the reboot, or connect normally to restore the
+memory as before. An attempt that does not succeed consumes nothing.
+
+## Self-hosted deployments
+
+On a control plane that knows the option but does not have it turned on, an
+`onResume: 'reboot'` / `on_resume="reboot"` that would actually drop memory fails
+with an explicit error rather than quietly restoring the memory, so you can tell
+a reboot that did not happen from one that did.
+
+<Warning>
+A control plane older than the option does not recognise it at all: it is
+ignored, the memory is restored, and the call returns success — so a reboot can
+appear to work without having happened. Check your control plane is new enough
+before relying on it.
+</Warning>
+
+## Related
+
+- [Sandbox persistence](/sandbox/persistence) — pause and resume, and the sandbox state machine.
+- [Filesystem-only snapshots](/sandbox/filesystem-only-snapshots) — persist only the filesystem at pause time.
+- [Connect to a sandbox](/sandbox/connect) — resume a paused sandbox explicitly.
+- [Auto-resume on request](/sandbox/auto-resume) — waking a paused sandbox with inbound traffic.

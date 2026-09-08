@@ -72,7 +72,7 @@
                   "sandbox/snapshots",
                   "sandbox/fork",
                   "sandbox/auto-resume",
-                  "sandbox/filesystem-only-snapshots",
+                  "sandbox/filesystem-only-snapshots", "sandbox/resume-without-memory",
                   "sandbox/git-integration",
                   "sandbox/metrics",
                   "sandbox/otel-telemetry-export",
