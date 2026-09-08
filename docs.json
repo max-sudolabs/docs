@@ -10,13 +10,13 @@
   "fonts": {
     "heading": {
       "family": "Neue Haas Grotesk Text Pro",
-      "source": "/fonts/NHaasGroteskTXPro-Medium.woff2",
+      "source": "https://e2b.dev/fonts/v1/NHaasGroteskTXPro-Medium.woff2",
       "format": "woff2",
       "weight": 500
     },
     "body": {
       "family": "Neue Haas Grotesk Text Pro",
-      "source": "/fonts/NHaasGroteskTXPro-Roman.woff2",
+      "source": "https://e2b.dev/fonts/v1/NHaasGroteskTXPro-Roman.woff2",
       "format": "woff2",
       "weight": 400
     }
