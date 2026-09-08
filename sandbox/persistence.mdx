@@ -104,6 +104,51 @@ print('Sandbox paused', sbx.sandbox_id)
 
 By default a pause saves **both** the filesystem and the memory. To save only the filesystem — a lighter snapshot that cold-boots (reboots) on resume — pass `keepMemory: false` (JavaScript) / `keep_memory=False` (Python). See [Filesystem-only snapshots](/sandbox/filesystem-only-snapshots).
 
+### When a pause is refused
+
+<Info>
+Rolling out. The refusal behavior below is being enabled region by region. Until it reaches your region, a pause in this situation fails with a `500` error instead. `ServiceBusyError` and `ServiceBusyException` ship in the next minor release of the JavaScript and Python SDKs.
+</Info>
+
+A pause can be refused when the node running the sandbox is still finishing the previous snapshot of the same sandbox. Instead of failing the sandbox, the API answers with HTTP `503` and the sandbox **keeps running with its state intact**. Nothing was paused and nothing was lost. The SDKs surface this as `ServiceBusyError` (JavaScript) / `ServiceBusyException` (Python), the same error every other 503 from the API raises, for example when there is no capacity to place a new sandbox.
+
+The right reaction is to retry the pause after a short wait, or simply to keep using the sandbox and pause it later:
+
+<CodeGroup>
+```js JavaScript & TypeScript highlight={7-12}
+import { Sandbox, ServiceBusyError } from 'e2b'
+
+const sbx = await Sandbox.create()
+
+try {
+  await sbx.pause()
+} catch (error) {
+  if (error instanceof ServiceBusyError) {
+    // The sandbox is still running; try again in a few seconds
+    await new Promise((resolve) => setTimeout(resolve, 5_000))
+    await sbx.pause()
+  } else {
+    throw error
+  }
+}
+```
+```python Python highlight={8-11}
+import time
+from e2b import Sandbox, ServiceBusyException
+
+sbx = Sandbox.create()
+
+try:
+    sbx.pause()
+except ServiceBusyException:
+    # The sandbox is still running; try again in a few seconds
+    time.sleep(5)
+    sbx.pause()
+```
+</CodeGroup>
+
+`ServiceBusyError` / `ServiceBusyException` is not a `SandboxError` / `SandboxException`, so catch it explicitly. Every SDK error raised from an API response also carries the HTTP status as `statusCode` (JavaScript) / `status_code` (Python) if you prefer to branch on the status. SDK versions that predate `ServiceBusyError` raise a generic `SandboxError` / `SandboxException` whose message starts with `503:`.
+
 ## Resuming sandbox
 When you resume a sandbox, it will be in the same state it was in when you paused it.
 This means that all the files in the sandbox's filesystem will be restored and all the running processes, loaded variables, data, etc. will be restored.
@@ -261,6 +306,8 @@ sandbox = Sandbox.create(
 </CodeGroup>
 
 Auto-pause is persistent, meaning if your sandbox resumes and later times out again, it will pause again.
+
+If the node refuses a memory auto-pause because it is still finishing the sandbox's previous snapshot, E2B keeps the sandbox running and retries the pause for up to about two minutes past its timeout. Only if the node keeps refusing for that whole window is the sandbox paused **filesystem-only**: the disk is preserved and the next resume reboots the sandbox, so the memory state is lost. Under normal conditions this never happens. It protects your sandbox during snapshot backlogs on a node, where the alternative would be losing the sandbox entirely. This behavior is rolling out region by region together with the refusal handling above.
 
 To make the auto-pause filesystem-only — dropping memory so resume cold-boots — use the object form `onTimeout: { action: 'pause', keepMemory: false }` (JavaScript) / `"on_timeout": {"action": "pause", "keep_memory": False}` (Python). See [Filesystem-only snapshots](/sandbox/filesystem-only-snapshots).
 
