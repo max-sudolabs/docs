@@ -569,10 +569,12 @@ code {
 /* Match the E2B web reading palette without recoloring navigation or code syntax. */
 .dark .mdx-content {
     --tw-prose-body: #b8b8b8;
+    --tw-prose-headings: #ededed;
     --tw-prose-lead: #b8b8b8;
     --tw-prose-captions: #b8b8b8;
     --tw-prose-counters: #b8b8b8;
     --tw-prose-invert-body: #b8b8b8;
+    --tw-prose-invert-headings: #ededed;
     --tw-prose-invert-lead: #b8b8b8;
     --tw-prose-invert-captions: #b8b8b8;
     --tw-prose-invert-counters: #b8b8b8;
@@ -580,8 +582,16 @@ code {
 }
 
 .dark main h1,
-.dark .mdx-content :is(h1, h2, h3, h4, h5, h6, strong) {
+.dark .mdx-content :is(h1, strong) {
     color: #ffffff;
+}
+
+.dark .mdx-content :is(h2, h3, h4, h5, h6) {
+    color: #ededed;
+}
+
+.dark .mdx-content :is(h2, h3, h4, h5, h6) strong {
+    color: inherit;
 }
 
 /* Tint inline code with its alert's foreground in both themes. */
