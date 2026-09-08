@@ -2,7 +2,7 @@
 title: "Workload identity"
 sidebarTitle: Workload identity
 description: "Give sandbox workloads short-lived identity tokens instead of long-lived secrets."
-"og:image": "/images/og/generated/sandbox/workload-identity.png"
+"og:image": "/images/og/generated/iam/workload-identity.png"
 ---
 
 Workload identity lets code running in a sandbox prove who it is with short-lived identity tokens instead of long-lived credentials.
@@ -114,6 +114,8 @@ sandbox = Sandbox.create(
 `iam.tokens.<name>` is not the token value. It's a placeholder string (`${e2b.identity.tokens.<name>}`) that goes on the wire as-is. The egress proxy replaces it with a freshly minted token each time it forwards a matching request, so the token value never reaches your code or the sandbox.
 
 Referencing a token name that isn't registered in `iam.tokens` fails at sandbox creation with `InvalidArgumentError` (JavaScript) / `InvalidArgumentException` (Python), listing the names that are registered. You can check whether a name is registered without failing by using `'aws' in iam.tokens` in JavaScript or `"aws" in ctx.iam.tokens` in Python.
+
+A header value can combine token placeholders with static text and stored [secret](/secrets) markers; the egress proxy substitutes each header atomically.
 
 ## Federate with external services
 

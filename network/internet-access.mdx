@@ -242,6 +242,8 @@ You can register per-host rules under `network.rules` to apply transforms (for e
 
 The `transform.headers` object is sent on the wire as-is and injected by the egress proxy on matching HTTPS requests. Transforms apply to intercepted TLS traffic only, so nothing is injected on plain HTTP.
 
+Header values can also reference stored [secrets](/secrets) with `Secret.fill`. The egress proxy replaces each reference with the secret's current value outside the sandbox when it forwards a matching HTTPS request.
+
 <CodeGroup>
 ```js JavaScript & TypeScript
 import { Sandbox } from 'e2b'
@@ -341,7 +343,7 @@ Keep wildcard scopes narrow. A broad key such as `*.com` is accepted and matches
 
 #### Transform callbacks
 
-A rule's `transform` can also be a callback instead of a static object. The callback receives a context with the sandbox's [workload identity](/sandbox/workload-identity) tokens as `iam.tokens.<name>`, letting you inject a workload token into requests to a host:
+A rule's `transform` can also be a callback instead of a static object. The callback receives a context with the sandbox's [workload identity](/iam/workload-identity) tokens as `iam.tokens.<name>`, letting you inject a workload token into requests to a host:
 
 <CodeGroup>
 ```js JavaScript & TypeScript
@@ -398,7 +400,7 @@ The value read from `iam.tokens.<name>` is a placeholder string (`${e2b.identity
 
 The callback must be synchronous and return a plain transform object. A promise (from an `async` callback) or any other return value is rejected with an error. Static `transform` objects keep working unchanged, including hand-written `${e2b.identity.tokens.<name>}` strings.
 
-See [Workload identity](/sandbox/workload-identity) for how to register tokens.
+See [Workload identity](/iam/workload-identity) for how to register tokens, and [Secrets](/secrets) for injecting stored secrets the same way.
 
 ### Updating network settings on a running sandbox
 

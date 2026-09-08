@@ -865,6 +865,7 @@ nav[aria-label="Pages"]:has(li[data-title="Sandbox"] > button) li:is(
     [data-title="Templates"],
     [data-title="Storage"],
     [data-title="Network"],
+    [data-title="Secrets & Identity"],
     [data-title="Commands"],
     [data-title="CLI"]
 ) > button {
@@ -882,6 +883,7 @@ nav[aria-label="Pages"]:has(li[data-title="Sandbox"] > button) li:is(
     [data-title="Templates"],
     [data-title="Storage"],
     [data-title="Network"],
+    [data-title="Secrets & Identity"],
     [data-title="Commands"],
     [data-title="CLI"]
 ) > button {

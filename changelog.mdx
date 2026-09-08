@@ -93,7 +93,7 @@ This week ships sandbox workload identity in both SDKs, moves the Python SDK ont
 
 ### Sandbox workload identity in the SDKs
 
-`Sandbox.create` now takes an `iam` option with a `tokens` map defining short-lived [workload identity](/sandbox/workload-identity) tokens by audience and type, via the new `Secret.iamToken` helper (`Secret.iam_token` in Python). A network rule's `transform` can be a callback receiving token placeholders, so a token reaches egress request headers without the SDK seeing its value. Shipped in the JavaScript and Python SDKs 2.39.0. ([#1606](https://github.com/e2b-dev/E2B/pull/1606), [#1616](https://github.com/e2b-dev/E2B/pull/1616))
+`Sandbox.create` now takes an `iam` option with a `tokens` map defining short-lived [workload identity](/iam/workload-identity) tokens by audience and type, via the new `Secret.iamToken` helper (`Secret.iam_token` in Python). A network rule's `transform` can be a callback receiving token placeholders, so a token reaches egress request headers without the SDK seeing its value. Shipped in the JavaScript and Python SDKs 2.39.0. ([#1606](https://github.com/e2b-dev/E2B/pull/1606), [#1616](https://github.com/e2b-dev/E2B/pull/1616))
 
 ### Python SDK moves to a Rust HTTP stack
 

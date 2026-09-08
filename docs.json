@@ -82,8 +82,7 @@
                   "sandbox/connect",
                   "sandbox/pty",
                   "sandbox/ssh-access",
-                  "sandbox/secured-access",
-                  "sandbox/workload-identity"
+                  "sandbox/secured-access"
                 ]
               },
               {
@@ -161,6 +160,20 @@
                   "network/ip-tunneling",
                   "network/byop",
                   "network/custom-domain"
+                ]
+              },
+              {
+                "group": "Secrets & Identity",
+                "expanded": false,
+                "pages": [
+                  "secrets",
+                  "secrets/create",
+                  "secrets/inject",
+                  "secrets/rotate",
+                  "secrets/delete",
+                  "secrets/list",
+                  "secrets/limits",
+                  "iam/workload-identity"
                 ]
               },
               {
@@ -5716,6 +5729,11 @@
     {
       "source": "/legacy/sandbox/api/url",
       "destination": "/network/public-url",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/workload-identity",
+      "destination": "/iam/workload-identity",
       "permanent": true
     },
     {
