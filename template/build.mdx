@@ -14,6 +14,7 @@ The `build` method builds the template and waits for the build to complete. It r
 const buildInfo = await Template.build(template, 'my-template', {
   cpuCount: 2, // CPU cores
   memoryMB: 2048, // Memory in MB
+  minFreeDiskMb: 2048, // Minimum free disk space after the build, in MiB
   skipCache: false, // Configure cache skip (except for files)
   onBuildLogs: defaultBuildLogger(), // Log callback receives LogEntry objects
   apiKey: 'your-api-key', // Override API key
@@ -29,6 +30,7 @@ build_info = Template.build(
     'my-template',
     cpu_count=2,  # CPU cores
     memory_mb=2048,  # Memory in MB
+    min_free_disk_mb=2048,  # Minimum free disk space after the build, in MiB
     skip_cache=False,  # Configure cache skip (except for files)
     on_build_logs=default_build_logger(),  # Log callback receives LogEntry objects
     api_key="your-api-key",  # Override API key
@@ -40,8 +42,22 @@ build_info = Template.build(
 
 </CodeGroup>
 
+## Minimum free disk space
+
+Use `minFreeDiskMb` in JavaScript or `min_free_disk_mb` in Python to request minimum free disk space after the template's build steps finish. This option is available in the JavaScript and Python SDKs starting with version `2.49.0`, including Python's sync and async build methods.
+
+- Omit the option to use your team's default.
+- Set it to `0` to request no minimum free disk growth.
+- Set a positive integer to request that much free space, in MiB.
+
+With CLI version `2.19.0` or later, use:
+
+```sh
+e2b template create my-template --min-free-disk-mb 2048
+```
+
 <Note>
-**Disk size is not a per-sandbox setting.** Unlike `cpuCount`/`cpu_count` and `memoryMB`/`memory_mb`, there is no disk-size parameter, neither on the template build nor on `Sandbox.create`. A sandbox's disk size is determined by your project's tier limit and applied when the template is built (see [Build limits](/template/quickstart#build-limits)). `diskSizeMB` only ever appears in API response payloads (for example on sandbox and template info), never as an input. To get a larger disk, raise your tier or contact [support@e2b.dev](mailto:support@e2b.dev).
+This is a free-space target for a template build, not a total disk-size setting or an option on `Sandbox.create`. The resulting filesystem includes space used by the template as well as its free space. `diskSizeMB` is an API response field, not a build input. See [Build limits](/template/quickstart#build-limits) for tier limits.
 </Note>
 
 ## Build in background
