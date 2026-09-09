@@ -15,12 +15,25 @@ This lets you integrate E2B telemetry with your existing monitoring and observab
 
 Exported telemetry mirrors the metrics and logs available in the E2B dashboard.
 
-- Metrics are emitted under the `e2b.*` namespace.
-- Logs include `service_name: e2b`.
+### Metrics
 
-Metrics include sandbox resource usage, such as CPU and memory usage. These metrics help you monitor sandbox health and capacity from your existing observability tools.
+E2B sends the following metrics to your endpoint. Each metric retains its name.
 
-Logs include sandbox lifecycle events, such as sandbox start and stop events, along with other sandbox actions. These logs help you correlate sandbox activity with application behavior and infrastructure events.
+- `e2b.sandbox.cpu.used` (`Gauge`) — CPU usage as a percentage.
+- `e2b.sandbox.cpu.total` (`Gauge`) — vCPUs allocated to the sandbox.
+- `e2b.sandbox.ram.used` (`Gauge`) — memory used, in bytes.
+- `e2b.sandbox.ram.total` (`Gauge`) — memory available, in bytes.
+- `e2b.sandbox.ram.cache` (`Gauge`) — memory used by the page cache, in bytes.
+- `e2b.sandbox.disk.used` (`Gauge`) — disk space used, in bytes.
+- `e2b.sandbox.disk.total` (`Gauge`) — disk space available, in bytes.
+- `e2b.team.sandbox.created` (`Counter`) — sandboxes started for the team.
+- `e2b.team.sandbox.running` (`Gauge`) — number of sandboxes currently running for the team.
+
+Each sandbox metric includes the `sandbox_id`, `team_id`, `build_id`, and `sandbox_type` attributes. Each team metric includes `team_id`.
+
+### Logs
+
+Logs include `service_name: e2b`. They include sandbox lifecycle events, such as sandbox start and stop events, along with other sandbox actions. These logs help you correlate sandbox activity with application behavior and infrastructure events.
 
 E2B sends telemetry using OTLP over HTTP/protobuf. Your endpoint should accept OTLP HTTP metrics and logs traffic, such as `/v1/metrics` and `/v1/logs` paths on an OpenTelemetry Collector.
 
