@@ -5,6 +5,51 @@ rss: true
 "og:image": "/images/og/changelog.png"
 ---
 
+<Update label="September 7, 2026" description="Workspaces rollout, Cursor integration, and sandbox improvements" tags={["Dashboard", "Integrations", "API", "SDK", "Self-hosted"]} rss={{ title: "Workspaces & Cursor Integration", description: "Workspaces are rolling out in the console, and new templates connect Cursor Self-Hosted Machines to E2B. This week also adds HTTPS backend ports, higher Python SDK concurrency, and new integration guides." }}>
+
+## Workspaces & Cursor Integration
+
+Workspaces are rolling out in the console, and new templates connect Cursor Self-Hosted Machines to E2B. This week also adds HTTPS backend ports, higher Python SDK concurrency, and new integration guides.
+
+### Workspaces are rolling out
+
+[Workspaces](/workspaces) bring your projects and access management into one place in the E2B Console. Add members to a workspace to give them access to all its projects, or add them to an individual project. Existing projects and API keys keep working, and billing remains per project.
+
+### Cursor self-hosted agents on E2B
+
+Run Cursor Self-Hosted Machines on E2B with the new `cursor-agents` dispatcher and `cursor-agents-worker` templates. The dispatcher creates a dedicated worker sandbox for each request. Requires Cursor Enterprise with Self-Hosted Machines enabled and a service-account API key. Follow the [Cursor setup guide](/agents/cursor).
+
+### HTTPS backend ports on sandbox create
+
+Sandbox creation accepts a `network.httpsPorts` list naming the ports the platform connects to over HTTPS, so a service inside the sandbox that only serves TLS can sit behind its public URL instead of failing with a 502. The list survives pause and resume and is returned on sandbox reads. ([`b5f419a`](https://github.com/e2b-dev/infra/commit/b5f419a2b122f8ff881497681bde0d109cbbf0fe))
+
+### Higher stream concurrency in the Python SDK
+
+The Python SDK now spreads each sandbox's command and file traffic across four connection pools by default, so running more than 100 concurrent operations in one process no longer stalls behind a single connection's stream limit. Set `E2B_ENVD_POOL_SHARDS` before importing `e2b` for more headroom. Shipped in the Python SDK 2.46.4. ([#1793](https://github.com/e2b-dev/E2B/pull/1793))
+
+### Self-hosted deployments without Loki
+
+Self-hosted deployments can now run without a Loki instance: the `LOKI_URL` variable is optional, and the new `LOGS_READ_CONFIG` variable selects the backend used for reading sandbox logs. ([`8006b78`](https://github.com/e2b-dev/infra/commit/8006b7863ee201e60a25e83e5d9cb6ab364e98b0))
+
+### Dashboard sandbox quickstart
+
+The dashboard now opens on the sandbox list, and when a project has no running or paused sandboxes the list shows a quickstart with copyable CLI, JavaScript, and Python steps for creating a first sandbox from the `base` template.
+
+### New integration guides
+
+New guides cover [Agno](/agents/agno), [NVIDIA NeMo Gym](/agents/nemo-gym), and [Muse Code](/agents/muse).
+
+### Fixes
+
+- Template builds from minimal RPM-family base images, such as Rocky Linux minimal or UBI, no longer fail during the final build step. ([`12ee9b1`](https://github.com/e2b-dev/infra/commit/12ee9b1062d59a76c5d6b2df26e3e53c66fdbc08))
+- Fixed commands in a resumed sandbox running as root instead of the sandbox's default user after a platform upgrade. Affected sandboxes recover on their next resume. ([`972e9d3`](https://github.com/e2b-dev/infra/commit/972e9d33bcaa37349c4d81608b45dd4c4a6cb33e))
+- Fixed log lines written shortly before a pause being dropped from sandbox logs after resume. ([`e915d32`](https://github.com/e2b-dev/infra/commit/e915d32bfc471a5e102419549db4ab977efa027c))
+- Fixed sandbox pause reporting a failure when a process inside the sandbox exited while the pause was in progress. ([`27eefde`](https://github.com/e2b-dev/infra/commit/27eefded9fc16f0043c023222eec18882c08862c))
+- Volume uploads rejected mid-transfer now return the actual rejection status instead of a generic failure.
+- Reliability and security hardening across platform services, including dependency and base image CVE patches.
+
+</Update>
+
 <Update label="August 31, 2026" description="Wildcard transform rules and API key validation" tags={["SDK", "CLI", "API", "Self-hosted"]} rss={{ title: "Wildcard Transform Rules & Server-Side API Key Validation", description: "This week improves sandbox networking and authentication with wildcard domains in transform rules, server-side API key validation, and readable proxy errors for browser requests." }}>
 
 ## Wildcard Transform Rules & Server-Side API Key Validation
