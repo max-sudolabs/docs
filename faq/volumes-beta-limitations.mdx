@@ -1,0 +1,19 @@
+---
+title: "Volumes beta limitations"
+sidebarTitle: Volumes beta limitations
+description: "Current Volumes beta limits and practical tips for using them."
+"og:image": "/images/og/generated/faq/volumes-beta-limitations.png"
+---
+
+During the private beta, you may run into the limitations below. We aim to address them before general availability.
+
+- **File locking can hang.** Keep SQLite databases and tools that use `flock()` or `fcntl()` locks on local disk. Store their results or completed database snapshots on the volume.
+- **File metadata caching is disabled.** Repeated file lookups and metadata checks incur network overhead, so workloads with many small operations can be slow. Run builds, package installs, and Git operations on local disk, then copy the output to the volume.
+- **Stale file handles can occur.** Heavy file creation, renaming, or deletion can cause `ESTALE` errors. Reopening the file by path and retrying can help.
+- **Volume read/write permission bits are not enforced between Linux users.** Even with `chmod 000`, another user in the same sandbox can read or modify the file. Execute permission checks still apply.
+- **Mounts are set at sandbox creation.** You cannot add or replace them through resume, connect, or fork. Resume restores the original mounts.
+- **Volumes can be deleted while mounted.** Deleting a mounted volume can cause filesystem errors and prevent paused sandboxes from resuming. Save needed data and kill all sandboxes using the volume before deleting it.
+- **File watchers miss external changes.** Watching requires an [explicit opt-in](/filesystem/watch#watching-network-filesystem-mounts) and envd `0.6.4` or later. Changes from other sandboxes or standalone volume writes do not trigger events.
+- **`df` does not show real usage.** Its reported capacity and used space do not reflect your volume's storage.
+- **US and EU only on managed cloud.** Volumes are not available in APAC.
+- **Missing features.** The API and SDKs do not support snapshots, server-side copies, or read-only mounts. To [migrate data](/volumes/migrate), mount both volumes in a sandbox and copy between them.

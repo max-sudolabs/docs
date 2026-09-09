@@ -5464,6 +5464,12 @@
             ]
           },
           {
+            "group": "Storage & volumes",
+            "pages": [
+              "faq/volumes-beta-limitations"
+            ]
+          },
+          {
             "group": "Networking & deployment",
             "pages": [
               "faq/eu-region",
