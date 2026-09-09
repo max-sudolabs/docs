@@ -451,4 +451,4 @@ sandbox.update_network({"allow_internet_access": False})
 
 Per-host rules in `network.rules` can be changed on a running sandbox, and are replaced rather than merged like the rest of the egress configuration. An update that omits `rules` therefore clears every rule.
 
-Create-only options such as `allowPublicTraffic` / `allow_public_traffic` and `maskRequestHost` / `mask_request_host` cannot be changed after the sandbox is created.
+Create-only options such as `allowPublicTraffic` / `allow_public_traffic`, `maskRequestHost` / `mask_request_host`, and `httpsPorts` / `https_ports` cannot be changed after the sandbox is created.

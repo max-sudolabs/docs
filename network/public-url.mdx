@@ -170,3 +170,77 @@ sandbox = Sandbox.create(
 </CodeGroup>
 
 The `${PORT}` variable in the mask will be automatically replaced with the actual port number of the requested service.
+
+## Connecting to HTTPS servers inside the sandbox
+
+By default, the E2B proxy connects to the service inside the sandbox over plain HTTP. If the service listening on a port serves HTTPS (TLS) itself, list that port in the `httpsPorts` / `https_ports` option so the proxy connects to it over HTTPS instead. The public URL is HTTPS either way.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+// Port 8443 serves HTTPS inside the sandbox
+const sandbox = await Sandbox.create({
+  network: {
+    httpsPorts: [8443]
+  }
+})
+
+// Generate a self-signed certificate and start an HTTPS server on port 8443
+await sandbox.commands.run(
+  'openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 1 -nodes -subj "/CN=localhost"'
+)
+await sandbox.files.write('server.py', `
+import http.server, ssl
+server = http.server.HTTPServer(('0.0.0.0', 8443), http.server.SimpleHTTPRequestHandler)
+context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+context.load_cert_chain('cert.pem', 'key.pem')
+server.socket = context.wrap_socket(server.socket, server_side=True)
+server.serve_forever()
+`)
+await sandbox.commands.run('python3 server.py', { background: true })
+
+// The public URL now proxies to the HTTPS server on port 8443
+const url = `https://${sandbox.getHost(8443)}`
+const response = await fetch(url)
+console.log('Response from server inside sandbox:', await response.text())
+```
+```python Python
+import requests
+from e2b import Sandbox
+
+# Port 8443 serves HTTPS inside the sandbox
+sandbox = Sandbox.create(
+    network={
+        "https_ports": [8443]
+    }
+)
+
+# Generate a self-signed certificate and start an HTTPS server on port 8443
+sandbox.commands.run(
+    'openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 1 -nodes -subj "/CN=localhost"'
+)
+sandbox.files.write("server.py", """
+import http.server, ssl
+server = http.server.HTTPServer(('0.0.0.0', 8443), http.server.SimpleHTTPRequestHandler)
+context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+context.load_cert_chain('cert.pem', 'key.pem')
+server.socket = context.wrap_socket(server.socket, server_side=True)
+server.serve_forever()
+""")
+sandbox.commands.run("python3 server.py", background=True)
+
+# The public URL now proxies to the HTTPS server on port 8443
+url = f"https://{sandbox.get_host(8443)}"
+response = requests.get(url)
+print("Response from server inside sandbox:", response.text)
+```
+</CodeGroup>
+
+The certificate served by the sandbox is not verified, so self-signed certificates work. Ports not listed in `httpsPorts` / `https_ports` keep being proxied over plain HTTP.
+
+<Note>
+This is not TLS passthrough. Requests to the public URL are still terminated at the E2B proxy and re-encrypted on the hop to the sandbox, so [public access restrictions](/network/restrict-public-access) and [request host masking](#masking-request-host-headers) apply to HTTPS ports as well.
+</Note>
+
+The configured ports are returned in the `network` field of the sandbox info (`getInfo()` / `get_info()`), and cannot be changed after the sandbox is created.
