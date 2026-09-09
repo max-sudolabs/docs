@@ -41,6 +41,19 @@ print(result.stdout)  # Hello from E2B!
 ```
 </CodeGroup>
 
+The [Code Interpreter](/code-interpreting/analyze-data-with-ai) and [Desktop](/use-cases/computer-use) SDKs export the same client from their own package entrypoint, with the package's `Sandbox` bound to it instead of the core one.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { E2B } from '@e2b/code-interpreter'
+import { E2B } from '@e2b/desktop'
+```
+```python Python
+from e2b_code_interpreter import E2B
+from e2b_desktop import E2B
+```
+</CodeGroup>
+
 The classes exposed by the client behave exactly like the top-level exports of the same name — only the defaults change. You can also destructure them and use them as usual.
 
 <CodeGroup>
