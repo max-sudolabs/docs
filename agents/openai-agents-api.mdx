@@ -1,0 +1,229 @@
+---
+title: "OpenAI Agents API"
+description: "Run OpenAI Agents API sessions in isolated E2B sandboxes."
+icon: "/images/icons/openai-agents-sdk.svg"
+"og:image": "/images/og/generated/agents/openai-agents-api.png"
+---
+
+The [OpenAI Agents API](https://platform.openai.com/docs) (preview) runs the
+agent in OpenAI's cloud and keeps its session state. With a self-hosted
+environment, the agent's shell commands and file edits run in an E2B sandbox.
+OpenAI supports two ways to provision that sandbox:
+
+- **Application-managed**: your application calls the E2B SDK to start,
+  connect, and stop the sandbox. The **Agents API Workbench** in the E2B
+  cookbook is built this way.
+- **Webhook-managed**: a controller deployed in your E2B account reacts to
+  OpenAI webhooks and creates a dedicated worker sandbox for each session. Your
+  application only talks to the Agents API and never imports the E2B SDK. The
+  [E2B webhook-managed example](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/openai-agents-api-python-sdk-webhook-managed)
+  is the E2B variant of the handler OpenAI ships.
+
+Try the application-managed Agents API Workbench first. Create the sandbox and
+connect to its terminal with the E2B CLI:
+
+```bash
+e2b sandbox create openai-agents-api-python-sdk
+```
+
+When the workbench is ready, the terminal prints a single-use link to its UI.
+Enter your OpenAI and E2B keys there and start a chat; each chat gets its own
+Agents API session and its own worker sandbox. The rest of this page is the
+quick start for the webhook-managed flow.
+
+<Note>
+The Agents API is in preview. Your OpenAI project needs Agents API access, and
+the `agent_api_sdk` Python package installs from the
+[preview repository](https://github.com/OpenAI-Early-Access/agents-api-python-preview)
+rather than PyPI.
+
+Looking for the open-source agent framework instead? See
+[OpenAI Agents SDK](/agents/openai-agents-sdk).
+</Note>
+
+## Prerequisites
+
+- an E2B API key
+- an OpenAI project with Agents API access
+- an OpenAI **application key** with **Responses → Write**, used to create sessions
+- a restricted OpenAI **executor key** with only **List models → Read**, created in
+  the same organization, project, and user or service account as the application key
+- [uv](https://docs.astral.sh/uv/); every script declares its dependencies inline
+
+The executor key is the only credential that enters a worker sandbox, as
+`CODEX_API_KEY`. Agent-generated code can read it, so keep the application key
+out of workers entirely.
+
+## Webhook-managed: set up the controller
+
+Run everything from the webhook-managed example directory. `.env` is gitignored and
+holds the five values below.
+
+```bash
+git clone https://github.com/e2b-dev/e2b-cookbook
+cd e2b-cookbook/examples/openai-agents-api-python-sdk-webhook-managed
+cp .env.example .env
+```
+
+| `.env` | Value |
+| --- | --- |
+| `OPENAI_API_KEY` | application key; creates sessions and reads their state |
+| `OPENAI_EXECUTOR_API_KEY` | restricted executor key; the only key that enters a worker |
+| `E2B_API_KEY` | creates the controller and worker sandboxes |
+| `OPENAI_AGENT_ID` | printed by step 1 |
+| `OPENAI_WEBHOOK_SECRET` | printed by OpenAI in step 4; stays valid across redeploys |
+
+<Steps>
+  <Step title="Create an agent: once, prints the agent ID">
+    The controller only manages sessions of this one agent. Put the printed ID
+    in `.env` as `OPENAI_AGENT_ID`.
+
+    ```bash
+    uv run --env-file .env client.py --create-agent openai-agents-api-python-sdk-webhook-managed
+    ```
+  </Step>
+  <Step title="Build the worker template: once per Codex version, ~3 min">
+    Workers boot from `openai-agents-api-python-sdk-webhook-managed` with
+    `codex exec-server` baked in, so a session's first turn does not pay for an
+    npm install. Rebuild only after bumping `CODEX_VERSION` in
+    `build_template.py`.
+
+    ```bash
+    uv run --env-file .env build_template.py
+    ```
+  </Step>
+  <Step title="Start the controller: ~1 min, prints the webhook URL">
+    Leave `OPENAI_WEBHOOK_SECRET` empty the first time.
+
+    ```bash
+    uv run --env-file .env deploy.py
+    # Webhook: https://8000-<controller-id>.e2b.app/webhook
+    ```
+
+    The controller ID is saved to the gitignored `.controller.json`. Rerunning
+    `deploy.py` reuses that sandbox, extends its one-hour timeout, and restarts
+    the handler with the current `.env`. If that sandbox is gone, it creates a
+    new one and prints the new webhook URL.
+
+    `uv run --env-file` does not override variables already exported in your
+    shell. If `E2B_API_KEY` is exported there, that key wins over `.env`.
+  </Step>
+  <Step title="Register the webhook: OpenAI platform, paste the URL">
+    In **Project settings → Webhooks** of the project that owns
+    `OPENAI_API_KEY`, add the URL and subscribe to
+    `agent.session.action_required` and `agent.session.failed`. Put the
+    generated signing secret in `.env` and redeploy to the same controller:
+
+    ```bash
+    uv run --env-file .env deploy.py
+    ```
+
+    A webhook in another project of the same organization is never delivered.
+    E2B's own [sandbox lifecycle webhooks](/sandbox/lifecycle-events-webhooks)
+    are unrelated to this step.
+  </Step>
+  <Step title="Health check: no side effects">
+    ```bash
+    curl -sS https://8000-<controller-id>.e2b.app/health
+    # {"ok":true}
+    curl -sS -X POST https://8000-<controller-id>.e2b.app/webhook -d '{}'
+    # {"error":"Invalid signature"}
+    ```
+  </Step>
+</Steps>
+
+## Webhook-managed: run a session
+
+<Steps>
+  <Step title="New session: one OpenAI session + one E2B worker, ~40 s">
+    The first line printed is `{"session_id": "sess_..."}`. Keep it.
+
+    ```bash
+    set -a; . ./.env; set +a
+    uv run --env-file .env client.py --agent-id "$OPENAI_AGENT_ID" \
+      --input "Write hello to /workspace/hello.txt, then read it."
+    ```
+
+    Behind the ~40 s: the client posts input, OpenAI sends
+    `agent.session.action_required` to the controller, the controller creates
+    the worker and launches `codex exec-server` inside it, the executor connects
+    out to OpenAI, and the turn runs in `/workspace`.
+  </Step>
+  <Step title="Follow-up: same worker, starts immediately">
+    `SESSION_ID` is the first line printed by the previous step.
+
+    ```bash
+    uv run --env-file .env client.py --session-id "$SESSION_ID" \
+      --input "Read /workspace/hello.txt again."
+    ```
+  </Step>
+  <Step title="Cleanup: no deletion webhook, release both sides">
+    Deleting a session does not stop its sandbox.
+
+    ```bash
+    uv run --env-file .env client.py --session-id "$SESSION_ID" --delete
+    e2b sandbox list                 # workers carry metadata agents-session-id
+    e2b sandbox kill <worker-id>     # including paused workers
+    ```
+  </Step>
+  <Step title="New controller: ~1 min, prints a new webhook URL">
+    After the controller's one-hour timeout expires, rerun the deploy. It sees
+    the old sandbox is gone, starts a fresh one, and prints a new URL. Paste it
+    into the existing OpenAI webhook. The signing secret does not change.
+
+    ```bash
+    uv run --env-file .env deploy.py
+    ```
+  </Step>
+</Steps>
+
+## Lifecycle
+
+Workers stay running between turns and have a 30-minute timeout, refreshed on
+every reconnect. Pause a worker with `e2b sandbox pause <id>` and the next input
+resumes it with files intact. A killed worker is replaced by a fresh sandbox
+without the previous files.
+
+When a session fails, the controller pauses its worker instead of killing it,
+so you can inspect the sandbox afterwards. Kill it when done.
+
+OpenAI traffic cannot wake a paused or expired controller. Rerun `deploy.py`
+before the hour is up to extend it, or start a new controller as above. Remove
+the OpenAI webhook before killing the controller for good.
+
+## Application-managed: Agents API Workbench
+
+If you want the agent's events in your own process, for a live UI or for
+function tools, your application creates the worker and starts the executor
+itself. The [Agents API Workbench](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/openai-agents-api-python-ask)
+behind the `openai-agents-api-python-sdk` template does exactly that: a Flask
+backend that runs one executor sandbox per chat, and a React frontend with a
+streaming transcript and a live `/workspace` file viewer.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Every session fails after five minutes with 500 internal_error">
+    The webhook points at a dead or wrong controller. Confirm the URL in OpenAI
+    matches the controller printed by the last `deploy.py`, that it is
+    registered in the project that owns the application key, and that
+    `OPENAI_AGENT_ID` matches the agent the session was created for.
+  </Accordion>
+  <Accordion title="The webhook returns 503 Webhook not configured">
+    `OPENAI_WEBHOOK_SECRET` is empty in the controller. Put the signing secret
+    in `.env` and run `deploy.py` again.
+  </Accordion>
+  <Accordion title="The agent says shell access is unavailable">
+    Input within about three minutes of killing or pausing a worker arrives
+    before OpenAI notices the executor is offline, so no reconnect webhook
+    fires and the turn runs without a shell. The session may keep declining to
+    use the shell afterwards. Wait, or start a new session.
+  </Accordion>
+  <Accordion title="Inspect the controller and workers">
+    The controller writes JSON lines for `enqueued`, `started`, and `paused` to
+    `/app/controller.log`. Each worker writes the executor output to
+    `/tmp/codex-executor.log`. Find them by metadata:
+    `agents-webhook-controller=e2b` for the controller and
+    `agents-session-id=<session>` for workers.
+  </Accordion>
+</AccordionGroup>
