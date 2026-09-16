@@ -91,7 +91,7 @@ sandbox = Sandbox.create(template="your-template-id-or-name", timeout=600)
 | Sandbox lifecycle | Yours to manage (`Sandbox.create()` / `sandbox.kill()`) | Per-thread persistent sandbox, reconnect by ID, auto-recreate |
 | Use it when | Building any custom agent that needs isolated code execution | You want a GitHub/Slack/Linear-driven coding agent for your org |
 
-Use this page's approach for custom agents; if you're deploying a coding agent for your team, start from [Open SWE](/agents/open-swe) instead.
+Use this page's approach for custom agents; if you're deploying a coding agent for your team, start from [Open SWE](/agents/open-swe) instead. If you are writing the graph yourself rather than using a harness, see [LangGraph](/agents/langgraph) — it covers keeping one sandbox alive across graph steps, checkpoints and interrupts.
 
 ## Learn more
 
@@ -110,5 +110,8 @@ Use this page's approach for custom agents; if you're deploying a coding agent f
   </Card>
   <Card title="Open SWE" icon="/images/icons/open-swe.svg" href="/agents/open-swe">
     LangChain's coding agent framework with E2B built in
+  </Card>
+  <Card title="LangGraph" icon="/images/icons/langgraph.svg" href="/agents/langgraph">
+    E2B as a tool inside a graph you write yourself
   </Card>
 </CardGroup>

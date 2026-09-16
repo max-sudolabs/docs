@@ -264,6 +264,7 @@
               "agents/muse",
               "agents/pi",
               "agents/prime",
+              "agents/langgraph",
               "agents/deep-agents",
               "agents/open-swe",
               "agents/eve",
