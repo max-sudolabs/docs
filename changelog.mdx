@@ -5,6 +5,46 @@ rss: true
 "og:image": "/images/og/changelog.png"
 ---
 
+<Update label="September 14, 2026" description="E2B Embed, automatic 429 retries, and OpenAI Agents API examples" tags={["SDK", "CLI", "API", "Self-hosted", "Integrations", "Docs"]} rss={{ title: "E2B Embed & Automatic 429 Retries", description: "This week adds E2B Embed, automatic SDK retries, and an OpenAI Agents API guide with public examples." }}>
+
+## E2B Embed & Automatic 429 Retries
+
+This week adds E2B Embed, automatic SDK retries, and an OpenAI Agents API guide with public examples.
+
+### E2B Embed for self-hosted deployments
+
+Run E2B on your infrastructure with Docker Compose, Terraform, or Kubernetes deployments and pinned service images. ([`c20cb30`](https://github.com/e2b-dev/infra/commit/c20cb3049f34011eb9704445fa08c09baf24a480), [`7278c2a`](https://github.com/e2b-dev/infra/commit/7278c2a380767c9989da73cf4c04b1af1b32da18))
+
+### Automatic 429 retries in the SDKs
+
+Control plane HTTP requests retry up to three times on 429, honoring delta-seconds `Retry-After`. Configure or disable with `retries`. Sandbox command, filesystem, and volume content requests are not retried. Shipped in the JavaScript and Python SDKs 2.49.1. ([#1848](https://github.com/e2b-dev/E2B/pull/1848), [#1862](https://github.com/e2b-dev/E2B/pull/1862))
+
+### Configurable minimum free disk on template create
+
+Set a [template build](/template/build) free-disk target with `minFreeDiskMb` (JavaScript), `min_free_disk_mb` (Python), or `--min-free-disk-mb` (CLI). Omission uses the project default. Zero requests no minimum growth. Shipped in the JavaScript and Python SDKs 2.49.0 and CLI 2.19.0. ([#1845](https://github.com/e2b-dev/E2B/pull/1845))
+
+### Dedicated E2B client on Desktop and Code Interpreter
+
+The Desktop and Code Interpreter `E2B` clients bind API keys and domains explicitly. Per-call options take precedence, and clients stay isolated. Shipped in Desktop 2.4.0, desktop-python 2.5.0, code-interpreter 2.8.0, and code-interpreter-python 2.10.0. ([#1783](https://github.com/e2b-dev/E2B/pull/1783), [#1784](https://github.com/e2b-dev/E2B/pull/1784))
+
+### Sharper SDK error surface
+
+HTTP 503 raises `ServiceBusyError` or `ServiceBusyException`. API errors expose `statusCode` or `status_code`. `Sandbox.create` and `Sandbox.connect` reject invalid `onTimeout` and `onResume` values. Shipped in the JavaScript and Python SDKs 2.48.0 and 2.49.1. ([#1832](https://github.com/e2b-dev/E2B/pull/1832), [#1822](https://github.com/e2b-dev/E2B/pull/1822), [#1853](https://github.com/e2b-dev/E2B/pull/1853))
+
+### New integration and reference guides
+
+The [OpenAI Agents API guide](/agents/openai-agents-api) includes public Workbench and webhook-managed examples. Requires OpenAI Agents API preview access. New reference docs cover [Volumes beta limitations](/faq/volumes-beta-limitations), [Secrets management and injection](/secrets), and [exported OTel metrics](/sandbox/otel-telemetry-export). Volumes and Secrets remain in private beta.
+
+### Fixes
+
+- Desktop `Sandbox.create()` waits for the desktop session to be ready and cleans up on startup failure. Shipped in Desktop JavaScript 2.4.0 and Python 2.5.0. ([#1794](https://github.com/e2b-dev/E2B/pull/1794))
+- Self-hosted `REDIS_URL` accepts passwords in `redis://` and `rediss://` URLs without exposing raw URLs in parse errors. ([`29462af`](https://github.com/e2b-dev/infra/commit/29462afe56fd06b10b77e5ae2cf0b07a1c313f7d), [`ae13f0c`](https://github.com/e2b-dev/infra/commit/ae13f0cbe5d5d11d4c947a07e73b299370475e81))
+- Fixed openssh upgrades blocking template builds on configuration-file prompts. ([`52df1d9`](https://github.com/e2b-dev/infra/commit/52df1d987c47cd3cdde92d828a59b1e64b8bbf38))
+- CLI 2.18.2 skips update checks when `NO_UPDATE_NOTIFIER` is set. ([#1837](https://github.com/e2b-dev/E2B/pull/1837))
+- Reliability and security hardening across platform services, including dependency and base image CVE patches.
+
+</Update>
+
 <Update label="September 7, 2026" description="Workspaces rollout, Cursor integration, and sandbox improvements" tags={["Dashboard", "Integrations", "API", "SDK", "Self-hosted"]} rss={{ title: "Workspaces & Cursor Integration", description: "Workspaces are rolling out in the console, and new templates connect Cursor Self-Hosted Machines to E2B. This week also adds HTTPS backend ports, higher Python SDK concurrency, and new integration guides." }}>
 
 ## Workspaces & Cursor Integration
