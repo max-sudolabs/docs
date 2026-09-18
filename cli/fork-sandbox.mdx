@@ -1,0 +1,38 @@
+---
+title: "Fork sandbox"
+"og:image": "/images/og/generated/cli/fork-sandbox.png"
+---
+
+You can fork a running sandbox into one or more new sandboxes with the `e2b sandbox fork` (alias `fk`) command.
+
+<CodeGroup>
+```bash Terminal
+e2b sandbox fork <sandboxID>
+```
+</CodeGroup>
+
+The sandbox is snapshotted in place — paused, captured with its full filesystem and memory state, and resumed — and the new sandbox boots from that snapshot. The original sandbox keeps running with its ID and expiration untouched. Learn more about [sandbox forking](/sandbox/fork).
+
+The command prints the ID of each new sandbox on its own line, so you can pass it to other commands:
+
+```bash
+e2b sandbox connect $(e2b sandbox fork <sandboxID>)
+```
+
+### Create multiple forks
+
+To boot several sandboxes from the same snapshot, use the `--count` flag. The snapshot is captured once regardless of the count.
+
+```bash
+e2b sandbox fork <sandboxID> --count 3
+```
+
+Each fork succeeds or fails independently. The IDs of the forks that started are printed to stdout, a message for each fork that failed is printed to stderr, and the command exits with a non-zero status if any fork failed.
+
+### Fork timeout
+
+To set how long the forked sandboxes live, use the `--timeout` flag with a value in seconds. It defaults to 5 minutes and applies to the forks only — the original sandbox's expiration is not changed.
+
+```bash
+e2b sandbox fork <sandboxID> --timeout 600
+```

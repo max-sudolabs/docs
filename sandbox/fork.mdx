@@ -76,6 +76,14 @@ forks = Sandbox.fork(sandbox_id)
 ```
 </CodeGroup>
 
+You can also fork a sandbox from the terminal with the [E2B CLI](/cli/fork-sandbox). The command prints the ID of each new sandbox on its own line.
+
+<CodeGroup>
+```bash Terminal
+e2b sandbox fork <sandboxID>
+```
+</CodeGroup>
+
 ## Create multiple forks
 
 Use `count` to boot several sandboxes from the same snapshot in one call. You can request up to 100 forks at once.
