@@ -1,5 +1,5 @@
 ---
-title: "Bring your own proxy"
+title: "Bring your own proxy (BYOP)"
 sidebarTitle: "Bring your own proxy"
 description: "Route outbound sandbox traffic through a SOCKS5 proxy you run"
 "og:image": "/images/og/generated/network/byop.png"
@@ -10,7 +10,7 @@ Bring your own proxy is currently in private beta.
 If you'd like access, please reach out to us at [support@e2b.dev](mailto:support@e2b.dev).
 </Note>
 
-You can give E2B the address of a SOCKS5 proxy you operate, and every outbound TCP connection from the sandbox is dialed through it.
+With Bring your own proxy (BYOP), you can route outbound TCP connections from your sandbox through a SOCKS5 proxy you operate.
 
 Unlike [proxy tunneling](/network/ip-tunneling), nothing runs inside the sandbox. There is no custom template, no proxy client, and no in-guest configuration, so the code running in the sandbox cannot see the proxy or route around it.
 
@@ -24,7 +24,7 @@ Typical reasons to use it:
 
 - **Tunneling happens on the host, after filtering.** Your allow and deny lists are evaluated first, so a connection that `denyOut` blocks never reaches your proxy. See [Internet access](/network/internet-access) for the filtering rules.
 - **TCP only.** UDP based traffic, including DNS and QUIC or HTTP/3, is not tunneled. It leaves the sandbox the usual way and stays subject to your allow and deny lists.
-- **Domain matched connections use remote DNS.** When a connection is allowed by a domain entry in `allowOut`, E2B hands the hostname to your proxy (SOCKS5 `ATYP=domain`) rather than an IP, so your proxy does the final resolution.
+- **Hostname destinations use remote DNS.** When a connection is allowed by a domain entry in `allowOut` and the destination is a hostname, E2B hands that hostname to your proxy (SOCKS5 `ATYP=domain`) so your proxy does the final resolution. An IP-literal destination, including a numeric HTTP `Host` value matched by `'*'`, is sent as a SOCKS5 IP address.
 - **Per-host request transforms still apply.** Header injection and [workload identity](/sandbox/workload-identity) token resolution happen before the connection is dialed through your proxy.
 - **The proxy hostname is re-resolved at dial time** and the resolved address is pinned for that connection, so a DNS change cannot redirect a connection that is already being established.
 - **Egress fails closed.** If the proxy is unreachable, or the address does not speak SOCKS5, outbound connections from the sandbox fail instead of falling back to a direct connection. Make sure the proxy is reachable from the public internet before you point sandboxes at it.
@@ -88,6 +88,53 @@ sandbox = Sandbox.create(
 )
 ```
 </CodeGroup>
+
+### Using a wildcard with BYOP
+
+Add the wildcard and deny-all entry to your proxy configuration:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create({
+  network: {
+    allowOut: ['*'],
+    denyOut: ['0.0.0.0/0'],
+    egressProxy: { address: 'proxy.example.com:1080' },
+  },
+})
+```
+```python Python
+from e2b import Sandbox
+
+sandbox = Sandbox.create(
+    network={
+        "allow_out": ["*"],
+        "deny_out": ["0.0.0.0/0"],
+        "egress_proxy": {"address": "proxy.example.com:1080"},
+    }
+)
+```
+</CodeGroup>
+
+Inside this sandbox, use ordinary requests without client-side proxy flags:
+
+```bash
+# Through BYOP: the destination sees your proxy's egress IP
+curl --max-time 10 https://api.ipify.org
+
+# Through BYOP: destination IP 1.1.1.1, port 80
+# Your proxy policy can reject this IP-literal destination
+curl --max-time 10 http://1.1.1.1
+
+# Blocked before BYOP: no TLS SNI and no IP allowance
+curl --max-time 10 https://1.1.1.1
+```
+
+<Note>
+UDP DNS to `8.8.8.8:53` leaves directly, outside BYOP, because of the automatic nameserver allowance. Your proxy's policy does not apply to it. See [Catch-all wildcard](/network/internet-access#catch-all-wildcard) for filtering details.
+</Note>
 
 ### Fields
 
