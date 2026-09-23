@@ -5,6 +5,34 @@ rss: true
 "og:image": "/images/og/changelog.png"
 ---
 
+<Update label="September 21, 2026" description="V2 sandbox endpoints and CLI sandbox fork" tags={["SDK", "CLI", "API", "Self-hosted"]} rss={{ title: "V2 Sandbox Endpoints & CLI Sandbox Fork", description: "This week adds v2 sandbox create and connect endpoints in the SDKs and a CLI command to fork sandboxes." }}>
+
+## V2 Sandbox Endpoints & CLI Sandbox Fork
+
+This week adds v2 sandbox create and connect endpoints in the SDKs and a CLI command to fork sandboxes.
+
+### V2 sandbox create and connect endpoints
+
+`Sandbox.create` and `Sandbox.connect` now call `POST /v2/sandboxes` and `POST /v2/sandboxes/{id}/connect`, and the SDKs stop presetting `timeout`, `allow_internet_access`, `count`, `memory`, `cpuCount`, and `memoryMB` when you omit them, so the API defaults apply. Every sandbox is secured, and the `secure` option is accepted but ignored. Shipped in the JavaScript and Python SDKs 2.51.0 and desktop-python 2.6.0. ([#1749](https://github.com/e2b-dev/E2B/pull/1749), [`f5dc642`](https://github.com/e2b-dev/runtime/commit/f5dc6426ef45b6b286ff60c11fc6bba7e00db95e))
+
+### Fork sandboxes from the CLI
+
+The [`e2b sandbox fork`](/cli/fork-sandbox) command, aliased `sbx fk`, forks a running sandbox into one or more new sandboxes and prints each new ID on its own line. Configure the count with `-n` or `--count` and the fork timeout with `--timeout`. Shipped in the CLI 2.20.0. ([#1879](https://github.com/e2b-dev/E2B/pull/1879))
+
+### V1 template build removed
+
+The SDKs and CLI drop the V1 template build endpoints from generated clients and remove the hidden `e2b template build` command stub. Build templates with `e2b template create` or the [Template SDK](/template/build). Shipped in the JavaScript and Python SDKs 2.50.0 and CLI 2.19.1. ([#1875](https://github.com/e2b-dev/E2B/pull/1875))
+
+### Fixes
+
+- Fixed browser uploads of non-native `ReadableStream` objects writing the literal text `[object ReadableStream]` instead of the file contents. Shipped in the JavaScript SDK 2.50.0. ([#1609](https://github.com/e2b-dev/E2B/pull/1609))
+- Browser requests interrupted by sandbox termination now report `TimeoutError` when the SDK confirms the sandbox has stopped, instead of a generic network error. Shipped in the JavaScript SDK 2.50.0. ([#1609](https://github.com/e2b-dev/E2B/pull/1609))
+- Fixed an issue where cancelling a pause request could leave its snapshot unavailable for resume. Server shutdown now waits for in-progress pauses before closing the connections they need to save their snapshots. ([`ace695a`](https://github.com/e2b-dev/runtime/commit/ace695a10d3ca731b444c197e9d4fe4237515868), [`0a55a0e`](https://github.com/e2b-dev/runtime/commit/0a55a0ec3141e4c57b8c8d0d45f2c2213b72356a))
+- Fixed the sandbox proxy dropping in-flight connections during shutdown. ([`2b619db`](https://github.com/e2b-dev/runtime/commit/2b619db20ef555514fdadf63edeed72a22db6009))
+- Reliability and security hardening across platform services, including dependency and base image CVE patches.
+
+</Update>
+
 <Update label="September 14, 2026" description="E2B Embed, automatic 429 retries, and OpenAI Agents API examples" tags={["SDK", "CLI", "API", "Self-hosted", "Integrations", "Docs"]} rss={{ title: "E2B Embed & Automatic 429 Retries", description: "This week adds E2B Embed, automatic SDK retries, and an OpenAI Agents API guide with public examples." }}>
 
 ## E2B Embed & Automatic 429 Retries
