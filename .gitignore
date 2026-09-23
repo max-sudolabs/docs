@@ -5,3 +5,6 @@ node_modules
 
 # Generated SDK navigation (intermediate file)
 sdk_navigation.json
+
+# Python generator/test bytecode
+__pycache__/

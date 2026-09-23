@@ -32,6 +32,7 @@ from __future__ import annotations
 import copy
 import os
 import re
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -40,6 +41,9 @@ from glob import glob
 from typing import Any
 
 import yaml
+
+from openapi_platform_responses import apply_platform_response_fixes
+from openapi_sandbox_responses import apply_sandbox_response_fixes
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -82,18 +86,11 @@ plugins:
 
 # Server definitions for the two API surfaces.
 #
-# The latest SDKs reach envd over a single stable host (https://sandbox.<domain>)
-# and route to a specific sandbox/port with the E2b-Sandbox-Id and
-# E2b-Sandbox-Port request headers (see SANDBOX_ROUTING_HEADERS below). The old
-# per-sandbox host (https://{port}-{sandboxID}.<domain>) is no longer used for
-# the envd API; it survives only as the "direct" host for user port-forwarding
-# (sandbox.getHost(port)).
+# Use a concrete server in published examples. Mintlify leaves server-variable
+# placeholders unresolved in generated snippets even when a default is supplied.
 SANDBOX_SERVER = {
-    "url": "https://sandbox.{domain}",
-    "description": "Sandbox API (envd) - runs inside each sandbox",
-    "variables": {
-        "domain": {"default": "e2b.app", "description": "E2B domain"},
-    },
+    "url": "https://sandbox.e2b.app",
+    "description": "Sandbox API (envd) - routes using sandbox ID and port headers",
 }
 
 PLATFORM_SERVER = {
@@ -321,16 +318,14 @@ def docker_fetch_and_generate(envd_commit: str, api_commit: str) -> FetchedSpecs
         os.makedirs(os.path.join(output_dir, subdir), exist_ok=True)
 
     # Build the shell script that runs inside Docker. The two sources are
-    # cloned independently. `--depth 1 --branch` works for branches and tags;
-    # the fallback handles arbitrary commit hashes.
+    # fetched independently. A shallow fetch also supports exact commit pins.
     docker_script = f"""
 set -e
-echo "--- Cloning e2b-dev/E2B (envd specs) at {envd_commit} ---"
-git clone --depth 1 --branch {envd_commit} {SDK_REPO} /sdk 2>/dev/null || {{
-    git clone {SDK_REPO} /sdk
-    cd /sdk
-    git checkout {envd_commit}
-}}
+echo "--- Fetching envd specs ---"
+git init -q /sdk
+cd /sdk
+git fetch --depth 1 {SDK_REPO} {shlex.quote(envd_commit)}
+git checkout -q --detach FETCH_HEAD
 
 echo "--- Copying envd specs ---"
 cp -r /sdk/{SDK_ENVD_SPEC_DIR}/. /output/envd/
@@ -339,12 +334,11 @@ echo "--- Running buf generate ---"
 cd /sdk/{SDK_ENVD_SPEC_DIR}
 buf generate --template /config/buf.gen.yaml
 
-echo "--- Cloning e2b-dev/infra (platform API) at {api_commit} ---"
-git clone --depth 1 --branch {api_commit} {INFRA_REPO} /infra 2>/dev/null || {{
-    git clone {INFRA_REPO} /infra
-    cd /infra
-    git checkout {api_commit}
-}}
+echo "--- Fetching platform spec ---"
+git init -q /infra
+cd /infra
+git fetch --depth 1 {INFRA_REPO} {shlex.quote(api_commit)}
+git checkout -q --detach FETCH_HEAD
 
 echo "--- Copying platform API spec ---"
 cp /infra/{INFRA_API_SPEC} /output/api/openapi.yml
@@ -531,6 +525,7 @@ SANDBOX_ROUTING_HEADERS = [
             f"Port envd listens on inside the sandbox (default {ENVD_PORT_DEFAULT})."
         ),
         "schema": {"type": "integer", "default": ENVD_PORT_DEFAULT},
+        "example": ENVD_PORT_DEFAULT,
     },
 ]
 
@@ -894,58 +889,10 @@ def fix_spec_issues(spec: dict[str, Any]) -> None:
             params.insert(1, connect_timeout_param)
         fixes.append(f"{ep_path}: content-type → application/connect+json, added Connect headers")
 
-    # 6. EndEvent.exitCode not populated - API returns status string instead
-    end_event = schemas.get("process.ProcessEvent.EndEvent")
-    if end_event and "properties" in end_event:
-        ec = end_event["properties"].get("exitCode")
-        if ec:
-            ec["deprecated"] = True
-            ec["description"] = (
-                "Deprecated: not populated by the server. "
-                "Parse the exit code from the `status` string (e.g. \"exit status 0\")."
-            )
-        st = end_event["properties"].get("status")
-        if st and not st.get("description"):
-            st["description"] = (
-                "Process exit status string (e.g. \"exit status 0\"). "
-                "Parse the integer exit code from this field."
-            )
-        fixes.append("EndEvent: marked exitCode as deprecated, documented status string")
-
-    # 7. envdAccessToken description misleading - only returned when secure: true
-    for schema_name in ("Sandbox", "SandboxDetail"):
-        schema = schemas.get(schema_name, {})
-        eat = schema.get("properties", {}).get("envdAccessToken")
-        if eat:
-            eat["nullable"] = True
-            eat["description"] = (
-                "Access token for authenticating envd requests to this sandbox. "
-                "Only returned when the sandbox is created with `secure: true`. "
-                "Null for non-secure sandboxes (envd endpoints work without auth)."
-            )
-    fixes.append("envdAccessToken: clarified secure-only behavior, marked nullable")
-
-    # 8. Sandbox.domain always null - mark as deprecated
-    for schema_name in ("Sandbox", "SandboxDetail"):
-        schema = schemas.get(schema_name, {})
-        dom = schema.get("properties", {}).get("domain")
-        if dom:
-            dom["deprecated"] = True
-            dom["description"] = (
-                "Deprecated: always null. Construct sandbox URLs as "
-                "`https://{port}-{sandboxID}.e2b.app`."
-            )
-    fixes.append("Sandbox.domain: marked as deprecated (always null)")
-
-    # 9. GET /templates/{templateID}/files/{hash} returns 201, not 200
-    files_path = paths.get("/templates/{templateID}/files/{hash}", {})
-    files_get = files_path.get("get")
-    if files_get:
-        responses = files_get.get("responses", {})
-        if "201" in responses and "200" not in responses:
-            responses["200"] = responses.pop("201")
-            responses["200"]["description"] = "Upload link for the tar file containing build layer files"
-            fixes.append("/templates/{templateID}/files/{hash}: changed 201 → 200 response")
+    # Preserve upstream exitCode, sandbox domain and token semantics. Previously
+    # these fields were overwritten from a single observed response. In
+    # particular v2 always returns an envd token and nonzero exitCode is emitted.
+    # Also preserve the upstream 201 upload-link response (verified live).
 
     # 10. Generate operationId for platform endpoints that lack one
     op_id_count = 0
@@ -1036,24 +983,8 @@ def fix_spec_issues(spec: dict[str, Any]) -> None:
                         target["description"] = desc.rstrip() + metrics_desc_suffix
                         fixes.append(f"{ep_path}: completed truncated '{param['name']}' description")
 
-    # 13. sandboxId → sandboxID casing in 502 error schema
-    #     The 502 response defined on /health uses "sandboxId" (lowercase d)
-    health_path = paths.get("/health", {})
-    health_get = health_path.get("get")
-    if health_get:
-        for status_code, resp in health_get.get("responses", {}).items():
-            if not isinstance(resp, dict):
-                continue
-            for ct, media in resp.get("content", {}).items():
-                schema = media.get("schema", {})
-                props = schema.get("properties", {})
-                if "sandboxId" in props and "sandboxID" not in props:
-                    props["sandboxID"] = props.pop("sandboxId")
-                    req = schema.get("required", [])
-                    for i, r in enumerate(req):
-                        if r == "sandboxId":
-                            req[i] = "sandboxID"
-                    fixes.append("502 error schema: sandboxId → sandboxID")
+    # The proxy's 502 payload uses sandboxId (lowercase d). Do not rename it.
+    health_get = paths.get("/health", {}).get("get")
 
     # 14. /health missing security: [] and tags
     if health_get:
@@ -1176,20 +1107,6 @@ def fix_spec_issues(spec: dict[str, Any]) -> None:
                 content["application/json"] = content.pop("application/connect+json")
                 fixes.append(f"/health {status_code}: content-type → application/json")
 
-    # 24. PATCH /templates/{templateID} (deprecated) returns empty object -
-    #     use TemplateUpdateResponse like v2
-    patch_v1_path = paths.get("/templates/{templateID}", {})
-    patch_v1 = patch_v1_path.get("patch")
-    if patch_v1:
-        resp_200 = patch_v1.get("responses", {}).get("200", {})
-        # Replace the entire content dict (don't modify shared YAML anchor object)
-        resp_200["content"] = {
-            "application/json": {
-                "schema": {"$ref": "#/components/schemas/TemplateUpdateResponse"}
-            }
-        }
-        fixes.append("PATCH /templates/{templateID}: response → TemplateUpdateResponse")
-
     # 25. POST /sandboxes/{sandboxID}/refreshes missing 500 response
     refreshes_path = paths.get("/sandboxes/{sandboxID}/refreshes", {})
     refreshes_post = refreshes_path.get("post")
@@ -1240,6 +1157,23 @@ def fix_spec_issues(spec: dict[str, Any]) -> None:
         ("/teams", "get"): "List teams",
         ("/teams/{teamID}/metrics", "get"): "Get team metrics",
         ("/teams/{teamID}/metrics/max", "get"): "Get team metrics max",
+        # Secrets
+        ("/secrets", "get"): "List secrets",
+        ("/secrets", "post"): "Create secret",
+        ("/secrets/{secretID}", "get"): "Get secret",
+        ("/secrets/{secretID}", "post"): "Update secret",
+        ("/secrets/{secretID}", "delete"): "Delete secret",
+        # Events
+        ("/events/sandboxes", "get"): "List events",
+        ("/events/sandboxes/{sandboxID}", "get"): "List sandbox events",
+        # Webhooks
+        ("/events/webhooks", "get"): "List webhooks",
+        ("/events/webhooks", "post"): "Create webhook",
+        ("/events/webhooks/{webhookID}", "get"): "Get webhook",
+        ("/events/webhooks/{webhookID}", "patch"): "Update webhook",
+        ("/events/webhooks/{webhookID}", "delete"): "Delete webhook",
+        ("/events/webhooks/{webhookID}/deliveries", "get"): "List webhook deliveries",
+        ("/events/webhooks/{webhookID}/stats", "get"): "Get webhook statistics",
     }
     summary_count = 0
     for (path_str, method), summary in SUMMARIES.items():
@@ -1314,6 +1248,7 @@ def add_user_auth_security(spec: dict[str, Any]) -> None:
         if not op:
             continue
         op["security"] = [
+            {SANDBOX_AUTH_SCHEME: []},
             {SANDBOX_AUTH_SCHEME: [], SANDBOX_USER_SCHEME: []},
         ]
         count += 1
@@ -1418,7 +1353,9 @@ def filter_paths(spec: dict[str, Any]) -> None:
             continue
         for method in _HTTP_METHODS:
             op = path_item.get(method)
-            if op and _is_admin_only_op(op):
+            if op and (_is_admin_only_op(op) or (op.get("security") and all(
+                _is_internal_option(option) for option in op["security"]
+            ))):
                 del path_item[method]
                 removed_ops += 1
         if not any(m in path_item for m in _HTTP_METHODS):
@@ -1520,12 +1457,6 @@ SANDBOX_NOT_FOUND_RESPONSE = {
 }
 
 
-EMPTY_RESPONSE_CONTENT = {
-    "application/json": {
-        "schema": {"type": "object", "description": "Empty response"}
-    }
-}
-
 
 def add_sandbox_not_found(spec: dict[str, Any], envd_paths: set[str]) -> None:
     """Add a 502 response to all sandbox/envd endpoints.
@@ -1546,40 +1477,119 @@ def add_sandbox_not_found(spec: dict[str, Any], envd_paths: set[str]) -> None:
         print(f"==> Added 502 sandbox-not-found response to {count} operations")
 
 
-def fill_empty_responses(spec: dict[str, Any]) -> None:
-    """Add an empty content block to any 2xx response that lacks one.
+def fix_union_schemas(spec: dict[str, Any]) -> None:
+    """Close protobuf oneof objects after evaluating their selected branch.
 
-    Mintlify requires a content block on every response to render correctly.
+    protoc-gen-connect-openapi v0.25.3 puts additionalProperties: false at
+    the parent of oneOf property declarations, rejecting every valid arm.
+    JSON Schema 2020-12 unevaluatedProperties accounts for those branches.
     """
-    filled = 0
-    stripped = 0
-    for path, path_item in spec.get("paths", {}).items():
-        for method in ("get", "post", "put", "patch", "delete", "head", "options"):
-            op = path_item.get(method)
+    for schema in spec.get("components", {}).get("schemas", {}).values():
+        if schema.get("additionalProperties") is False and any(
+            "properties" in branch for branch in schema.get("oneOf", [])
+        ):
+            del schema["additionalProperties"]
+            schema["unevaluatedProperties"] = False
+
+
+def add_transport_examples(spec: dict[str, Any]) -> None:
+    """Supply concrete protocol constants and executable framed RPC examples.
+
+    x-codeSamples is the documented Mintlify extension for custom samples:
+    https://www.mintlify.com/docs/api-playground/customization/adding-sdk-examples
+    """
+    messages = {
+        "/process.Process/Start": '[{"process": {"cmd": "/bin/echo", "args": ["Hello from E2B"]}, "stdin": False}]',
+        "/process.Process/Connect": '[{"process": {"pid": int(os.environ["E2B_PROCESS_PID"])}}]',
+        "/filesystem.Filesystem/WatchDir": '[{"path": "/home/user", "recursive": False}]',
+        "/process.Process/StreamInput": '[{"start": {"process": {"pid": int(os.environ["E2B_PROCESS_PID"])}}},\n            {"data": {"input": {"stdin": "aGVsbG8K"}}}]',
+    }
+    for path, item in spec.get("paths", {}).items():
+        for method in _HTTP_METHODS:
+            op = item.get(method)
             if not op:
                 continue
-            responses = op.get("responses", {})
-            # Remove "default" responses (generic Connect error envelopes)
-            if "default" in responses:
-                del responses["default"]
-                stripped += 1
-            for status, resp in responses.items():
-                if not isinstance(resp, dict):
-                    continue
-                # 204 = No Content: remove any content block
-                if str(status) == "204":
-                    resp.pop("content", None)
-                    continue
-                # Skip responses that use $ref (content comes from the referenced response)
-                if "$ref" in resp:
-                    continue
-                if str(status).startswith("2") and "content" not in resp:
-                    resp["content"] = EMPTY_RESPONSE_CONTENT
-                    filled += 1
-    if filled:
-        print(f"==> Added empty content block to {filled} responses")
-    if stripped:
-        print(f"==> Removed {stripped} default error responses")
+            for param in op.get("parameters", []):
+                if param.get("name") == "Connect-Protocol-Version":
+                    # Header values are strings on the wire, even if the source
+                    # generator represents the version as a JSON integer.
+                    param["schema"] = {"type": "string", "enum": ["1"]}
+                    param["example"] = "1"
+                elif param.get("name") == "E2b-Sandbox-Port":
+                    param["example"] = ENVD_PORT_DEFAULT
+            if method != "post" or path not in messages:
+                continue
+            source = '''import json
+import os
+import struct
+import urllib.request
+
+# Set E2B_SANDBOX_ID and E2B_ENVD_ACCESS_TOKEN from a secured sandbox's
+# create/connect response. This token is not your project API key.
+'''
+            if path in {"/process.Process/Connect", "/process.Process/StreamInput"}:
+                source += '# E2B_PROCESS_PID must identify a running process in that sandbox.\n'
+            if path == "/process.Process/StreamInput":
+                source += '# The process must have been started with stdin enabled.\n'
+            source += 'messages = ' + messages[path] + '\n'
+            source += '''body = b""
+for message in messages:
+    payload = json.dumps(message).encode("utf-8")
+    body += struct.pack(">BI", 0, len(payload)) + payload
+
+request = urllib.request.Request(
+'''
+            source += f'    "https://sandbox.e2b.app{path}",\n'
+            source += '''    data=body,
+    headers={
+        "Content-Type": "application/connect+json",
+        "Connect-Protocol-Version": "1",
+        "Connect-Timeout-Ms": "5000",
+        "E2b-Sandbox-Id": os.environ["E2B_SANDBOX_ID"],
+        "E2b-Sandbox-Port": "49983",
+        "X-Access-Token": os.environ["E2B_ENVD_ACCESS_TOKEN"],
+    },
+    method="POST",
+)
+with urllib.request.urlopen(request, timeout=10) as response:
+    data = response.read()
+
+# HTTP 200 can still contain a terminal error. Decode each envelope.
+offset = 0
+while offset < len(data):
+    if len(data) - offset < 5:
+        raise ValueError("Truncated Connect envelope")
+    flags, length = struct.unpack_from(">BI", data, offset)
+    offset += 5
+    if length > len(data) - offset:
+        raise ValueError("Truncated Connect message")
+    message = json.loads(data[offset:offset + length])
+    offset += length
+    if flags & 2:
+        if message.get("error"):
+            raise RuntimeError(message["error"])
+        break
+    print(message)
+'''
+            if path == "/filesystem.Filesystem/WatchDir":
+                source += '\n# The five-second example deadline ends the watch with deadline_exceeded.\n'
+            op["x-codeSamples"] = [{"lang": "python", "label": "Python (Connect framing)", "source": source}]
+
+
+def preserve_response_contracts(spec: dict[str, Any]) -> None:
+    """Keep error definitions and bodyless successes from the source contract.
+
+    204 and 304 never have a body. Other success responses may legitimately
+    omit content too. Do not invent JSON objects for the renderer or discard
+    default Connect error envelopes.
+    """
+    for path_item in spec.get("paths", {}).values():
+        for method in _HTTP_METHODS:
+            op = path_item.get(method, {})
+            for status, response in op.get("responses", {}).items():
+                if str(status) in {"204", "304"} and "$ref" not in response:
+                    response.pop("content", None)
+
 
 
 def rename_and_reorder_tags(spec: dict[str, Any]) -> None:
@@ -1595,8 +1605,11 @@ def rename_and_reorder_tags(spec: dict[str, Any]) -> None:
         "health": "Envd",
         "files": "Filesystem",
         "volumes": "Volumes",
+        "secrets": "Secrets",
+        "events": "Events",
+        "webhooks": "Webhooks",
     }
-    TAG_ORDER = ["Sandboxes", "Templates", "Tags", "Volumes", "Envd", "Filesystem", "Process", "Teams"]
+    TAG_ORDER = ["Sandboxes", "Templates", "Tags", "Volumes", "Envd", "Filesystem", "Process", "Teams", "Secrets", "Events", "Webhooks"]
 
     # Rename tags on all operations; tag untagged ones as "Others"
     for path_item in spec.get("paths", {}).values():
@@ -1727,8 +1740,12 @@ def main() -> None:
         # Remove internal/unwanted paths
         filter_paths(merged)
 
-        # Ensure all 2xx responses have a content block (required by Mintlify)
-        fill_empty_responses(merged)
+        # Reviewed response corrections stay in source, never in generated YAML.
+        apply_platform_response_fixes(merged)
+        apply_sandbox_response_fixes(merged, envd_paths)
+        fix_union_schemas(merged)
+        add_transport_examples(merged)
+        preserve_response_contracts(merged)
 
         # Clean up unreferenced schemas left over from filtered paths
         remove_orphaned_schemas(merged)

@@ -6045,6 +6045,31 @@
       "permanent": true
     },
     {
+      "source": "/api-reference/secrets/list-project-secrets",
+      "destination": "/api-reference/secrets/list-secrets",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/secrets/create-a-secret",
+      "destination": "/api-reference/secrets/create-secret",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/secrets/get-a-secret",
+      "destination": "/api-reference/secrets/get-secret",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/secrets/update-a-secret",
+      "destination": "/api-reference/secrets/update-secret",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/secrets/delete-a-secret",
+      "destination": "/api-reference/secrets/delete-secret",
+      "permanent": true
+    },
+    {
       "source": "/sdk-reference/js-sdk/latest/:slug*",
       "destination": "/sdk-reference/js-sdk/v2.51.0/:slug*",
       "permanent": false

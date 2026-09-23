@@ -1,0 +1,574 @@
+[
+  {
+    "operation": "GET /sandboxes/{sandboxID}",
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "code": 400,
+      "message": "Invalid sandbox ID"
+    }
+  },
+  {
+    "operation": "GET /metrics",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "GET /envs",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "GET /health",
+    "status": 400,
+    "content_type": "text/plain",
+    "body": "missing header\n"
+  },
+  {
+    "operation": "POST /process.Process/List",
+    "status": 400,
+    "content_type": "text/plain",
+    "body": "missing header\n"
+  },
+  {
+    "operation": "POST /files",
+    "status": 200,
+    "content_type": "text/plain",
+    "body": "[{\"name\": \"file.txt\", \"path\": \"/home/user/api-review/file.txt\", \"type\": \"file\"}]"
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/MakeDir",
+    "status": 409,
+    "content_type": "application/json",
+    "body": {
+      "code": "already_exists",
+      "message": "directory already exists: /home/user"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/Move",
+    "status": 500,
+    "content_type": "application/json",
+    "body": {
+      "code": "internal",
+      "message": "error renaming: rename /home/user /home/user: file exists"
+    }
+  },
+  {
+    "operation": "POST /process.Process/Update",
+    "status": 500,
+    "content_type": "application/json",
+    "body": {
+      "code": "internal",
+      "message": "error resizing tty: tty not assigned to process"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/GetWatcherEvents",
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "code": "not_found",
+      "message": "watcher with id  not found"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/RemoveWatcher",
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "code": "not_found",
+      "message": "watcher with id  not found"
+    }
+  },
+  {
+    "operation": "POST /process.Process/CloseStdin",
+    "status": 501,
+    "content_type": "application/json",
+    "body": {
+      "code": "unimplemented",
+      "message": "invalid input type *process.ProcessSelector"
+    }
+  },
+  {
+    "operation": "POST /process.Process/SendInput",
+    "status": 501,
+    "content_type": "application/json",
+    "body": {
+      "code": "unimplemented",
+      "message": "invalid input type *process.ProcessSelector"
+    }
+  },
+  {
+    "operation": "POST /process.Process/SendSignal",
+    "status": 501,
+    "content_type": "application/json",
+    "body": {
+      "code": "unimplemented",
+      "message": "invalid input type *process.ProcessSelector"
+    }
+  },
+  {
+    "operation": "POST /process.Process/Update",
+    "status": 501,
+    "content_type": "application/json",
+    "body": {
+      "code": "unimplemented",
+      "message": "invalid input type *process.ProcessSelector"
+    }
+  },
+  {
+    "operation": "PUT /sandboxes/{sandboxID}/network",
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "code": 400,
+      "message": "When specifying allowed domains in allow out, you must include 'ALL_TRAFFIC' in deny out to block all other traffic."
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/CreateWatcher",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/GetWatcherEvents",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/ListDir",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/MakeDir",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/Move",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/Remove",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/RemoveWatcher",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/Stat",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/WatchDir",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /process.Process/CloseStdin",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /process.Process/Connect",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /process.Process/List",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /process.Process/SendInput",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /process.Process/SendSignal",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /process.Process/Start",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /process.Process/StreamInput",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /process.Process/Update",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "unauthorized access, please provide a valid access token or method signing if supported"
+    }
+  },
+  {
+    "operation": "POST /process.Process/List",
+    "status": 502,
+    "content_type": "application/json",
+    "body": {
+      "sandboxId": "ijgfv979qtvxp2q4y4p4t",
+      "message": "The sandbox was not found",
+      "code": 502
+    }
+  },
+  {
+    "operation": "GET /health",
+    "status": 502,
+    "content_type": "application/json",
+    "body": {
+      "sandboxId": "ijgfv979qtvxp2q4y4p4t",
+      "message": "The sandbox was not found",
+      "code": 502
+    }
+  },
+  {
+    "operation": "POST /process.Process/List",
+    "status": 500,
+    "content_type": "text/plain",
+    "body": "Unexpected error when routing request: invalid sandbox port\n"
+  },
+  {
+    "operation": "GET /templates/{templateID}/files/{hash}",
+    "status": 201,
+    "content_type": "application/json",
+    "body": {
+      "present": false,
+      "url": "https://example.com/upload"
+    }
+  },
+  {
+    "operation": "PATCH /templates/{templateID}",
+    "status": 200,
+    "content_type": "application/json",
+    "body": null
+  },
+  {
+    "operation": "POST /v2/templates/{templateID}/builds/{buildID}",
+    "status": 202,
+    "no_body": true
+  },
+  {
+    "operation": "DELETE /events/webhooks/{webhookID}",
+    "status": 200,
+    "no_body": true
+  },
+  {
+    "operation": "GET /snapshots",
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "code": 400,
+      "message": "Invalid next token"
+    }
+  },
+  {
+    "operation": "POST /sandboxes/{sandboxID}/fork",
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "code": 400,
+      "message": "validation error: error in openapi3filter.RequestError: request body has an error: doesn't match schema #/components/schemas/SandboxForkRequest: Error at \"/count\": number must be at least 1"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/Stat",
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "code": "not_found",
+      "message": "file not found: lstat /tmp/spec-review-no-such-file: no such file or directory"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/ListDir",
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "code": "invalid_argument",
+      "message": "path is not a directory: /etc/hostname"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/Move",
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "code": "not_found",
+      "message": "source file not found: rename /tmp/spec-review-no-such-file /tmp/spec-review-unused: no such file or directory"
+    }
+  },
+  {
+    "operation": "POST /process.Process/SendSignal",
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "code": "not_found",
+      "message": "process with pid 2147483647 not found"
+    }
+  },
+  {
+    "operation": "POST /process.Process/CloseStdin",
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "code": "not_found",
+      "message": "process with pid 2147483647 not found"
+    }
+  },
+  {
+    "operation": "POST /process.Process/SendInput",
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "code": "not_found",
+      "message": "process with pid 2147483647 not found"
+    }
+  },
+  {
+    "operation": "POST /process.Process/Update",
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "code": "not_found",
+      "message": "process with pid 2147483647 not found"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/CreateWatcher",
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "code": "not_found",
+      "message": "path /tmp/spec-review-no-such-dir not found: stat /tmp/spec-review-no-such-dir: no such file or directory"
+    }
+  },
+  {
+    "operation": "GET /templates/{templateID}",
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "code": 404,
+      "message": "Template pr428missingba92a81c69fc not found"
+    }
+  },
+  {
+    "operation": "GET /templates/{templateID}/builds/{buildID}/status",
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "code": 400,
+      "message": "Build 'c038add6-557f-463e-9fdd-cf2c129e4c76' not found"
+    }
+  },
+  {
+    "operation": "GET /templates/{templateID}/builds/{buildID}/logs",
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "code": 400,
+      "message": "Build 'c038add6-557f-463e-9fdd-cf2c129e4c76' not found"
+    }
+  },
+  {
+    "operation": "GET /volumes/{volumeID}",
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "code": 400,
+      "message": "Invalid volume ID"
+    }
+  },
+  {
+    "operation": "GET /templates/aliases/{alias}",
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "code": 401,
+      "message": "authorization header is missing"
+    }
+  },
+  {
+    "operation": "GET /events/webhooks/{webhookID}/stats",
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "code": 400,
+      "message": "Stats range must be 7 days or less"
+    }
+  },
+  {
+    "operation": "GET /files",
+    "status": 206,
+    "content_type": "text/plain",
+    "body": "2345"
+  },
+  {
+    "operation": "GET /files",
+    "status": 416,
+    "content_type": "text/plain",
+    "body": "invalid range: failed to overlap\n"
+  },
+  {
+    "operation": "GET /files",
+    "status": 304,
+    "no_body": true
+  },
+  {
+    "operation": "GET /sandboxes",
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "code": 400,
+      "message": "Error parsing metadata: error parsing metadata: error when unescaping query: invalid URL escape \"%zz\""
+    }
+  },
+  {
+    "operation": "GET /v2/sandboxes",
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "code": 400,
+      "message": "Error parsing metadata"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/CreateWatcher",
+    "status": 500,
+    "content_type": "application/json",
+    "body": {
+      "code": "internal",
+      "message": "error statting path /etc/hostname/child: stat /etc/hostname/child: not a directory"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/ListDir",
+    "status": 500,
+    "content_type": "application/json",
+    "body": {
+      "code": "internal",
+      "message": "error resolving symlink: not a directory"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/MakeDir",
+    "status": 500,
+    "content_type": "application/json",
+    "body": {
+      "code": "internal",
+      "message": "error getting file info: stat /etc/hostname/child: not a directory"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/Remove",
+    "status": 500,
+    "content_type": "application/json",
+    "body": {
+      "code": "internal",
+      "message": "error removing file or directory: unlinkat /etc/hostname/child: not a directory"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/Stat",
+    "status": 500,
+    "content_type": "application/json",
+    "body": {
+      "code": "internal",
+      "message": "error getting file info: lstat /etc/hostname/child: not a directory"
+    }
+  },
+  {
+    "operation": "POST /filesystem.Filesystem/ListDir",
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "code": "not_found",
+      "message": "path not found: lstat /tmp/missing: no such file or directory"
+    }
+  }
+]

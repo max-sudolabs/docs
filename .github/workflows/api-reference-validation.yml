@@ -39,12 +39,15 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install pyyaml
+        run: pip install -r scripts/requirements-openapi-test.txt
 
       # Generate the spec straight into openapi-public.yaml; the create-pull-request
       # action below detects drift and only opens a PR when the file changes.
       - name: Generate OpenAPI spec
         run: python3 scripts/generate_openapi_reference.py --output openapi-public.yaml
+
+      - name: Validate generated response contracts
+        run: python3 -m unittest discover -s scripts/tests -v
 
       - name: Create or update PR
         id: pr
