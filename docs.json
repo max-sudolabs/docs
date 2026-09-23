@@ -5577,7 +5577,8 @@
       {
         "tab": "FAQ",
         "icon": "circle-question",
-        "groups": [
+        "pages": [
+          "faq/index",
           {
             "group": "Account, billing & limits",
             "pages": [

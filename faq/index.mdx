@@ -1,0 +1,84 @@
+---
+title: "Frequently asked questions"
+sidebarTitle: FAQ
+description: "Common questions about E2B billing, sandbox limits, templates, storage, networking, and security."
+"og:image": "/images/og/generated/faq/index.png"
+---
+
+## Account, billing & limits
+
+### How do I calculate the price of a sandbox?
+
+E2B bills per second, only while a sandbox is running, based on the vCPU and RAM allocated to it. Paused and killed sandboxes are not billed. [Read more](/faq/calculate-sandbox-price)
+
+### How do I increase my concurrency limit?
+
+Raise your concurrent sandbox limit with self-serve add-ons in the console billing tab, or contact sales for higher limits on the Enterprise plan. [Read more](/faq/increase-concurrency)
+
+### How long does a sandbox live?
+
+A sandbox is not session-scoped. Continuous runtime is capped by plan (1 hour Hobby, 24 hours Pro, custom Enterprise) and resets on pause and resume, while a paused sandbox is kept indefinitely with no time-to-live. [Read more](/faq/sandbox-lifetime)
+
+### Do paused sandboxes count toward the concurrency limit?
+
+No. Only running sandboxes count toward the concurrency limit and only running sandboxes are billed. There is no time limit on how long a sandbox can stay paused. [Read more](/faq/paused-sandboxes-concurrency)
+
+### Does E2B support GPUs?
+
+No. E2B sandboxes are CPU-only, sized by vCPU and RAM only, with no GPU option in the SDKs, CLI, API, or a template definition. BYOC does not change this. [Read more](/faq/gpu-support)
+
+## Templates & builds
+
+### What limits apply to my template builds?
+
+Two kinds of limit apply: plan limits like concurrent builds can be raised by upgrading or contacting support, while build timeouts are fixed for everyone and require restructuring the build. [Read more](/faq/build-limits)
+
+### Is there a limit on how many templates I can create?
+
+No. There is no limit on the total number of templates. The only template limit is on concurrent builds: 20 on Hobby and Pro, custom on Enterprise. [Read more](/faq/template-limit)
+
+### Can I make a template public so other projects can use it?
+
+Yes. Publish a template from the console Templates tab or with the CLI, and any project can then create sandboxes from it by its full project-slug/template-name. [Read more](/faq/public-templates)
+
+### Why does pip install fail when building a template?
+
+Large packages like PyTorch with CUDA exhaust the build environment: pip caches wheels in memory (`MemoryError`) and downloads them to the RAM-backed `/tmp` capped at ~3.9 GB ("No space left on device"). Set `TMPDIR` to a disk-backed path with `--no-cache-dir`, or install CPU-only builds. [Read more](/faq/pip-install-error)
+
+### Why does my template build fail with a Docker push authentication error?
+
+Docker sends no credentials to the build registry. Add E2B's local registry proxy (`host.docker.internal:49984`, or `localhost:49984` on Linux) to Docker's insecure-registries and restart Docker. [Read more](/faq/docker-push-authentication-error)
+
+## Storage & volumes
+
+### What are the limitations of the Volumes beta?
+
+File locking can hang, file metadata caching is disabled, read/write permission bits are not enforced between users, mounts are fixed at sandbox creation, and snapshots and read-only mounts are not yet supported. [Read more](/faq/volumes-beta-limitations)
+
+## Networking & deployment
+
+### Can I run sandboxes in the EU?
+
+Yes. E2B offers a shared EU cluster for customers on the Pro tier and above. Contact support to get access. [Read more](/faq/eu-region)
+
+### Do you publish egress IP ranges (CIDRs)?
+
+No. Sandbox outbound traffic leaves from ephemeral, rotating IPs, so there is no fixed E2B-owned CIDR list. Allowlist the cloud provider's published ranges or route sandbox traffic through your own proxy for a dedicated IP. [Read more](/faq/egress-ip-ranges)
+
+### Why does iptables fail with 'xt_owner module missing' in a sandbox?
+
+The E2B sandbox kernel does not ship the `xt_owner` module, so iptables rules using `--uid-owner` or `--gid-owner` fail. Use nftables, which does not need `xt_owner` for owner-based matching. [Read more](/faq/iptables-xt-owner)
+
+### Why does my custom template fail with 'port 49999 not open'?
+
+The Code Interpreter service inside the sandbox did not start, usually because the custom template was not built on the `code-interpreter-v1` base or the start command is missing. [Read more](/faq/port-49999-not-open)
+
+## Security & compliance
+
+### Is E2B SOC 2 compliant?
+
+Yes. E2B has a SOC 2 Type II report, served with the DPA template, penetration test, and bridge letter from the Trust Center at [trust.e2b.dev](https://trust.e2b.dev). [Read more](/faq/security-and-compliance)
+
+
+{/* Keep this schema in sync with the visible questions and answers above. */}
+<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: `{"@context":"https://schema.org","@type":"FAQPage","@id":"https://docs.e2b.dev/faq#faq","mainEntity":[{"@type":"Question","name":"How do I calculate the price of a sandbox?","acceptedAnswer":{"@type":"Answer","text":"E2B bills per second, only while a sandbox is running, based on the vCPU and RAM allocated to it. Paused and killed sandboxes are not billed."}},{"@type":"Question","name":"How do I increase my concurrency limit?","acceptedAnswer":{"@type":"Answer","text":"Raise your concurrent sandbox limit with self-serve add-ons in the console billing tab, or contact sales for higher limits on the Enterprise plan."}},{"@type":"Question","name":"How long does a sandbox live?","acceptedAnswer":{"@type":"Answer","text":"A sandbox is not session-scoped. Continuous runtime is capped by plan (1 hour Hobby, 24 hours Pro, custom Enterprise) and resets on pause and resume, while a paused sandbox is kept indefinitely with no time-to-live."}},{"@type":"Question","name":"Do paused sandboxes count toward the concurrency limit?","acceptedAnswer":{"@type":"Answer","text":"No. Only running sandboxes count toward the concurrency limit and only running sandboxes are billed. There is no time limit on how long a sandbox can stay paused."}},{"@type":"Question","name":"Does E2B support GPUs?","acceptedAnswer":{"@type":"Answer","text":"No. E2B sandboxes are CPU-only, sized by vCPU and RAM only, with no GPU option in the SDKs, CLI, API, or a template definition. BYOC does not change this."}},{"@type":"Question","name":"What limits apply to my template builds?","acceptedAnswer":{"@type":"Answer","text":"Two kinds of limit apply: plan limits like concurrent builds can be raised by upgrading or contacting support, while build timeouts are fixed for everyone and require restructuring the build."}},{"@type":"Question","name":"Is there a limit on how many templates I can create?","acceptedAnswer":{"@type":"Answer","text":"No. There is no limit on the total number of templates. The only template limit is on concurrent builds: 20 on Hobby and Pro, custom on Enterprise."}},{"@type":"Question","name":"Can I make a template public so other projects can use it?","acceptedAnswer":{"@type":"Answer","text":"Yes. Publish a template from the console Templates tab or with the CLI, and any project can then create sandboxes from it by its full project-slug/template-name."}},{"@type":"Question","name":"Why does pip install fail when building a template?","acceptedAnswer":{"@type":"Answer","text":"Large packages like PyTorch with CUDA exhaust the build environment: pip caches wheels in memory (MemoryError) and downloads them to the RAM-backed /tmp capped at ~3.9 GB ('No space left on device'). Set TMPDIR to a disk-backed path with --no-cache-dir, or install CPU-only builds."}},{"@type":"Question","name":"Why does my template build fail with a Docker push authentication error?","acceptedAnswer":{"@type":"Answer","text":"Docker sends no credentials to the build registry. Add E2B's local registry proxy (host.docker.internal:49984, or localhost:49984 on Linux) to Docker's insecure-registries and restart Docker."}},{"@type":"Question","name":"What are the limitations of the Volumes beta?","acceptedAnswer":{"@type":"Answer","text":"File locking can hang, file metadata caching is disabled, read/write permission bits are not enforced between users, mounts are fixed at sandbox creation, and snapshots and read-only mounts are not yet supported."}},{"@type":"Question","name":"Can I run sandboxes in the EU?","acceptedAnswer":{"@type":"Answer","text":"Yes. E2B offers a shared EU cluster for customers on the Pro tier and above. Contact support to get access."}},{"@type":"Question","name":"Do you publish egress IP ranges (CIDRs)?","acceptedAnswer":{"@type":"Answer","text":"No. Sandbox outbound traffic leaves from ephemeral, rotating IPs, so there is no fixed E2B-owned CIDR list. Allowlist the cloud provider's published ranges or route sandbox traffic through your own proxy for a dedicated IP."}},{"@type":"Question","name":"Why does iptables fail with 'xt_owner module missing' in a sandbox?","acceptedAnswer":{"@type":"Answer","text":"The E2B sandbox kernel does not ship the xt_owner module, so iptables rules using --uid-owner or --gid-owner fail. Use nftables, which does not need xt_owner for owner-based matching."}},{"@type":"Question","name":"Why does my custom template fail with 'port 49999 not open'?","acceptedAnswer":{"@type":"Answer","text":"The Code Interpreter service inside the sandbox did not start, usually because the custom template was not built on the code-interpreter-v1 base or the start command is missing."}},{"@type":"Question","name":"Is E2B SOC 2 compliant?","acceptedAnswer":{"@type":"Answer","text":"Yes. E2B has a SOC 2 Type II report, served with the DPA template, penetration test, and bridge letter from the Trust Center at trust.e2b.dev."}}]}` }} />

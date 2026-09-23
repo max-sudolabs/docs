@@ -1,5 +1,6 @@
 ---
 title: "Why does iptables fail with 'xt_owner module missing' in a sandbox?"
+description: "The E2B sandbox kernel does not ship the xt_owner module, so iptables rules using --uid-owner or --gid-owner fail. Use nftables, which does not need xt_owner for owner-based matching."
 sidebarTitle: iptables xt_owner module
 "og:image": "/images/og/generated/faq/iptables-xt-owner.png"
 ---

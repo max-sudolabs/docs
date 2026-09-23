@@ -1,10 +1,11 @@
 ---
 title: "Why does pip install fail when building a template?"
+description: "Large packages like PyTorch with CUDA exhaust the build environment: pip caches wheels in memory (MemoryError) and downloads them to the RAM-backed /tmp capped at ~3.9 GB ('No space left on device'). Set TMPDIR to a disk-backed path with --no-cache-dir, or install CPU-only builds."
 sidebarTitle: pip install fails during build
 "og:image": "/images/og/generated/faq/pip-install-error.png"
 ---
 
-When building a template that installs large Python packages like PyTorch with CUDA dependencies, `pip install` can fail with one of two errors:
+When building a template that installs large Python packages like PyTorch with CUDA dependencies, `pip install` can fail because pip caches wheels in memory and downloads them to `/tmp`, which is RAM-backed and capped at ~3.9 GB. The failure shows up as one of two errors:
 
 - **`MemoryError`**: pip tries to serialize large wheel files into memory for caching, exceeding available RAM.
 - **`OSError: [Errno 28] No space left on device`**: downloaded wheels fill up the `/tmp` directory.
