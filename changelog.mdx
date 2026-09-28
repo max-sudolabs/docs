@@ -5,6 +5,37 @@ rss: true
 "og:image": "/images/og/changelog.png"
 ---
 
+<Update label="September 28, 2026" description="Public project IDs, one Console for every region, Embed telemetry" tags={["Dashboard", "API", "Self-hosted"]} rss={{ title: "Public Project IDs & Embed OpenTelemetry Export", description: "This week improves projects and self-hosting with public project IDs in the dashboard and API, one E2B Console for every region, a dashboard-wide support dialog, and OpenTelemetry export for E2B Embed." }}>
+
+## Public Project IDs & Embed OpenTelemetry Export
+
+This week improves projects and self-hosting with public project IDs in the dashboard and API, one E2B Console for every region, a dashboard-wide support dialog, and OpenTelemetry export for E2B Embed.
+
+### Public project and workspace IDs
+
+Project settings in the dashboard now show the public project ID in the `prj_` format, with the UUID kept as the legacy project ID, and the project's region. Workspace settings show the workspace ID in the `wrk_` format. The API accepts a `prj_` ID wherever it accepts a team ID, including the `teamID` parameter of `GET /templates`, team metrics, and the `X-Team-ID` header. ([`03a400e`](https://github.com/e2b-dev/runtime/commit/03a400ee2a0688e9bef5e4c28ac52431a96748cf))
+
+### One Console for every region
+
+Projects in every region, US, EU and APAC, are now managed in one [E2B Console](https://console.e2b.dev) instead of a separate console per region. Links to the old EU and APAC consoles on `e2b-juliett.dev` and `e2b-tango.dev` redirect to the same page on `console.e2b.dev`. Sandboxes keep running in the region their project is in, and project settings show which region that is.
+
+### Support dialog across the dashboard
+
+The Help and resources menu now opens a support form from any page in the dashboard, so you can [contact support](/support) without leaving your current work. The `?support=true` link opens the same dialog, which shows the support email address directly below its title.
+
+### OpenTelemetry export for E2B Embed
+
+Self-hosted E2B Embed deployments can now export telemetry from every service Embed runs to an OpenTelemetry collector with one setting: `E2B_OTEL_COLLECTOR_GRPC_ENDPOINT` in Docker Compose, the `e2b-settings` ConfigMap on Kubernetes, or `otel_collector_grpc_endpoint` in Terraform. Leaving it empty keeps the current behavior. ([`f455fd5`](https://github.com/e2b-dev/runtime/commit/f455fd58fa3f289e78ce1de690c35968d8d29322))
+
+### Fixes
+
+- Fixed `e2b auth login` failing with "No default project found" for users who belong only to shared workspaces, because the API now marks the oldest accessible project as the default when none is set. ([`a065a4d`](https://github.com/e2b-dev/runtime/commit/a065a4ddb3f2c6a4149634d9acb14b62f65839ac))
+- Fixed [workload identity](/iam/workload-identity) tokens disappearing from egress request headers during the final minute of a running sandbox's lifetime.
+- Fixed self-hosted deployments on local filesystem storage keeping stale trailing data when an existing file was overwritten with shorter content. ([`a334b20`](https://github.com/e2b-dev/runtime/commit/a334b20e1e4dcae2c7d4f26da839acc1dfbefe5d))
+- Reliability and security hardening across platform services, including dependency and base image CVE patches.
+
+</Update>
+
 <Update label="September 21, 2026" description="V2 sandbox endpoints and CLI sandbox fork" tags={["SDK", "CLI", "API", "Self-hosted"]} rss={{ title: "V2 Sandbox Endpoints & CLI Sandbox Fork", description: "This week adds v2 sandbox create and connect endpoints in the SDKs and a CLI command to fork sandboxes." }}>
 
 ## V2 Sandbox Endpoints & CLI Sandbox Fork
