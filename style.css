@@ -911,6 +911,15 @@ table td button {
     justify-content: flex-start !important;
 }
 
+/* Mintlify's 150px cell minimum crowds the endpoint column. */
+.api-rate-limits-table table td {
+    min-width: 0;
+}
+
+.api-rate-limits-table table code {
+    white-space: nowrap;
+}
+
 /*
  * Mermaid diagrams use the E2B "technical paper" treatment:
  * neutral surfaces and structural rules, with orange reserved for direction.

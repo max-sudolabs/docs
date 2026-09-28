@@ -1,6 +1,6 @@
 ---
 title: "Billing & limits"
-description: "E2B plans, limits, and usage-based pricing. Covers the Hobby, Pro, and Enterprise plan table (max continuous runtime, concurrent sandboxes, vCPU, memory, disk) and how per-second compute billing works."
+description: "E2B plans, limits, and usage-based pricing. Covers the Hobby, Pro, and Enterprise plan table (max continuous runtime, concurrent sandboxes, vCPU, memory, disk), API rate limits, and how per-second compute billing works."
 sidebarTitle: "Billing & limits"
 icon: "credit-card"
 "og:image": "/images/og/generated/billing.png"
@@ -28,6 +28,46 @@ E2B uses [usage-based pricing](#usage-based-pricing) - you pay only for what you
 Max continuous runtime is the time a sandbox can run **without being paused**, not a cap on how long a sandbox can exist. Pausing and resuming resets it, and a paused sandbox is kept indefinitely with no time-to-live. See [How long does a sandbox live?](/faq/sandbox-lifetime).
 
 To upgrade your plan or purchase add-ons, visit the [console billing tab](https://console.e2b.dev/?tab=billing). For Enterprise plans, [contact sales](mailto:enterprise@e2b.dev).
+
+---
+
+## API rate limits
+
+E2B applies rate limits to API requests. The following default limits are in **requests per second, per project, per endpoint**:
+
+<div className="api-rate-limits-table">
+
+| Endpoint | Hobby | Pro | Enterprise |
+|:---------|------:|----:|-----------:|
+| [`GET /sandboxes`](/api-reference/sandboxes/list-sandboxes) | 10 | 20 | 20 |
+| [`GET /v2/sandboxes`](/api-reference/sandboxes/list-sandboxes-v2) | 10 | 20 | 20 |
+| [`GET /sandboxes/metrics`](/api-reference/sandboxes/list-sandbox-metrics) | 10 | 20 | 20 |
+| [`GET /snapshots`](/api-reference/sandboxes/list-snapshots) | 10 | 20 | 20 |
+| [`GET /templates`](/api-reference/templates/list-templates) | 10 | 20 | 20 |
+| [`GET /v2/templates`](/api-reference/templates/list-templates-v2) | 10 | 20 | 20 |
+| [`GET /templates/{templateID}`](/api-reference/templates/get-template) | 10 | 20 | 20 |
+| [`GET /templates/{templateID}/tags`](/api-reference/tags/list-template-tags) | 10 | 20 | 20 |
+| [`GET /api-keys`](/api-key) | 10 | 20 | 20 |
+| [`GET /volumes`](/api-reference/volumes/list-team-volumes) | 10 | 20 | 20 |
+| [`GET /secrets`](/api-reference/secrets/list-secrets) | 10 | 20 | 20 |
+
+</div>
+
+You share each endpoint's limit across all API keys and clients in your [project](/projects). Requests to one endpoint do not consume another endpoint's allowance. For endpoints with a path parameter, such as `/templates/{templateID}`, requests for different template IDs share the same allowance.
+
+These limits include requests made through the SDKs and CLI. Each request for a page of results counts toward the limit.
+
+### Exceeding a limit
+
+If you exceed a limit, you receive an HTTP `429 Too Many Requests` response with a `Retry-After` header.
+
+Starting with version **2.49.1**, the E2B JavaScript and Python SDKs automatically retry these requests using the `Retry-After` delay.
+
+If you handle retries yourself, wait the number of seconds in `Retry-After` before retrying the request.
+
+### Requesting a higher limit
+
+To request a higher API rate limit, contact [support@e2b.dev](mailto:support@e2b.dev).
 
 ---
 
