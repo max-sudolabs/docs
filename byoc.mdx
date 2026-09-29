@@ -1,6 +1,6 @@
 ---
 title: "BYOC (Bring Your Own Cloud)"
-description: "Deploy E2B sandboxes inside your own VPC. BYOC is available on AWS and Google Cloud for Enterprise customers, Azure is not yet supported, and BYOC is a managed deployment in your account rather than self-hosting."
+description: "Deploy E2B sandboxes inside your own VPC. BYOC is available on AWS, Google Cloud and Azure for Enterprise customers, and BYOC is a managed deployment in your account rather than self-hosting."
 sidebarTitle: Bring Your Own Cloud
 "og:image": "/images/og/generated/byoc.png"
 ---
@@ -9,7 +9,7 @@ import { EnterpriseBanner } from '/snippets/EnterpriseBanner.jsx';
 
 BYOC (Bring Your Own Cloud) allows you to deploy E2B sandboxes to your own cloud infrastructure within your VPC.
 
-BYOC is currently only available for AWS and Google Cloud (GCP). We are working on adding support for Azure.
+BYOC is available on AWS, Google Cloud (GCP), and Azure.
 
 <EnterpriseBanner />
 
@@ -19,7 +19,7 @@ BYOC and self-hosting are often conflated. They are different deployment models:
 
 | | E2B Cloud | BYOC | Self-hosted |
 | --- | --- | --- | --- |
-| Where sandboxes run | E2B's Google Cloud account | Your own AWS or GCP account, inside your VPC | Your own AWS or GCP account |
+| Where sandboxes run | E2B's Google Cloud account | Your own AWS account, GCP project, or Azure subscription, inside your VPC | Your own AWS or GCP account |
 | Who provisions and monitors the cluster | E2B | E2B, using Terraform and machine images | You |
 | Templates, snapshots and runtime logs stored in | E2B Cloud | Your VPC | Your account |
 | Sandbox traffic and template build sources | E2B Cloud | Never leave your VPC | Never leave your account |
@@ -37,7 +37,7 @@ All potentially sensitive traffic, such as sandbox template build source files,
 sandbox traffic, and logs, is transmitted directly from the client to the customer's BYOC VPC without ever touching the E2B Cloud infrastructure.
 
 ### Glossary
-- **BYOC VPC**: The customer's Virtual Private Network where the E2B sandboxes are deployed. For example your AWS account.
+- **BYOC VPC**: The customer's Virtual Private Network where the E2B sandboxes are deployed. For example your AWS account, or the virtual network (VNet) in your Azure subscription.
 - **E2B Cloud**: The managed service that provides the E2B platform, observability and cluster management.
 - **OAuth Provider**: Customer-managed service that provides user and E2B Cloud with access to the cluster.
 
@@ -54,9 +54,11 @@ sandbox traffic, and logs, is transmitted directly from the client to the custom
 ## Onboarding
 
 Customers can initiate the onboarding process by reaching out to us.
-Customers need to have a dedicated AWS account and know the region they will use.
-After that, we will receive the IAM role needed for managing account resources.
-For AWS account quota limits may need to be increased.
+Customers need a dedicated cloud account and need to know the region they will use.
+
+- **AWS**: a dedicated AWS account. We receive the IAM role needed for managing account resources. Account quota limits may need to be increased.
+- **Google Cloud**: a dedicated GCP project with billing enabled. You apply a Terraform module we provide, which creates the deployment service account E2B uses to manage project resources.
+- **Azure**: a dedicated Azure subscription. You apply a Terraform module we provide, which gives E2B's provisioning application scoped access to that subscription. No credentials are exchanged. The person applying it needs the `Owner` role on the subscription and the `Cloud Application Administrator` role (or equivalent) in Microsoft Entra ID. Request vCPU quota for the VM sizes we confirm for your region early, because new subscriptions can take time to get quota approved.
 
 Terraform configuration and machine images will be used for provisioning BYOC cluster.
 When provisioning is done and running, we will create a new project under your E2B account that can be used by SDK/CLI the same way as it is hosted on E2B Cloud.
@@ -76,6 +78,8 @@ When provisioning is done and running, we will create a new project under your E
     <Accordion title="Are sandboxes accessible only from a customer’s private network?">
     Yes. Load balancer that is handling all requests coming to sandbox can be configured as internal and VPC peering
     with additional customer’s VPC can be configured so sandbox traffic can stay in the private network.
+
+    On Azure, the cluster exposes an internal load balancer, and you reach it from your own VNet by creating an Azure Private Link service and private endpoint in your subscription.
     </Accordion>
     <Accordion title="How control plane secure communication is ensured?">
     Data sent between the E2B Cloud and your BYOC VPC is encrypted using TLS.
