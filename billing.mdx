@@ -39,19 +39,23 @@ E2B applies rate limits to API requests. The following default limits are in **r
 
 | Endpoint | Hobby | Pro | Enterprise |
 |:---------|------:|----:|-----------:|
-| [`GET /sandboxes`](/api-reference/sandboxes/list-sandboxes) | 10 | 20 | 20 |
-| [`GET /v2/sandboxes`](/api-reference/sandboxes/list-sandboxes-v2) | 10 | 20 | 20 |
-| [`GET /sandboxes/metrics`](/api-reference/sandboxes/list-sandbox-metrics) | 10 | 20 | 20 |
-| [`GET /snapshots`](/api-reference/sandboxes/list-snapshots) | 10 | 20 | 20 |
-| [`GET /templates`](/api-reference/templates/list-templates) | 10 | 20 | 20 |
-| [`GET /v2/templates`](/api-reference/templates/list-templates-v2) | 10 | 20 | 20 |
-| [`GET /templates/{templateID}`](/api-reference/templates/get-template) | 10 | 20 | 20 |
-| [`GET /templates/{templateID}/tags`](/api-reference/tags/list-template-tags) | 10 | 20 | 20 |
-| [`GET /api-keys`](/api-key) | 10 | 20 | 20 |
-| [`GET /volumes`](/api-reference/volumes/list-team-volumes) | 10 | 20 | 20 |
-| [`GET /secrets`](/api-reference/secrets/list-secrets) | 10 | 20 | 20 |
+| [`GET /sandboxes`](/api-reference/sandboxes/list-sandboxes) | 10 | 20 | Custom |
+| [`GET /v2/sandboxes`](/api-reference/sandboxes/list-sandboxes-v2) | 10 | 20 | Custom |
+| [`GET /sandboxes/metrics`](/api-reference/sandboxes/list-sandbox-metrics) | 10 | 20 | Custom |
+| [`GET /snapshots`](/api-reference/sandboxes/list-snapshots) | 10 | 20 | Custom |
+| [`GET /templates`](/api-reference/templates/list-templates) | 10 | 20 | Custom |
+| [`GET /v2/templates`](/api-reference/templates/list-templates-v2) | 10 | 20 | Custom |
+| [`GET /templates/{templateID}`](/api-reference/templates/get-template) | 10 | 20 | Custom |
+| [`GET /templates/{templateID}/tags`](/api-reference/tags/list-template-tags) | 10 | 20 | Custom |
+| [`GET /api-keys`](/api-key) | 10 | 20 | Custom |
+| [`GET /volumes`](/api-reference/volumes/list-team-volumes) | 10 | 20 | Custom |
+| [`GET /secrets`](/api-reference/secrets/list-secrets) | 10 | 20 | Custom |
 
 </div>
+
+<Note>
+Enterprise plans come with API rate limits sized to your workload. [Book a call](https://e2b.dev/contact) with our team or contact us at [enterprise@e2b.dev](mailto:enterprise@e2b.dev) to discuss your limits.
+</Note>
 
 You share each endpoint's limit across all API keys and clients in your [project](/projects). Requests to one endpoint do not consume another endpoint's allowance. For endpoints with a path parameter, such as `/templates/{templateID}`, requests for different template IDs share the same allowance.
 
@@ -67,7 +71,7 @@ If you handle retries yourself, wait the number of seconds in `Retry-After` befo
 
 ### Requesting a higher limit
 
-To request a higher API rate limit, contact [support@e2b.dev](mailto:support@e2b.dev).
+To request a higher API rate limit, contact [support@e2b.dev](mailto:support@e2b.dev). For custom limits on the Enterprise plan, [contact sales](mailto:enterprise@e2b.dev).
 
 ---
 
