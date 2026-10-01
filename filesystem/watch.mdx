@@ -4,12 +4,16 @@ sidebarTitle: Watch directory for changes
 "og:image": "/images/og/generated/filesystem/watch.png"
 ---
 
+import StreamLifetime from '/snippets/StreamLifetime.mdx';
+
 You can watch a directory for changes using the `files.watchDir()` method in JavaScript and `files.watch_dir()` method in Python.
 
 <Note>
 Since events are tracked asynchronously, their delivery may be delayed.
 It's recommended not to collect or close watcher immediately after making a change.
 </Note>
+
+<StreamLifetime />
 
 <CodeGroup>
 ```js JavaScript & TypeScript highlight={7-12}

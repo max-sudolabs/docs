@@ -1,14 +1,15 @@
 ---
 title: "How long does a sandbox live?"
-description: "A sandbox is not session-scoped. Continuous runtime is capped by plan (1 hour Hobby, 24 hours Pro, custom Enterprise) and resets on pause and resume, while a paused sandbox is kept indefinitely with no time-to-live."
+description: "A sandbox is not session-scoped. Continuous runtime is capped by plan (1 hour Hobby, 24 hours Pro, custom Enterprise) and resets on pause and resume, while a paused sandbox is kept indefinitely with no time-to-live. SDK streams send keepalive pings and normally stay open for more than an hour, and clients reconnect when one drops."
 sidebarTitle: Sandbox lifetime & state
 "og:image": "/images/og/generated/faq/sandbox-lifetime.png"
 ---
 
-A sandbox is not session-scoped. There are two separate limits, and only the first one is a time limit:
+A sandbox is not session-scoped. There are three separate limits:
 
 - **How long a sandbox can run continuously** is capped by your plan.
 - **How long a sandbox can stay paused** is not capped at all. Paused sandboxes are kept indefinitely.
+- **How long a single stream can stay open** (exec, watch, or websocket) is normally more than an hour thanks to keepalive pings. No single connection is guaranteed, so clients reconnect while the sandbox keeps running.
 
 ## Continuous runtime limits
 
@@ -19,6 +20,18 @@ A sandbox is not session-scoped. There are two separate limits, and only the fir
 | Enterprise | Custom |
 
 This is the time a sandbox can run **without being paused**. Pausing and resuming resets it, so a sandbox that pauses and resumes can be kept alive and reused for as long as you want. See [Billing & limits](/billing#plans).
+
+## Stream connections
+
+A sandbox staying up is not the same as a single stream staying open, and streams are designed with that in mind.
+
+Every stream the SDK opens (`commands.run()`, `commands.connect()`, `pty.create()`, `pty.connect()`, `files.watchDir()` / `files.watch_dir()`) asks the sandbox for a keepalive ping every 50 seconds, so the stream normally stays open for more than an hour even while the process is silent. A stream is a connection, not the sandbox. A load-balancer backend drain or the public-edge request timeout can occasionally close it while the sandbox and everything inside keep running, so no single connection is guaranteed for more than one hour.
+
+When a stream does drop, the SDK checks the sandbox for you. If the sandbox was killed or reached its end of life, the error says so (`TimeoutError` in JavaScript, `TimeoutException` in Python). Any other connection error means the sandbox is still running and only the connection was lost, so reconnect. Reconnecting is a first-class operation. Use `commands.connect(pid)` to reattach to a running command, `pty.connect(pid)` to reattach to a terminal session, and start a new `watchDir()` / `watch_dir()` to keep receiving filesystem events. The Python SDK also retries failed connection attempts on its own. See [Streaming command output](/commands/streaming), [Watch directory for changes](/filesystem/watch), and [Interactive terminal](/sandbox/pty).
+
+WebSocket connections to a sandbox's [public URL](/network/public-url) go through the same edge, so give them their own ping and reconnect logic.
+
+This is separate from the Hobby-tier 1-hour sandbox lifetime above. A Pro sandbox runs for up to 24 hours no matter how many times a stream reconnects.
 
 ## What happens when the timeout expires
 
@@ -80,3 +93,6 @@ While a sandbox is paused it is **not billed** and does **not** count toward you
 - [Sandbox persistence](/sandbox/persistence) for the full pause and resume flow
 - [Filesystem-only snapshots](/sandbox/filesystem-only-snapshots) for a lighter pause that drops memory
 - [Snapshots](/sandbox/snapshots) for named, reusable checkpoints
+- [Streaming command output](/commands/streaming) for exec streams
+- [Watch directory for changes](/filesystem/watch) for filesystem watch streams
+- [Interactive terminal](/sandbox/pty) for PTY and websocket-style sessions

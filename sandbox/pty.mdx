@@ -4,6 +4,8 @@ sidebarTitle: Interactive terminal
 "og:image": "/images/og/generated/sandbox/pty.png"
 ---
 
+import StreamLifetime from '/snippets/StreamLifetime.mdx';
+
 The PTY (pseudo-terminal) module allows you to create interactive terminal sessions in the sandbox with real-time, bidirectional communication.
 
 Unlike `commands.run()` which executes a command and returns output after completion, PTY provides:
@@ -11,6 +13,8 @@ Unlike `commands.run()` which executes a command and returns output after comple
 - **Bidirectional input** - Send input while the terminal is running
 - **Interactive shell** - Full terminal support with ANSI colors and escape sequences
 - **Session persistence** - Disconnect and reconnect to running sessions
+
+<StreamLifetime />
 
 ## Create a PTY session
 
@@ -82,7 +86,7 @@ The PTY runs an interactive bash shell with `TERM=xterm-256color`, which support
 
 ## Timeout
 
-PTY sessions have a configurable timeout that controls the session duration. The default is 60 seconds. For interactive or long-running sessions, set `timeoutMs: 0` (JavaScript) or `timeout=0` (Python) to keep the session open indefinitely.
+PTY sessions have a configurable timeout that controls the session duration. The default is 60 seconds. For interactive or long-running sessions, set `timeoutMs: 0` (JavaScript) or `timeout=0` (Python) so the SDK does not close the session on its own. If the connection drops, `pty.connect()` reattaches to the same running session. See [Disconnect and reconnect](#disconnect-and-reconnect).
 
 <CodeGroup>
 ```js JavaScript & TypeScript
@@ -94,7 +98,7 @@ const terminal = await sandbox.pty.create({
   cols: 80,
   rows: 24,
   onData: (data) => process.stdout.write(data),
-  timeoutMs: 0,  // Keep the session open indefinitely
+  timeoutMs: 0,  // Disable the SDK session timeout
 })
 ```
 
@@ -105,7 +109,7 @@ sandbox = Sandbox.create()
 
 terminal = sandbox.pty.create(
     PtySize(rows=24, cols=80),
-    timeout=0,  # Keep the session open indefinitely
+    timeout=0,  # Disable the SDK session timeout
 )
 
 # end='' prevents print() from adding an extra newline

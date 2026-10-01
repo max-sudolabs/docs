@@ -4,8 +4,12 @@ sidebarTitle: Streaming
 "og:image": "/images/og/generated/commands/streaming.png"
 ---
 
+import StreamLifetime from '/snippets/StreamLifetime.mdx';
+
 To stream command output as it is being executed, pass the `onStdout`, `onStderr` callbacks to the `commands.run()` method in JavaScript
 or the `on_stdout`, `on_stderr` callbacks to the `commands.run()` method in Python.
+
+<StreamLifetime />
 
 <CodeGroup>
 ```js JavaScript & TypeScript
