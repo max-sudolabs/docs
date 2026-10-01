@@ -72,12 +72,10 @@ const sandbox = await Sandbox.create('claude', {
   timeoutMs: 600_000,
 })
 
-await sandbox.git.clone('https://github.com/your-org/your-repo.git', {
-  path: '/home/user/repo',
-  username: 'x-access-token',
-  password: process.env.GITHUB_TOKEN,
-  depth: 1,
-})
+await sandbox.commands.run(
+  'git clone --depth 1 https://x-access-token:$GITHUB_TOKEN@github.com/your-org/your-repo.git /home/user/repo',
+  { envs: { GITHUB_TOKEN: process.env.GITHUB_TOKEN } }
+)
 
 const result = await sandbox.commands.run(
   `cd /home/user/repo && claude --dangerously-skip-permissions -p "Add error handling to all API endpoints"`,
@@ -97,11 +95,9 @@ sandbox = Sandbox.create("claude", envs={
     "ANTHROPIC_API_KEY": os.environ["ANTHROPIC_API_KEY"],
 }, timeout=600)
 
-sandbox.git.clone("https://github.com/your-org/your-repo.git",
-    path="/home/user/repo",
-    username="x-access-token",
-    password=os.environ["GITHUB_TOKEN"],
-    depth=1,
+sandbox.commands.run(
+    "git clone --depth 1 https://x-access-token:$GITHUB_TOKEN@github.com/your-org/your-repo.git /home/user/repo",
+    envs={"GITHUB_TOKEN": os.environ["GITHUB_TOKEN"]},
 )
 
 result = sandbox.commands.run(
@@ -451,14 +447,11 @@ python build.py
 
 ## Related guides
 
-<CardGroup cols={3}>
+<CardGroup cols={2}>
   <Card title="MCP tools" icon="plug" href="/mcp-gateway">
     Connect Claude Code to 200+ MCP tools
   </Card>
   <Card title="Sandbox persistence" icon="clock" href="/sandbox/persistence">
     Auto-pause, resume, and manage sandbox lifecycle
-  </Card>
-  <Card title="Git integration" icon="code-branch" href="/sandbox/git-integration">
-    Clone repos, manage branches, and push changes
   </Card>
 </CardGroup>

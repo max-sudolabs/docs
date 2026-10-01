@@ -1,0 +1,66 @@
+---
+title: "Sandbox git module deprecation"
+sidebarTitle: "Git module deprecation"
+description: "The sandbox.git module is deprecated. Run git through sandbox.commands.run() instead."
+"og:image": "/images/og/generated/migration/git-deprecation.png"
+---
+
+The `sandbox.git` module in the JavaScript and Python SDKs is deprecated. It still works today, but it will be removed in the next major version of the SDKs. See the [SDK deprecation PR](https://github.com/e2b-dev/E2B/pull/1774) for the full list of deprecated symbols.
+
+## Migrate to `sandbox.commands.run()`
+
+Git is installed in the sandbox, so every `sandbox.git` call has a direct equivalent as a shell command.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+// Deprecated
+await sandbox.git.clone('https://github.com/e2b-dev/E2B.git', { path: 'repo' })
+
+// Use instead
+await sandbox.commands.run('git clone https://github.com/e2b-dev/E2B.git repo')
+```
+```python Python
+# Deprecated
+sandbox.git.clone("https://github.com/e2b-dev/E2B.git", path="repo")
+
+# Use instead
+sandbox.commands.run("git clone https://github.com/e2b-dev/E2B.git repo")
+```
+</CodeGroup>
+
+For private repositories, pass the token through `envs` so it is not baked into the command string you log.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+await sandbox.commands.run(
+  'git clone https://x-access-token:$GITHUB_TOKEN@github.com/your-org/your-repo.git /home/user/repo',
+  { envs: { GITHUB_TOKEN: process.env.GITHUB_TOKEN } }
+)
+
+await sandbox.commands.run('cd /home/user/repo && git status --porcelain=v2 --branch')
+await sandbox.commands.run('cd /home/user/repo && git add -A && git commit -m "Initial commit"')
+await sandbox.commands.run(
+  'cd /home/user/repo && git push origin main',
+  { envs: { GITHUB_TOKEN: process.env.GITHUB_TOKEN } }
+)
+```
+```python Python
+import os
+
+sandbox.commands.run(
+    "git clone https://x-access-token:$GITHUB_TOKEN@github.com/your-org/your-repo.git /home/user/repo",
+    envs={"GITHUB_TOKEN": os.environ["GITHUB_TOKEN"]},
+)
+
+sandbox.commands.run("cd /home/user/repo && git status --porcelain=v2 --branch")
+sandbox.commands.run('cd /home/user/repo && git add -A && git commit -m "Initial commit"')
+sandbox.commands.run(
+    "cd /home/user/repo && git push origin main",
+    envs={"GITHUB_TOKEN": os.environ["GITHUB_TOKEN"]},
+)
+```
+</CodeGroup>
+
+Unlike `sandbox.git.status()` and `sandbox.git.branches()`, the commands module returns raw stdout, so parse the output yourself (for example with `git status --porcelain=v2`).
+
+The existing `sandbox.git` reference remains available on the [Git integration](/sandbox/git-integration) page.

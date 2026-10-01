@@ -1,10 +1,32 @@
 ---
 title: "Git integration"
-description: "Clone repositories, manage branches, and push changes using the sandbox.git methods."
+tag: "Deprecated"
+description: "The sandbox.git module is deprecated. Run git through sandbox.commands.run() instead."
 "og:image": "/images/og/generated/sandbox/git-integration.png"
 ---
 
-Use the `sandbox.git` methods to run common git operations inside a sandbox.
+<Warning>
+The `sandbox.git` module is deprecated. It still works today, but it will be removed in the next major version of the JavaScript and Python SDKs. Run git through the commands module instead:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+// Deprecated
+await sandbox.git.clone('https://github.com/e2b-dev/E2B.git', { path: 'repo' })
+
+// Use instead
+await sandbox.commands.run('git clone https://github.com/e2b-dev/E2B.git repo')
+```
+```python Python
+# Deprecated
+sandbox.git.clone("https://github.com/e2b-dev/E2B.git", path="repo")
+
+# Use instead
+sandbox.commands.run("git clone https://github.com/e2b-dev/E2B.git repo")
+```
+</CodeGroup>
+
+See the [migration guide](/migration/git-deprecation) for more examples.
+</Warning>
 
 ### Authentication and Identity
 

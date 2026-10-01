@@ -5630,7 +5630,8 @@
               "migration/v2",
               "migration/template-v2",
               "migration/access-token-deprecation",
-              "migration/v1-build-deprecation"
+              "migration/v1-build-deprecation",
+              "migration/git-deprecation"
             ]
           }
         ]

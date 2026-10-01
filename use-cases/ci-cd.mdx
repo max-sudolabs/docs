@@ -98,15 +98,12 @@ const sandbox = await Sandbox.create({ timeoutMs: 300_000 })
 console.log('Sandbox created:', sandbox.sandboxId)
 
 // --- 2. Clone the PR branch ---
-const repoUrl = `https://github.com/${process.env.PR_REPO}.git`
+const repoUrl = `https://x-access-token:$GITHUB_TOKEN@github.com/${process.env.PR_REPO}.git`
 
-await sandbox.git.clone(repoUrl, {
-  path: '/home/user/repo',
-  branch: process.env.PR_BRANCH,
-  username: 'x-access-token',
-  password: process.env.GITHUB_TOKEN,
-  depth: 1,
-})
+await sandbox.commands.run(
+  `git clone --depth 1 --branch ${process.env.PR_BRANCH} ${repoUrl} /home/user/repo`,
+  { envs: { GITHUB_TOKEN: process.env.GITHUB_TOKEN } }
+)
 console.log('Repository cloned')
 
 // --- 3. Get the diff and send it to an LLM for review ---
@@ -187,15 +184,11 @@ sandbox = Sandbox.create(timeout=300)
 print(f"Sandbox created: {sandbox.sandbox_id}")
 
 # --- 2. Clone the PR branch ---
-repo_url = f"https://github.com/{os.environ['PR_REPO']}.git"
+repo_url = f"https://x-access-token:$GITHUB_TOKEN@github.com/{os.environ['PR_REPO']}.git"
 
-sandbox.git.clone(
-    repo_url,
-    path="/home/user/repo",
-    branch=os.environ["PR_BRANCH"],
-    username="x-access-token",
-    password=os.environ["GITHUB_TOKEN"],
-    depth=1,
+sandbox.commands.run(
+    f"git clone --depth 1 --branch {os.environ['PR_BRANCH']} {repo_url} /home/user/repo",
+    envs={"GITHUB_TOKEN": os.environ["GITHUB_TOKEN"]},
 )
 print("Repository cloned")
 
@@ -262,17 +255,14 @@ print("Done")
 </CodeGroup>
 
 1. **Create sandbox** — `Sandbox.create()` creates an isolated Linux environment for the review
-2. **Clone the PR** — `sandbox.git.clone()` checks out the PR branch using `x-access-token` + `GITHUB_TOKEN` for [authentication](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation)
+2. **Clone the PR** — `commands.run()` runs `git clone` inside the sandbox, checking out the PR branch with `x-access-token` + `GITHUB_TOKEN` for [authentication](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation)
 3. **AI review** — runs `git diff` inside the sandbox, sends the output to an LLM — swap the model for any provider via [Connect LLMs](/quickstart/connect-llms)
 4. **Run tests** — `commands.run()` streams output in real time and throws on failure (`CommandExitError` / `CommandExitException`)
 5. **Post results** — comments the review on the PR via the GitHub REST API, then shuts down the sandbox
 
 ## Related guides
 
-<CardGroup cols={3}>
-  <Card title="Git integration" icon="code-branch" href="/sandbox/git-integration">
-    Clone repos, manage branches, and push changes from sandboxes
-  </Card>
+<CardGroup cols={2}>
   <Card title="Connect LLMs" icon="brain" href="/quickstart/connect-llms">
     Integrate AI models with sandboxes using tool calling
   </Card>
