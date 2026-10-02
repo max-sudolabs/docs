@@ -63,10 +63,40 @@ class GeneratorTests(unittest.TestCase):
         self.assertEqual([{"ApiKeyAuth": []}], spec["paths"]["/mixed"]["get"]["security"])
 
 
+    def test_nullable_is_replaced_everywhere(self):
+        spec = {"components": {"schemas": {
+            "Mcp": {"type": "object", "additionalProperties": {}, "nullable": True},
+            "Sandbox": {"type": "object", "properties": {
+                "mcp": {"$ref": "#/components/schemas/Mcp", "nullable": True},
+                "name": {"type": "string", "nullable": True},
+                "nullable": {"type": "boolean"}}}}}}
+        self.assertEqual(3, generator.replace_nullable(spec))
+        schemas = spec["components"]["schemas"]
+        self.assertEqual(["object", "null"], schemas["Mcp"]["type"])
+        props = schemas["Sandbox"]["properties"]
+        self.assertEqual([{"$ref": "#/components/schemas/Mcp"}, {"type": "null"}], props["mcp"]["oneOf"])
+        self.assertEqual(["string", "null"], props["name"]["type"])
+        self.assertEqual({"type": "boolean"}, props["nullable"])
+
+
 class GeneratedSpecTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.spec = yaml.safe_load((SCRIPTS.parent / "openapi-public.yaml").read_text())
+
+    def test_no_openapi_30_nullable_keyword(self):
+        found = []
+        def walk(value, path):
+            if isinstance(value, dict):
+                if isinstance(value.get("nullable"), bool):
+                    found.append(path)
+                for key, child in value.items():
+                    walk(child, f"{path}/{key}")
+            elif isinstance(value, list):
+                for i, child in enumerate(value):
+                    walk(child, f"{path}/{i}")
+        walk(self.spec, "#")
+        self.assertEqual([], found)
 
     def test_openapi_and_local_references_are_valid(self):
         OpenAPIV31SpecValidator(self.spec).validate()

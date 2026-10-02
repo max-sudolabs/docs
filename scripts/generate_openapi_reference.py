@@ -795,6 +795,48 @@ USER_HEADER_ENDPOINTS = {
 }
 
 
+def _replace_nullable_node(node: dict[str, Any]) -> None:
+    """Rewrite one schema that had nullable: true into its 3.1.0 form."""
+    # allOf + nullable → oneOf: [allOf[...], type: 'null']
+    if "allOf" in node:
+        all_of = node.pop("allOf")
+        node["oneOf"] = all_of + [{"type": "null"}]
+    # plain type + nullable → type: [original, "null"]
+    elif "type" in node:
+        orig_type = node["type"]
+        if isinstance(orig_type, list):
+            if "null" not in orig_type:
+                orig_type.append("null")
+        else:
+            node["type"] = [orig_type, "null"]
+    # $ref + nullable → oneOf: [$ref, type: 'null']
+    elif "$ref" in node:
+        ref = node.pop("$ref")
+        node["oneOf"] = [{"$ref": ref}, {"type": "null"}]
+    # additionalProperties + nullable (e.g. McpConfig)
+    elif "additionalProperties" in node:
+        node["type"] = ["object", "null"]
+
+
+def replace_nullable(node: Any) -> int:
+    """Recursively replace OpenAPI 3.0 nullable: true. Returns the count."""
+    count = 0
+    if isinstance(node, dict):
+        # Only a boolean keyword counts: a property *named* nullable is a dict.
+        if node.get("nullable") is True:
+            node.pop("nullable")
+            _replace_nullable_node(node)
+            count += 1
+        elif node.get("nullable") is False:
+            node.pop("nullable")
+        for value in node.values():
+            count += replace_nullable(value)
+    elif isinstance(node, list):
+        for item in node:
+            count += replace_nullable(item)
+    return count
+
+
 def fix_spec_issues(spec: dict[str, Any]) -> None:
     """Fix known discrepancies between the source spec and the live API.
 
@@ -1192,36 +1234,12 @@ def fix_spec_issues(spec: dict[str, Any]) -> None:
 
     # 27. Replace nullable: true with OpenAPI 3.1.0 type arrays
     #     In 3.1.0, nullable was removed. Use type: ["string", "null"] instead,
-    #     or oneOf with type: 'null' for $ref properties.
-    nullable_fixed = 0
-    for schema_name, schema in schemas.items():
-        if "properties" not in schema:
-            continue
-        for prop_name, prop in schema["properties"].items():
-            if not isinstance(prop, dict) or not prop.pop("nullable", False):
-                continue
-            # allOf + nullable → oneOf: [allOf[...], type: 'null']
-            if "allOf" in prop:
-                all_of = prop.pop("allOf")
-                prop["oneOf"] = all_of + [{"type": "null"}]
-            # plain type + nullable → type: [original, "null"]
-            elif "type" in prop:
-                orig_type = prop["type"]
-                if isinstance(orig_type, list):
-                    if "null" not in orig_type:
-                        orig_type.append("null")
-                else:
-                    prop["type"] = [orig_type, "null"]
-            # $ref + nullable → oneOf: [$ref, type: 'null']
-            elif "$ref" in prop:
-                ref = prop.pop("$ref")
-                prop["oneOf"] = [{"$ref": ref}, {"type": "null"}]
-            # additionalProperties + nullable (e.g. McpConfig)
-            elif "additionalProperties" in prop:
-                prop["type"] = ["object", "null"]
-            nullable_fixed += 1
+    #     or oneOf with type: 'null' for $ref properties. Walk the whole spec,
+    #     not only schema properties: a top-level component schema can carry
+    #     nullable itself (e.g. Mcp, SandboxEgressProxyConfig).
+    nullable_fixed = replace_nullable(spec)
     if nullable_fixed:
-        fixes.append(f"Replaced nullable: true with 3.1.0 type arrays on {nullable_fixed} properties")
+        fixes.append(f"Replaced nullable: true with 3.1.0 type arrays on {nullable_fixed} schemas")
 
     if fixes:
         print(f"==> Fixed {len(fixes)} spec issues:")
