@@ -10,6 +10,10 @@ You can use E2B Sandbox to run AI-generated code to analyze data. Here's how the
 3. The sandbox runs the AI-generated code and returns the results.
 4. You display the results to the user.
 
+<Note>
+By default, the Code Interpreter server inside the sandbox is reachable through the sandbox's [public URL](/network/public-url) and runs any code it receives. To make sure only your application can run code in the sandbox, create it with `allowPublicTraffic: false` / `allow_public_traffic: False`. See [Code Interpreter sandboxes](/network/restrict-public-access#code-interpreter-sandboxes).
+</Note>
+
 ---
 
 ## Example: Analyze CSV file with E2B and Claude 3.5 Sonnet

@@ -7,6 +7,10 @@ Every sandbox can be reached by a public URL, which lets you expose and connect 
 
 To control the sandbox's outbound internet access, see [Internet access](/network/internet-access). To require authentication on the public URL, see [Restricting public access](/network/restrict-public-access).
 
+<Warning>
+By default, a sandbox's public URLs are reachable by anyone who knows them. Unless you [restrict public access](/network/restrict-public-access), any service listening on a sandbox port answers requests from anyone who has the URL, including the [Code Interpreter](/code-interpreting/analyze-data-with-ai) server, which runs whatever code it receives. Treat a public URL like a credential. Anyone who obtains it, for example from a shared link, a log, or a web archive, can reach the sandbox's services while it is running or [auto-resumes on request](/sandbox/auto-resume).
+</Warning>
+
 ## Sandbox public URL
 Every sandbox has a public URL that can be used to access running services inside the sandbox.
 

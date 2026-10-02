@@ -75,6 +75,55 @@ print(response2.status_code)  # 200
 
 When `allowPublicTraffic` / `allow_public_traffic` is set to a falsy value, all requests to the sandbox's public URLs must include the `e2b-traffic-access-token` header with the value from `sandbox.trafficAccessToken` / `sandbox.traffic_access_token`.
 
+## Code Interpreter sandboxes
+
+The [Code Interpreter](/code-interpreting/analyze-data-with-ai) server listens on port `49999` and runs any code sent to it. On a sandbox with public access, anyone who has the port `49999` URL can run code in the sandbox and read its files. If you only call the sandbox through the SDK, nothing else needs that URL, so restrict public access. The Code Interpreter SDK sends the traffic access token for you, so `runCode` / `run_code` keeps working:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from '@e2b/code-interpreter'
+
+const sandbox = await Sandbox.create({
+  network: {
+    allowPublicTraffic: false
+  }
+})
+
+// The SDK sends the traffic access token automatically
+const execution = await sandbox.runCode('print(6 * 7)')
+console.log(execution.logs.stdout) // [ '42\n' ]
+
+// A request to the Code Interpreter port without the token fails with 403
+const response = await fetch(`https://${sandbox.getHost(49999)}/execute`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ code: 'print(6 * 7)' })
+})
+console.log(response.status) // 403
+```
+```python Python
+import requests
+from e2b_code_interpreter import Sandbox
+
+sandbox = Sandbox.create(
+    network={
+        "allow_public_traffic": False
+    }
+)
+
+# The SDK sends the traffic access token automatically
+execution = sandbox.run_code("print(6 * 7)")
+print(execution.logs.stdout)  # ['42\n']
+
+# A request to the Code Interpreter port without the token fails with 403
+response = requests.post(
+    f"https://{sandbox.get_host(49999)}/execute",
+    json={"code": "print(6 * 7)"},
+)
+print(response.status_code)  # 403
+```
+</CodeGroup>
+
 ## Running a firewall inside the sandbox
 
 E2B already blocks every sandbox from sending outbound traffic to private and link-local address ranges. This is enforced outside the guest, applies to every sandbox, and cannot be disabled, so you do not need your own in-sandbox rules to block these ranges:
