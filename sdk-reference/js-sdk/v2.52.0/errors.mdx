@@ -1,0 +1,599 @@
+---
+sidebarTitle: "Errors"
+"og:image": "/images/og/sdk-reference.png"
+"twitter:image": "/images/og/sdk-reference.png"
+---
+
+### AuthenticationError
+
+Thrown when authentication fails.
+
+#### Extended by
+
+- `GitAuthError`
+
+#### Constructors
+
+```ts
+new AuthenticationError(message: string): AuthenticationError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+###### Returns
+
+`AuthenticationError`
+
+***
+
+### BuildError
+
+Thrown when the build fails.
+
+#### Extended by
+
+- `FileUploadError`
+
+#### Constructors
+
+```ts
+new BuildError(message: string, stackTrace?: string): BuildError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+| `stackTrace`? | `string` |
+
+###### Returns
+
+`BuildError`
+
+***
+
+### FileNotFoundError
+
+Thrown when a file or directory is not found inside a sandbox.
+
+#### Constructors
+
+```ts
+new FileNotFoundError(message: string): FileNotFoundError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+###### Returns
+
+`FileNotFoundError`
+
+#### Properties
+
+| Property | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ |
+| <a id="statuscode"></a> `statusCode?` | `number` | HTTP status of the API response that produced this error, when there was one. | `NotFoundError`.`statusCode` |
+
+***
+
+### FileUploadError
+
+Thrown when the file upload fails.
+
+#### Constructors
+
+```ts
+new FileUploadError(message: string, stackTrace?: string): FileUploadError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+| `stackTrace`? | `string` |
+
+###### Returns
+
+`FileUploadError`
+
+***
+
+### ~~GitAuthError~~
+
+Thrown when git authentication fails.
+
+#### Deprecated
+
+Run git with `sandbox.commands.run()` instead. The git module will be removed in the next major version.
+
+#### Constructors
+
+```ts
+new GitAuthError(message: string): GitAuthError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+###### Returns
+
+`GitAuthError`
+
+***
+
+### ~~GitUpstreamError~~
+
+Thrown when git upstream tracking is missing.
+
+#### Deprecated
+
+Run git with `sandbox.commands.run()` instead. The git module will be removed in the next major version.
+
+#### Constructors
+
+```ts
+new GitUpstreamError(message: string): GitUpstreamError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+###### Returns
+
+`GitUpstreamError`
+
+#### Properties
+
+| Property | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ |
+| <a id="statuscode-1"></a> ~~`statusCode?`~~ | `number` | HTTP status of the API response that produced this error, when there was one. | `SandboxError`.`statusCode` |
+
+***
+
+### InvalidArgumentError
+
+Thrown when an invalid argument is provided.
+
+#### Constructors
+
+```ts
+new InvalidArgumentError(message: string, stackTrace?: string): InvalidArgumentError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+| `stackTrace`? | `string` |
+
+###### Returns
+
+`InvalidArgumentError`
+
+#### Properties
+
+| Property | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ |
+| <a id="statuscode-2"></a> `statusCode?` | `number` | HTTP status of the API response that produced this error, when there was one. | `SandboxError`.`statusCode` |
+
+***
+
+### NotEnoughSpaceError
+
+Thrown when there is not enough disk space.
+
+#### Constructors
+
+```ts
+new NotEnoughSpaceError(message: string): NotEnoughSpaceError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+###### Returns
+
+`NotEnoughSpaceError`
+
+#### Properties
+
+| Property | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ |
+| <a id="statuscode-3"></a> `statusCode?` | `number` | HTTP status of the API response that produced this error, when there was one. | `SandboxError`.`statusCode` |
+
+***
+
+### ~~NotFoundError~~
+
+Thrown when a resource is not found.
+
+#### Deprecated
+
+Use FileNotFoundError or SandboxNotFoundError instead. This class will be removed in the next major version.
+
+#### Extended by
+
+- `FileNotFoundError`
+- `SandboxNotFoundError`
+
+#### Constructors
+
+```ts
+new NotFoundError(message: string): NotFoundError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+###### Returns
+
+`NotFoundError`
+
+#### Properties
+
+| Property | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ |
+| <a id="statuscode-4"></a> ~~`statusCode?`~~ | `number` | HTTP status of the API response that produced this error, when there was one. | `SandboxError`.`statusCode` |
+
+***
+
+### RateLimitError
+
+Thrown when the API rate limit is exceeded.
+
+#### Constructors
+
+```ts
+new RateLimitError(message: string): RateLimitError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+###### Returns
+
+`RateLimitError`
+
+#### Properties
+
+| Property | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ |
+| <a id="statuscode-5"></a> `statusCode?` | `number` | HTTP status of the API response that produced this error, when there was one. | `SandboxError`.`statusCode` |
+
+***
+
+### SandboxError
+
+Base class for all sandbox errors.
+
+Thrown when general sandbox errors occur.
+
+#### Extended by
+
+- `TimeoutError`
+- `InvalidArgumentError`
+- `NotEnoughSpaceError`
+- `NotFoundError`
+- `GitUpstreamError`
+- `TemplateError`
+- `RateLimitError`
+
+#### Constructors
+
+```ts
+new SandboxError(message?: string): SandboxError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message`? | `string` |
+
+###### Returns
+
+`SandboxError`
+
+#### Properties
+
+| Property | Type | Description |
+| ------ | ------ | ------ |
+| <a id="statuscode-6"></a> `statusCode?` | `number` | HTTP status of the API response that produced this error, when there was one. |
+
+***
+
+### SandboxNotFoundError
+
+Thrown when a sandbox is not found (e.g. it doesn't exist or is no longer running).
+
+#### Constructors
+
+```ts
+new SandboxNotFoundError(message: string): SandboxNotFoundError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+###### Returns
+
+`SandboxNotFoundError`
+
+#### Properties
+
+| Property | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ |
+| <a id="statuscode-7"></a> `statusCode?` | `number` | HTTP status of the API response that produced this error, when there was one. | `NotFoundError`.`statusCode` |
+
+***
+
+### SecretError
+
+Base class for all secret errors.
+
+Thrown when general secret errors occur.
+
+#### Extended by
+
+- `SecretNotFoundError`
+
+#### Constructors
+
+```ts
+new SecretError(message: string): SecretError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+###### Returns
+
+`SecretError`
+
+***
+
+### SecretNotFoundError
+
+Thrown when a secret is not found.
+
+#### Constructors
+
+```ts
+new SecretNotFoundError(message: string): SecretNotFoundError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+###### Returns
+
+`SecretNotFoundError`
+
+***
+
+### ServiceBusyError
+
+Thrown when the API refused the operation because the service is
+temporarily busy (HTTP 503): no capacity to place a sandbox right now, or
+the node running the sandbox declined a request it cannot serve yet.
+
+Nothing was changed by the refused call: for example a refused pause
+leaves the sandbox running with its state intact, so the same call can be
+retried after a short wait.
+
+Like AuthenticationError and unlike the other API errors, this is
+not a SandboxError: it is raised for every 503 whatever the
+operation, so catch it explicitly.
+
+#### Constructors
+
+```ts
+new ServiceBusyError(message: string): ServiceBusyError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+###### Returns
+
+`ServiceBusyError`
+
+#### Properties
+
+| Property | Modifier | Type | Default value | Description |
+| ------ | ------ | ------ | ------ | ------ |
+| <a id="statuscode-8"></a> `statusCode` | `readonly` | `503` | `503` | HTTP status of the API response: always 503. |
+
+***
+
+### TemplateError
+
+Thrown when the template uses old envd version. It isn't compatible with the new SDK.
+
+#### Constructors
+
+```ts
+new TemplateError(message: string, stackTrace?: string): TemplateError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+| `stackTrace`? | `string` |
+
+###### Returns
+
+`TemplateError`
+
+#### Properties
+
+| Property | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ |
+| <a id="statuscode-9"></a> `statusCode?` | `number` | HTTP status of the API response that produced this error, when there was one. | `SandboxError`.`statusCode` |
+
+***
+
+### TimeoutError
+
+Thrown when a timeout error occurs.
+
+The [unavailable] error type is caused by sandbox timeout.
+
+The [canceled] error type is caused by exceeding request timeout.
+
+The [deadline_exceeded] error type is caused by exceeding the timeout for command execution, watch, etc.
+
+The [unknown] error type is sometimes caused by the sandbox timeout when the request is not processed correctly.
+
+#### Constructors
+
+```ts
+new TimeoutError(message: string): TimeoutError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+###### Returns
+
+`TimeoutError`
+
+#### Properties
+
+| Property | Type | Description | Inherited from |
+| ------ | ------ | ------ | ------ |
+| <a id="statuscode-10"></a> `statusCode?` | `number` | HTTP status of the API response that produced this error, when there was one. | `SandboxError`.`statusCode` |
+
+***
+
+### VolumeError
+
+Base class for all volume errors.
+
+Thrown when general volume errors occur.
+
+#### Extended by
+
+- `VolumeNotFoundError`
+- `VolumePathNotFoundError`
+
+#### Constructors
+
+```ts
+new VolumeError(message: string): VolumeError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+###### Returns
+
+`VolumeError`
+
+***
+
+### VolumeNotFoundError
+
+Thrown when a volume is not found.
+
+#### Constructors
+
+```ts
+new VolumeNotFoundError(message: string): VolumeNotFoundError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+###### Returns
+
+`VolumeNotFoundError`
+
+***
+
+### VolumePathNotFoundError
+
+Thrown when a file or directory is not found inside a volume.
+
+#### Constructors
+
+```ts
+new VolumePathNotFoundError(message: string): VolumePathNotFoundError
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+###### Returns
+
+`VolumePathNotFoundError`
+
+## Functions
+
+### formatSandboxTimeoutError()
+
+```ts
+function formatSandboxTimeoutError(message: string): TimeoutError
+```
+
+#### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `message` | `string` |
+
+#### Returns
+
+`TimeoutError`

@@ -1,0 +1,249 @@
+---
+sidebarTitle: "Exceptions"
+"og:image": "/images/og/sdk-reference.png"
+"twitter:image": "/images/og/sdk-reference.png"
+---
+
+
+
+
+
+
+## SandboxException
+
+```python
+class SandboxException(Exception)
+```
+
+Base class for all sandbox errors.
+
+Raised when a general sandbox exception occurs.
+
+**Arguments**:
+
+- `status_code`: HTTP status of the API response that produced this error, when there was one.
+
+
+
+## TimeoutException
+
+```python
+class TimeoutException(SandboxException)
+```
+
+Raised when a timeout occurs.
+
+The `unavailable` exception type is caused by sandbox timeout.
+
+The `canceled` exception type is caused by exceeding request timeout.
+
+The `deadline_exceeded` exception type is caused by exceeding the timeout for process, watch, etc.
+
+The `unknown` exception type is sometimes caused by the sandbox timeout when the request is not processed correctly.
+
+
+
+## InvalidArgumentException
+
+```python
+class InvalidArgumentException(SandboxException)
+```
+
+Raised when an invalid argument is provided.
+
+
+
+## NotEnoughSpaceException
+
+```python
+class NotEnoughSpaceException(SandboxException)
+```
+
+Raised when there is not enough disk space.
+
+
+
+## NotFoundException
+
+```python
+class NotFoundException(SandboxException)
+```
+
+Raised when a resource is not found.
+
+.. deprecated::
+    Use :class:`FileNotFoundException` or :class:`SandboxNotFoundException` instead.
+    This class will be removed in the next major version.
+
+
+
+## FileNotFoundException
+
+```python
+class FileNotFoundException(NotFoundException)
+```
+
+Raised when a file or directory is not found inside a sandbox.
+
+
+
+## SandboxNotFoundException
+
+```python
+class SandboxNotFoundException(NotFoundException)
+```
+
+Raised when a sandbox is not found (e.g. it doesn't exist or is no longer running).
+
+
+
+## AuthenticationException
+
+```python
+class AuthenticationException(Exception)
+```
+
+Raised when authentication fails.
+
+
+
+## GitAuthException
+
+```python
+class GitAuthException(AuthenticationException)
+```
+
+Raised when git authentication fails.
+
+:deprecated: Run git with `sandbox.commands.run()` instead. The git module will be removed in the next major version.
+
+
+
+## GitUpstreamException
+
+```python
+class GitUpstreamException(SandboxException)
+```
+
+Raised when git upstream tracking is missing.
+
+:deprecated: Run git with `sandbox.commands.run()` instead. The git module will be removed in the next major version.
+
+
+
+## TemplateException
+
+```python
+class TemplateException(SandboxException)
+```
+
+Exception raised when the template uses old envd version. It isn't compatible with the new SDK.
+
+
+
+## RateLimitException
+
+```python
+class RateLimitException(SandboxException)
+```
+
+Raised when the API rate limit is exceeded.
+
+
+
+## ServiceBusyException
+
+```python
+class ServiceBusyException(Exception)
+```
+
+Raised when the API refused the operation because the service is
+
+temporarily busy (HTTP 503): no capacity to place a sandbox right now, or
+the node running the sandbox declined a request it cannot serve yet.
+
+Nothing was changed by the refused call: for example a refused pause
+leaves the sandbox running with its state intact, so the same call can be
+retried after a short wait.
+
+Like `AuthenticationException` and unlike the other API errors, this is not
+a `SandboxException`: it is raised for every 503 whatever the operation, so
+catch it explicitly.
+
+**Arguments**:
+
+- `status_code`: HTTP status of the API response: always 503.
+
+
+
+## BuildException
+
+```python
+class BuildException(Exception)
+```
+
+Raised when the build fails.
+
+
+
+## FileUploadException
+
+```python
+class FileUploadException(BuildException)
+```
+
+Raised when the file upload fails.
+
+
+
+## VolumeException
+
+```python
+class VolumeException(Exception)
+```
+
+Base class for all volume errors.
+
+Raised when general volume errors occur.
+
+
+
+## VolumeNotFoundException
+
+```python
+class VolumeNotFoundException(NotFoundException)
+```
+
+Raised when a volume is not found.
+
+
+
+## VolumePathNotFoundException
+
+```python
+class VolumePathNotFoundException(NotFoundException)
+```
+
+Raised when a file or directory is not found inside a volume.
+
+
+
+## SecretException
+
+```python
+class SecretException(Exception)
+```
+
+Base class for all secret errors.
+
+Raised when general secret errors occur.
+
+
+
+## SecretNotFoundException
+
+```python
+class SecretNotFoundException(SecretException)
+```
+
+Raised when a secret is not found.
