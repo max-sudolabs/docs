@@ -8,7 +8,7 @@ sidebarTitle: Lifecycle
 Sandboxes stay running as long as you need them. When their timeout expires, they can automatically pause to save resources — preserving their full state so you can resume at any time. You can also configure an explicit timeout or shut down a sandbox manually.
 
 <Note>
-Sandboxes can run continuously for up to 24 hours (Pro) or 1 hour (Base). For longer workloads, use [pause and resume](/sandbox/persistence) — pausing resets the runtime window, and your sandbox's full state is preserved indefinitely.
+Sandboxes can run continuously for up to 24 hours (Pro) or 1 hour (Hobby). For longer workloads, use [pause and resume](/sandbox/persistence) - pausing resets the runtime window, and your sandbox's full state is preserved indefinitely.
 
 This limit is about the sandbox, not about a single stream to it. See [Stream connections](/faq/sandbox-lifetime#stream-connections).
 </Note>
@@ -84,12 +84,21 @@ const info = await sandbox.getInfo()
 console.log(info)
 
 // {
-//   "sandboxId": "iiny0783cype8gmoawzmx-ce30bc46",
-//   "templateId": "rki5dems9wqfm4r03t7g",
-//   "name": "base",
-//   "metadata": {},
-//   "startedAt": "2025-03-24T15:37:58.076Z",
-//   "endAt": "2025-03-24T15:42:58.076Z"
+//   sandboxId: 'iiny0783cype8gmoawzmx',
+//   templateId: 'rki5dems9wqfm4r03t7g',
+//   name: 'base',
+//   metadata: {},
+//   allowInternetAccess: undefined,
+//   envdVersion: '0.6.10',
+//   startedAt: 2026-10-04T11:21:01.301Z,
+//   endAt: 2026-10-04T11:22:01.301Z,
+//   state: 'running',
+//   cpuCount: 2,
+//   memoryMB: 512,
+//   network: undefined,
+//   lifecycle: { onTimeout: 'kill', autoResume: false },
+//   sandboxDomain: undefined,
+//   volumeMounts: []
 // }
 ```
 
@@ -104,12 +113,21 @@ info = sandbox.get_info()
 
 print(info)
 
-# SandboxInfo(sandbox_id='ig6f1yt6idvxkxl562scj-419ff533',
-#   template_id='u7nqkmpn3jjf1tvftlsu',
+# SandboxInfo(sandbox_id='ig6f1yt6idvxkxl562scj',
+#   sandbox_domain=None,
+#   template_id='rki5dems9wqfm4r03t7g',
 #   name='base',
 #   metadata={},
-#   started_at=datetime.datetime(2025, 3, 24, 15, 42, 59, 255612, tzinfo=tzutc()),
-#   end_at=datetime.datetime(2025, 3, 24, 15, 47, 59, 255612, tzinfo=tzutc())
+#   started_at=datetime.datetime(2026, 10, 4, 11, 21, 3, 40545, tzinfo=tzutc()),
+#   end_at=datetime.datetime(2026, 10, 4, 11, 22, 3, 40545, tzinfo=tzutc()),
+#   state=<SandboxState.RUNNING: 'running'>,
+#   cpu_count=2,
+#   memory_mb=512,
+#   envd_version='0.6.10',
+#   allow_internet_access=None,
+#   network=None,
+#   lifecycle={'on_timeout': <SandboxOnTimeout.KILL: 'kill'>, 'auto_resume': False},
+#   volume_mounts=[]
 # )
 ```
 </CodeGroup>

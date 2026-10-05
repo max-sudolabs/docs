@@ -86,7 +86,7 @@ e2b sandbox fork <sandboxID>
 
 ## Create multiple forks
 
-Use `count` to boot several sandboxes from the same snapshot in one call. You can request up to 100 forks at once.
+Use `count` to boot several sandboxes from the same snapshot in one call. With the SDKs and the CLI you can request up to 20 forks at once. The count must also be lower than your team's concurrent sandbox limit, because the original sandbox keeps running and uses one slot.
 
 <CodeGroup>
 ```js JavaScript & TypeScript highlight={5}
@@ -149,7 +149,7 @@ If the request fails as a whole (for example, the sandbox does not exist), the m
 
 ## Fork timeout
 
-The `timeoutMs` (JavaScript) / `timeout` (Python) option sets how long the new forked sandboxes live and defaults to 5 minutes, like `Sandbox.create()`. It applies to the forks only — the original sandbox's expiration is not changed.
+The `timeoutMs` (JavaScript) / `timeout` (Python) option sets how long the new forked sandboxes live and defaults to 15 seconds. It applies to the forks only - the original sandbox's expiration is not changed.
 
 <CodeGroup>
 ```js JavaScript & TypeScript

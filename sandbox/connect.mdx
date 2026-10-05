@@ -31,12 +31,14 @@ const sandboxId = runningSandboxes[0].sandboxId
 ```
 
 ```python Python
-from e2b import Sandbox
+from e2b import Sandbox, SandboxQuery, SandboxState
 
 sbx = Sandbox.create()
 
 # Get all running sandboxes
-paginator = Sandbox.list()
+paginator = Sandbox.list(
+    query=SandboxQuery(state=[SandboxState.RUNNING]),
+)
 
 # Get the ID of the sandbox you want to connect to
 running_sandboxes = paginator.next_items()

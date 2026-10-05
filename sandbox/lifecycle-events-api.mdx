@@ -25,7 +25,7 @@ const sbx = await Sandbox.create()
 
 // Get the latest events for a specific sandbox
 const resp1 = await fetch(
-  `https://api.e2b.app/events/sandboxes/${sbx.id}`,
+  `https://api.e2b.app/events/sandboxes/${sbx.sandboxId}`,
   {
     method: 'GET',
     headers: {

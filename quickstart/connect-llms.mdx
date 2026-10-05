@@ -718,7 +718,7 @@ agent.chat("Calculate how many r's are in the word 'strawberry'")
 
 <CodeGroup>
 ```python Python
-# pip install ollama
+# pip install ollama e2b-code-interpreter
 import ollama
 from e2b_code_interpreter import Sandbox
 
@@ -765,7 +765,7 @@ import re
 
 # Not all models are capable of direct tools use - we need to extract the code block manually and prompting the LLM to generate the code.
 def match_code_block(llm_response):
-  pattern = re.compile(r'```python Python\n(.*?)\n```', re.DOTALL) # Match everything in between ```python and ```
+  pattern = re.compile(r'```python\n(.*?)\n```', re.DOTALL) # Match everything in between ```python and ```
   match = pattern.search(llm_response)
   if match:
     code = match.group(1)

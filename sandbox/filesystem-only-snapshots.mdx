@@ -131,8 +131,8 @@ const content = await resumed.files.read('/home/user/data.txt')
 console.log(content) // "survives the reboot"
 
 // The background process is gone — the sandbox rebooted
-const check = await resumed.commands.run(`kill -0 ${cmd.pid}`, { background: false })
-console.log(check.exitCode !== 0) // true — process no longer running
+const check = await resumed.commands.run(`kill -0 ${cmd.pid}; echo $?`)
+console.log(check.stdout.trim() !== '0') // true — process no longer running
 ```
 ```python Python
 from e2b import Sandbox
@@ -150,8 +150,8 @@ content = resumed.files.read("/home/user/data.txt")
 print(content)  # "survives the reboot"
 
 # The background process is gone — the sandbox rebooted
-check = resumed.commands.run(f"kill -0 {cmd.pid}", background=False)
-print(check.exit_code != 0)  # True — process no longer running
+check = resumed.commands.run(f"kill -0 {cmd.pid}; echo $?")
+print(check.stdout.strip() != "0")  # True — process no longer running
 ```
 </CodeGroup>
 

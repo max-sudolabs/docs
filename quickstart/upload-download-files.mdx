@@ -11,6 +11,7 @@ An alternative way to get your data to the sandbox is to create a [custom sandbo
 ## Upload file
 <CodeGroup>
 ```ts JavaScript & TypeScript
+import fs from 'fs'
 import { Sandbox } from 'e2b'
 
 // Read local file relative to the current working directory
@@ -35,11 +36,11 @@ with open("local/file", "rb") as file:
 
 
 ## Upload multiple files
-Currently, if you want to upload multiple files, you need to upload each one of the separately.
-We're working on a better solution.
+To upload multiple files in one call, pass a list of `{ path, data }` entries to `files.write()` in JavaScript or to `files.write_files()` in Python. See [Upload data to sandbox](/filesystem/upload). The following example shows the other approach, with one `files.write()` call per file.
 
 <CodeGroup>
 ```ts JavaScript & TypeScript
+import fs from 'fs'
 import { Sandbox } from 'e2b'
 
 // Read local file relative to the current working directory
@@ -72,7 +73,7 @@ with open("local/file/b", "rb") as file:
 
 ## Upload directory
 We currently don't support an easy way to upload a whole directory.
-You need to upload each file separately.
+You can read each file locally and pass the files in one call to `files.write()` in JavaScript or `files.write_files()` in Python. See [Upload data to sandbox](/filesystem/upload).
 
 We're working on a better solution.
 
@@ -83,6 +84,7 @@ To download a file, you need to first get the file's content and then write it t
 
 <CodeGroup>
 ```ts JavaScript & TypeScript
+import fs from 'fs'
 import { Sandbox } from 'e2b'
 
 const sbx = await Sandbox.create()
@@ -112,6 +114,7 @@ We're working on a better solution.
 
 <CodeGroup>
 ```ts JavaScript & TypeScript
+import fs from 'fs'
 import { Sandbox } from 'e2b'
 
 const sbx = await Sandbox.create()

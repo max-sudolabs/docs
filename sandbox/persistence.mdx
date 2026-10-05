@@ -107,7 +107,7 @@ By default a pause saves **both** the filesystem and the memory. To save only th
 ### When a pause is refused
 
 <Info>
-Rolling out. The refusal behavior below is being enabled region by region. Until it reaches your region, a pause in this situation fails with a `500` error instead. `ServiceBusyError` and `ServiceBusyException` ship in the next minor release of the JavaScript and Python SDKs.
+Rolling out. The refusal behavior below is being enabled region by region. Until it reaches your region, a pause in this situation fails with a `500` error instead. `ServiceBusyError` and `ServiceBusyException` are available in the JavaScript and Python SDKs (the `e2b` package) starting with version `2.48.0`.
 </Info>
 
 A pause can be refused when the node running the sandbox is still finishing the previous snapshot of the same sandbox. Instead of failing the sandbox, the API answers with HTTP `503` and the sandbox **keeps running with its state intact**. Nothing was paused and nothing was lost. The SDKs surface this as `ServiceBusyError` (JavaScript) / `ServiceBusyException` (Python), the same error every other 503 from the API raises, for example when there is no capacity to place a new sandbox.
@@ -147,7 +147,7 @@ except ServiceBusyException:
 ```
 </CodeGroup>
 
-`ServiceBusyError` / `ServiceBusyException` is not a `SandboxError` / `SandboxException`, so catch it explicitly. Every SDK error raised from an API response also carries the HTTP status as `statusCode` (JavaScript) / `status_code` (Python) if you prefer to branch on the status. SDK versions that predate `ServiceBusyError` raise a generic `SandboxError` / `SandboxException` whose message starts with `503:`.
+`ServiceBusyError` / `ServiceBusyException` is not a `SandboxError` / `SandboxException`, so catch it explicitly.
 
 ## Resuming sandbox
 When you resume a sandbox, it will be in the same state it was in when you paused it.

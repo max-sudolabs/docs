@@ -4,7 +4,7 @@ sidebarTitle: Run commands in background
 "og:image": "/images/og/generated/commands/background.png"
 ---
 
-To run commands in background, pass the `background` option to the `commands.run()` method. This will return immediately and the command will continue to run in the sandbox.
+To run commands in background, pass the `background` option to the `commands.run()` method. This will return immediately and the command will continue to run in the sandbox until it finishes or its command timeout expires.
 You can then later kill the command using the `commands.kill()` method.
 
 <CodeGroup>
@@ -47,7 +47,7 @@ command.kill()
 
 ## Reconnect to a background command
 
-A background command keeps running inside the sandbox even after the SDK disconnects. Because sandboxes are long-lived, you can start a long task in one process, return immediately, and reconnect from a completely different process later to wait for it and collect the result.
+A background command keeps running inside the sandbox even after the SDK disconnects, as long as its command timeout has not expired. Because sandboxes are long-lived, you can start a long task in one process, return immediately, and reconnect from a completely different process later to wait for it and collect the result.
 
 This is a common pattern for kicking off slow work (code generation, a build, a data job) from a serverless function or API handler: you start the command, store the sandbox ID and process ID, and let a later request pick the work back up.
 
@@ -74,7 +74,7 @@ async function startGeneration(prompt: string) {
 // From a separate process, reconnect and wait for the result.
 async function collectGeneration(sandboxId: string, pid: number) {
   const sandbox = await Sandbox.connect(sandboxId)
-  const handle = await sandbox.commands.connect(pid)
+  const handle = await sandbox.commands.connect(pid, { timeoutMs: 0 })
   await handle.wait()
   return sandbox.files.read('/home/user/gen.log')
 }
@@ -101,7 +101,7 @@ def start_generation(prompt: str):
 # From a separate process, reconnect and wait for the result.
 def collect_generation(sandbox_id: str, pid: int):
     sandbox = Sandbox.connect(sandbox_id)
-    handle = sandbox.commands.connect(pid)
+    handle = sandbox.commands.connect(pid, timeout=0)
     handle.wait()
     return sandbox.files.read("/home/user/gen.log")
 ```
@@ -111,7 +111,7 @@ A few details make this reliable across processes:
 
 - **Redirect output to a file.** The streamed `stdout`/`stderr` from a background command is only delivered to the process that started it. Writing to a file (`> /home/user/gen.log 2>&1`) gives you durable output you can read after reconnecting.
 - **Pass untrusted input as an environment variable, not string interpolation.** The prompt is provided through `envs` and referenced as `"$PROMPT"`, so the shell inserts it as a literal value. Interpolating user input directly into the command string (for example with a template literal) would let inputs like `$(...)` or backticks run as commands inside the sandbox.
-- **Disable the command timeout.** `timeoutMs: 0` (`timeout=0` in Python) disables the SDK command timeout so the client does not cancel the wait. The process keeps running in the sandbox either way when `background` is set, and `commands.connect()` reattaches if the connection drops. Set the sandbox `timeoutMs`/`timeout` high enough to outlast the whole job (15 minutes above). See [sandbox persistence](/sandbox/persistence) if you need it to survive even longer.
+- **Disable the command timeout.** On `commands.run()`, `timeoutMs: 0` (`timeout=0` in Python) disables the command timeout. The default is 60 seconds, and when it expires the process is killed in the sandbox, even when `background` is set. With the timeout disabled, the process keeps running after the client disconnects or exits, and `commands.connect()` reattaches to it. If the connection breaks without closing, for example on a network loss, a command that writes a lot to stdout or stderr can stall, so redirect its output to a file as the example does. On `commands.connect()`, the same option only limits how long the client waits for the command, so the example sets it there too. Set the sandbox `timeoutMs`/`timeout` high enough to outlast the whole job (15 minutes above). See [sandbox persistence](/sandbox/persistence) if you need it to survive even longer.
 - **Persist the IDs.** Return or store `sandboxId` and `pid` (for example in a database or the response of an API call). They are all a later process needs to call `Sandbox.connect()` and `commands.connect()`.
 
 `commands.connect(pid)` reattaches to the running command, and `handle.wait()` blocks until it finishes. If you don't know the `pid`, you can look up running processes with `sandbox.commands.list()`.

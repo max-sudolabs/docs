@@ -150,7 +150,7 @@ terminal = sandbox.pty.create(PtySize(rows=24, cols=80))
 
 # Send a command as bytes (b'...' is Python's byte string syntax)
 # Don't forget the newline!
-sandbox.pty.send_stdin(terminal.pid, b'echo "Hello from PTY"\n')
+sandbox.pty.send_stdin(terminal.pid, b'echo "Hello from PTY"\nexit\n')
 
 # Receive output by passing on_pty to wait()
 # end='' prevents print from adding an extra newline
@@ -227,7 +227,7 @@ const reconnected = await sandbox.pty.connect(pid, {
 })
 
 // Continue using the session
-await sandbox.pty.sendInput(pid, new TextEncoder().encode('echo world\n'))
+await sandbox.pty.sendInput(pid, new TextEncoder().encode('echo world\nexit\n'))
 
 // Wait for the terminal to exit
 await reconnected.wait()

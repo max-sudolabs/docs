@@ -27,11 +27,12 @@ result = sandbox.commands.run("echo $E2B_SANDBOX_ID")
 </CodeGroup>
 
 <Note>
-These default environment variables are only accessible via the SDK, when using the CLI you can find them in the form of dot files in the `/run/e2b/` dir: 
+These default environment variables are set for commands and terminals started through the SDK or the CLI. They are also stored as dot files in the `/run/e2b/` directory. On a recently built template, the directory looks like this:
 ```sh
 user@e2b:~$ ls -a /run/e2b/
-.E2B_SANDBOX  .E2B_SANDBOX_ID  .E2B_TEMPLATE_ID
+.  ..  .E2B_SANDBOX  .E2B_SANDBOX_ID  .E2B_TEMPLATE_ID  certs
 ```
+Templates built with an older version of envd may not set some or all of these variables and may not have the `/run/e2b/` directory. To get these variables and the directory, rebuild the template.
 </Note>
 
 ---
@@ -71,7 +72,9 @@ You can set environment variables for specific code execution call in the sandbo
 </Note>
 
 <CodeGroup>
-```js JavaScript & TypeScript highlight={3-5}
+```js JavaScript & TypeScript highlight={5-7}
+import { Sandbox } from '@e2b/code-interpreter'
+
 const sandbox = await Sandbox.create()
 const result = await sandbox.runCode('import os; print(os.environ.get("MY_VAR"))', {
   envs: {
@@ -79,7 +82,9 @@ const result = await sandbox.runCode('import os; print(os.environ.get("MY_VAR"))
   },
 })
 ```
-```python Python highlight={4-6}
+```python Python highlight={6-8}
+from e2b_code_interpreter import Sandbox
+
 sandbox = Sandbox.create()
 result = sandbox.run_code(
     'import os; print(os.environ.get("MY_VAR"))',

@@ -155,8 +155,8 @@ When you start a new sandbox instance, the packages are not be available.
 import { Sandbox } from '@e2b/code-interpreter'
 
 const sbx = await Sandbox.create()
-sbx.commands.run('pip install cowsay') // This will install the cowsay package
-sbx.runCode(`
+await sbx.commands.run('pip install cowsay') // This will install the cowsay package
+await sbx.runCode(`
   import cowsay
   cowsay.cow("Hello, world!")
 `)
@@ -180,8 +180,8 @@ sbx.run_code("""
 import { Sandbox } from '@e2b/code-interpreter'
 
 const sbx = await Sandbox.create()
-sbx.commands.run('npm install cowsay') // This will install the cowsay package
-sbx.runCode(`
+await sbx.commands.run('npm install cowsay') // This will install the cowsay package
+await sbx.runCode(`
   const cowsay = require('cowsay')
   console.log(cowsay.say({ text: 'Hello, world!' }))
 `, { language: 'javascript' })
@@ -210,12 +210,12 @@ For example, to install `curl` and `git`, you can use the following commands:
 import { Sandbox } from '@e2b/code-interpreter'
 
 const sbx = await Sandbox.create()
-await sbx.commands.run('apt-get update && apt-get install -y curl git')
+await sbx.commands.run('sudo apt-get update && sudo apt-get install -y curl git')
 ```
 ```python Python
 from e2b_code_interpreter import Sandbox
 
 sbx = Sandbox.create()
-sbx.commands.run("apt-get update && apt-get install -y curl git")
+sbx.commands.run("sudo apt-get update && sudo apt-get install -y curl git")
 ```
 </CodeGroup>

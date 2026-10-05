@@ -341,7 +341,11 @@ const rules = new Map([
 ])
 
 await Sandbox.create({
-  network: { allowOut: ({ rules }) => [...rules.keys()], rules },
+  network: {
+    allowOut: ({ rules }) => [...rules.keys()],
+    denyOut: ({ allTraffic }) => [allTraffic],
+    rules,
+  },
 })
 ```
 

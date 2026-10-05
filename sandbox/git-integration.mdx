@@ -301,9 +301,14 @@ sandbox.git.delete_branch(repo_path, "feature/stale-docs", force=True)
 ```js JavaScript & TypeScript
 const repoPath = '/home/user/repo'
 
-// Default: stage all changes, commit with repo config
+// After you change files, stage all changes and commit them. The default template
+// sets no git user.name or user.email, so pass an author here or set one with
+// configureUser() first.
 await sandbox.git.add(repoPath)
-await sandbox.git.commit(repoPath, 'Initial commit')
+await sandbox.git.commit(repoPath, 'Initial commit', {
+  authorName: 'E2B Bot',
+  authorEmail: 'bot@example.com',
+})
 
 // Stage specific files
 await sandbox.git.add(repoPath, { files: ['README.md', 'src/index.ts'] })
@@ -318,9 +323,16 @@ await sandbox.git.commit(repoPath, 'Docs sync', {
 ```python Python
 repo_path = "/home/user/repo"
 
-# Default: stage all changes, commit with repo config
+# After you change files, stage all changes and commit them. The default template
+# sets no git user.name or user.email, so pass an author here or set one with
+# configure_user() first.
 sandbox.git.add(repo_path)
-sandbox.git.commit(repo_path, "Initial commit")
+sandbox.git.commit(
+    repo_path,
+    "Initial commit",
+    author_name="E2B Bot",
+    author_email="bot@example.com",
+)
 
 # Stage specific files
 sandbox.git.add(repo_path, files=["README.md", "src/index.ts"])

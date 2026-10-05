@@ -97,7 +97,7 @@ await Secret.create("openai-api-key", "sk-***")
 
 ## Client options
 
-The client accepts the same options as the individual SDK calls, for example `apiKey`/`api_key`, `domain`, `requestTimeoutMs`/`request_timeout`, `proxy`, `apiHeaders`/`api_headers`, and `logger`.
+The client accepts the same options as the individual SDK calls, for example `apiKey`/`api_key`, `domain`, `requestTimeoutMs`/`request_timeout`, `proxy`, `apiHeaders`/`api_headers`, and `logger` (JavaScript only).
 
 In JavaScript, the only exception is `signal`: it cancels a single in-flight request, so it can only be passed per call.
 

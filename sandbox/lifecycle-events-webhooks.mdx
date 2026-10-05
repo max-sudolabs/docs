@@ -139,7 +139,7 @@ import requests
 
 # Get webhook configuration
 resp = requests.get(
-    "https://api.e2b.app/events/webhooks/{webhookID}",
+    f"https://api.e2b.app/events/webhooks/{webhookID}",
     headers={
         "X-API-Key": E2B_API_KEY,
     }
@@ -191,7 +191,7 @@ import requests
 
 # Update webhook configuration
 resp = requests.patch(
-    "https://api.e2b.app/events/webhooks/{webhookID}",
+    f"https://api.e2b.app/events/webhooks/{webhookID}",
     headers={
         "X-API-Key": E2B_API_KEY,
         "Content-Type": "application/json",
@@ -234,7 +234,7 @@ import requests
 
 # Delete webhook configuration
 resp = requests.delete(
-    "https://api.e2b.app/events/webhooks/{webhookID}",
+    f"https://api.e2b.app/events/webhooks/{webhookID}",
     headers={
         "X-API-Key": E2B_API_KEY,
     }
@@ -286,13 +286,15 @@ The payload structure matches the event format from the API:
 - `memory_mb` - Memory assigned to the sandbox in MB
 - `execution_time` - Sandbox runtime in milliseconds
 
-`event_data.kill_reason` is included on `sandbox.lifecycle.killed` events and describes why the sandbox was terminated. Possible values:
+`event_data.kill_reason` is included on `sandbox.lifecycle.killed` events and describes why the sandbox was terminated. Possible values include:
 
 - `request` - stopped by an explicit kill request
 - `timeout` - the sandbox reached its timeout
 - `admin` - stopped by an E2B administrative action
 - `orphaned` - the sandbox was orphaned and cleaned up
 - `base_template_missing` - the sandbox's base template was unavailable
+- `seal_failed` - the sandbox could not be persisted during a pause and was killed
+- `resume_failed` - the sandbox failed to resume after a snapshot and was killed
 - `unknown` - the reason was not recorded
 
 `events_ttl_days` is the number of days the event is retained and remains available through the lifecycle events API.
@@ -304,6 +306,8 @@ This confirms that the request originated from E2B and has not been tampered wit
 
 <CodeGroup>
 ```js JavaScript & TypeScript
+import * as crypto from 'node:crypto'
+
 function verifyWebhookSignature(secret : string, payload : string, payloadSignature : string) {
     const expectedSignatureRaw = crypto.createHash('sha256').update(secret + payload).digest('base64');
     const expectedSignature = expectedSignatureRaw.replace(/=+$/, '');

@@ -11,11 +11,11 @@ You can list sandboxes using the `Sandbox.list()` method.
 
 ### Listing sandboxes
 
-The `Sandbox.list()` method supports pagination. In the [advanced pagination](/sandbox/list#advanced-pagination) section, you can find more information about pagination techniques using the updated method.
+The `Sandbox.list()` method supports pagination. In the [advanced pagination](/sandbox/list#advanced-pagination) section, you can find more information about pagination techniques.
 
 <CodeGroup>
-    ```js JavaScript & TypeScript highlight={6,11,14,24}
-    import { Sandbox, SandboxInfo } from 'e2b'
+    ```js JavaScript & TypeScript highlight={6,11,14,24-26}
+    import { Sandbox } from 'e2b'
 
     const sandbox = await Sandbox.create(
       {
@@ -38,9 +38,11 @@ The `Sandbox.list()` method supports pagination. In the [advanced pagination](/s
     console.log('Running sandbox template id:', runningSandbox.templateId)
 
     // Get the next page of sandboxes
-    const nextPage = await paginator.nextItems()
+    if (paginator.hasNext) {
+      const nextPage = await paginator.nextItems()
+    }
     ```
-    ```python Python highlight={5,9,12,22}
+    ```python Python highlight={5,9,12,22-23}
     from e2b import Sandbox, SandboxInfo
 
     sandbox = Sandbox.create(
@@ -62,20 +64,21 @@ The `Sandbox.list()` method supports pagination. In the [advanced pagination](/s
     print('Running sandbox template id:', running_sandbox.template_id)
 
     # Get the next page of sandboxes
-    nextPage = paginator.next_items()
+    if paginator.has_next:
+        nextPage = paginator.next_items()
     ```
 </CodeGroup>
 The code above will output something like this:
 <CodeGroup>
     ```bash JavaScript & TypeScript
     Running sandbox metadata: {name: "My Sandbox"}
-    Running sandbox id: ixjj3iankaishgcge4jwn-b0b684e9
+    Running sandbox id: ixjj3iankaishgcge4jwn
     Running sandbox started at: 2024-10-15T21:13:07.311Z
     Running sandbox template id: 3e4rngfa34txe0gxc1zf
     ```
     ```bash Python
     Running sandbox metadata: {'name': 'My Sandbox'}
-    Running sandbox id: ixjj3iankaishgcge4jwn-b0b684e9
+    Running sandbox id: ixjj3iankaishgcge4jwn
     Running sandbox started at: 2024-10-15 21:13:07.311861+00:00
     Running sandbox template id: 3e4rngfa34txe0gxc1zf
     ```
@@ -152,11 +155,11 @@ Filter sandboxes by the metadata key value pairs specified during Sandbox creati
         metadata={
             "env": "dev",
             "app": "my-app",
-            "user_id": "123",
+            "userId": "123",
         },
     )
 
-    # List running sandboxes that has `userId` key with value `123` and `env` key with value `dev`.
+    # List sandboxes that have a `userId` key with value `123` and an `env` key with value `dev`.
     paginator = Sandbox.list(
         query=SandboxQuery(
             metadata={
@@ -274,10 +277,9 @@ For more granular pagination, you can set custom per-page item limit (default an
     // Fetch the next page
     await paginator.nextItems()
     ```
-    ```python Python  highlight={5-6,13}
+    ```python Python  highlight={4-5,12}
     from e2b import Sandbox
 
-    # List running sandboxes that has `userId` key with value `123` and `env` key with value `dev`.
     paginator = Sandbox.list(
         limit=100,
         next_token="<base64-encoded-token>",
@@ -295,7 +297,7 @@ You can fetch all pages by looping through the paginator while checking if there
 
 <CodeGroup>
     ```js JavaScript & TypeScript  highlight={7}
-    import { Sandbox } from 'e2b'
+    import { Sandbox, type SandboxInfo } from 'e2b'
 
     const paginator = Sandbox.list()
 
@@ -307,7 +309,7 @@ You can fetch all pages by looping through the paginator while checking if there
     }
     ```
     ```python Python highlight={7}
-    from e2b import Sandbox, SandboxQuery
+    from e2b import Sandbox, SandboxInfo, SandboxQuery
 
     paginator = Sandbox.list()
 
@@ -316,105 +318,5 @@ You can fetch all pages by looping through the paginator while checking if there
     while paginator.has_next:
         items = paginator.next_items()
         sandboxes.extend(items)
-    ```
-</CodeGroup>
-
-## Old SDK (v1.x.y)
-
-<Note>
-    If you're using SDK with version lower than `2.0.0`, the `Sandbox.list()` method behaves differently.
-</Note>
-
-
-<CodeGroup>
-    ```js JavaScript & TypeScript highlight={11}
-    import { Sandbox } from 'e2b'
-
-    // Create a sandbox.
-    const sandbox = await Sandbox.create({
-      metadata: {
-        name: 'My Sandbox',
-      },
-    })
-
-    // List all running sandboxes.
-    const runningSandboxes = await Sandbox.list()
-    const runningSandbox = runningSandboxes[0]
-
-    console.log('Running sandbox metadata:', runningSandbox.metadata)
-    console.log('Running sandbox id:', runningSandbox.sandboxId)
-    console.log('Running sandbox started at:', runningSandbox.startedAt)
-    console.log('Running sandbox template id:', runningSandbox.templateId)
-    ```
-    ```python Python highlight={11}
-    from e2b import Sandbox
-
-    # Create a sandbox.
-    sandbox = Sandbox.create(
-      metadata: {
-        name: 'My Sandbox',
-      },
-    )
-
-    # List all running sandboxes.
-    running_sandboxes = Sandbox.list() 
-    running_sandbox = running_sandboxes[0]
-
-    print('Running sandbox metadata:', running_sandbox.metadata)
-    print('Running sandbox id:', running_sandbox.sandbox_id)
-    print('Running sandbox started at:', running_sandbox.started_at)
-    print('Running sandbox template id:', running_sandbox.template_id)
-    ```
-</CodeGroup>
-
-## Filtering sandboxes
-
-You can filter sandboxes by specifying [Metadata](/sandbox/metadata) key value pairs.
-Specifying multiple key value pairs will return sandboxes that match all of them.
-
-This can be useful when you have a large number of sandboxes and want to find only specific ones. The filtering is performed on the server.
-
-<CodeGroup>
-    ```js JavaScript & TypeScript highlight={6-8,15}
-    import { Sandbox } from 'e2b'
-
-    // Create sandbox with metadata.
-    const sandbox = await Sandbox.create({
-      metadata: {
-        env: 'dev',
-        app: 'my-app',
-        userId: '123',
-      },
-    })
-
-    // List running sandboxes that has `userId` key with value `123` and `env` key with value `dev`.
-    const runningSandboxes = await Sandbox.list({
-      query: {
-        metadata: { userId: '123', env: 'dev' },
-      },
-    })
-    ```
-    ```python Python highlight={7-9,17-18}
-    from e2b import Sandbox
-    from e2b.sandbox.sandbox_api import SandboxQuery
-
-    # Create sandbox with metadata.
-    sandbox = Sandbox.create(
-        metadata={
-            "env": "dev",
-            "app": "my-app",
-            "user_id": "123",
-        },
-    )
-
-    # List running sandboxes that has `userId` key with value `123` and `env` key with value `dev`.
-    running_sandboxes = Sandbox.list(
-        query=SandboxQuery(
-            metadata={
-                "userId": "123",
-                "env": "dev",
-            }
-        ),
-    )
     ```
 </CodeGroup>
