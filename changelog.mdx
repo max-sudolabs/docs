@@ -5,6 +5,49 @@ rss: true
 "og:image": "/images/og/changelog.png"
 ---
 
+<Update label="October 5, 2026" description="SDK retries, HTTP/1.1 option, dashboard hold banners" tags={["SDK", "CLI", "API", "Dashboard", "Self-hosted"]} rss={{ title: "Broader SDK Retries, HTTP/1.1 Option & Dashboard Hold Banners", description: "This week improves SDK reliability and the dashboard with 502 and 503 retries, an HTTP/1.1 option, Docker-style ignore patterns, and hold banners." }}>
+
+## Broader SDK Retries, HTTP/1.1 Option & Dashboard Hold Banners
+
+This week improves SDK reliability and the dashboard with 502 and 503 retries, an HTTP/1.1 option, Docker-style ignore patterns, and hold banners.
+
+### Retries on gateway errors and failed connections
+
+The SDKs now retry API requests after 502 and 503 responses, in addition to 429 responses that carry `Retry-After`. The JavaScript SDK also retries failed connection attempts, as the Python SDK already did. Requests that cannot be safely replayed, such as sandbox creation, are not retried after other network errors. Retries after a 429, 502, or 503 response honor `Retry-After` and the `retries` option. Shipped in the JavaScript and Python SDKs 2.52.0. ([#1888](https://github.com/e2b-dev/E2B/pull/1888))
+
+### HTTP version and connection pool settings
+
+Set `httpVersion: '1.1'` in JavaScript, `http_version="1.1"` in Python, or `E2B_HTTP_VERSION` to pin API, sandbox, and volume requests to HTTP/1.1 instead of the default HTTP/2. In JavaScript, these settings apply on Node.js. The Python SDK also spreads sandbox traffic across connection pools sized by `E2B_STREAMS_PER_CONNECTION` and `E2B_MAX_CONNECTIONS`. Shipped in the JavaScript and Python SDKs 2.52.0. ([#1920](https://github.com/e2b-dev/E2B/pull/1920), [#1825](https://github.com/e2b-dev/E2B/pull/1825))
+
+### Docker-style ignore patterns
+
+Template builds now apply [`.dockerignore` and file ignore patterns](/template/base-image) the way Docker does: directory patterns exclude their contents, `!` re-includes a path, and the last match takes precedence. Brace patterns such as `**/*.{env,pem}` now match literally in JavaScript, as they already did in Python, so list each pattern separately. Shipped in the JavaScript and Python SDKs 2.52.0. ([#1917](https://github.com/e2b-dev/E2B/pull/1917))
+
+### Fork count limit
+
+The SDKs and the [`e2b sandbox fork`](/cli/fork-sandbox) command now reject a fork count outside 1 to 20 before calling the API. Shipped in the JavaScript and Python SDKs 2.52.0 and CLI 2.21.0. ([#1909](https://github.com/e2b-dev/E2B/pull/1909))
+
+### Dashboard hold and plan limit banners
+
+When a project is blocked, the dashboard shows a banner explaining why. For a spend limit, people who can manage spend get actions to update the limit or view usage. Personal workspaces show an upgrade banner in place of the options to create projects or add members.
+
+### TLS for bring-your-own egress proxies
+
+The API's [egress proxy](/network/byop) configuration accepts an optional `tls` object with `enabled`, `serverName`, and `caCert`, so the SOCKS5 handshake, credentials, and traffic to your proxy are encrypted. The SDKs do not pass it through. Bring your own proxy is in private beta. ([`27992f3`](https://github.com/e2b-dev/runtime/commit/27992f392e0c012c17fc4f1366e2c5d024f75bcb), [`1599d6e`](https://github.com/e2b-dev/runtime/commit/1599d6e79e302449e9285dae33d5ce04e3182254))
+
+### Server-side encryption for self-hosted S3 storage
+
+Self-hosted deployments can opt in to S3 server-side encryption with `ssetype` and `kmskeyid` on the storage URL, or `S3_SSE_TYPE` and `S3_SSE_KMS_KEY_ID` when storage is configured with bucket environment variables. ([`f3e1873`](https://github.com/e2b-dev/runtime/commit/f3e1873ce4e436890469d2f77f750ae4cb042bf9))
+
+### Fixes
+
+- Fixed `POST /secrets` returning the same `409` response for a project secret limit as for a name collision. A limit response now carries the `secret_limit_reached` error code. ([`5f520e6`](https://github.com/e2b-dev/runtime/commit/5f520e69a86463a8fa3ed071c73bf136e0650547))
+- Fixed the dashboard blocking project-only members from opening their workspace's Projects page.
+- Fixed the dashboard looping on redirects for unknown paths instead of showing a 404 page.
+- Reliability fixes and dependency updates across platform services.
+
+</Update>
+
 <Update label="September 28, 2026" description="Public project IDs, one Console for every region, Embed telemetry" tags={["Dashboard", "API", "Self-hosted"]} rss={{ title: "Public Project IDs & Embed OpenTelemetry Export", description: "This week improves projects and self-hosting with public project IDs in the dashboard and API, one E2B Console for every region, a dashboard-wide support dialog, and OpenTelemetry export for E2B Embed." }}>
 
 ## Public Project IDs & Embed OpenTelemetry Export
