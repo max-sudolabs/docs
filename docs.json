@@ -213,6 +213,7 @@
           "use-cases/computer-use",
           "use-cases/ci-cd",
           "use-cases/k3s",
+          "use-cases/android",
           "use-cases/remote-browser",
           {
             "group": "Code interpreting",

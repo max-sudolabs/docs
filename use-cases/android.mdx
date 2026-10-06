@@ -1,0 +1,181 @@
+---
+title: "Run Android"
+description: "Start an Android 16 system in an E2B sandbox and drive it with adb for app testing and mobile agents."
+icon: "android"
+"og:image": "/images/og/generated/use-cases/android.png"
+---
+
+The `android-16` template runs Android 16 inside an E2B Sandbox. Android ([redroid](https://github.com/remote-android/redroid-doc), AOSP in a container) is booted when the template is built, so a new sandbox starts with Android already running, the screen on, and `adb` ready to drive it.
+
+Use it when an agent or a test needs a real Android system: install an APK, tap through its UI, read the screen, and kill the sandbox afterwards.
+
+## Quickstart
+
+Create a sandbox, check the Android version, open Settings, and save a screenshot locally. `adb` runs inside the sandbox, so every Android command goes through `sandbox.commands.run()`.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { writeFileSync } from 'node:fs'
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('android-16', { timeoutMs: 5 * 60_000 })
+const adb = 'adb -s 127.0.0.1:5555'
+
+try {
+  await sandbox.commands.run('adb connect 127.0.0.1:5555')
+
+  const version = await sandbox.commands.run(`${adb} shell getprop ro.build.version.release`)
+  console.log(`Android ${version.stdout.trim()}`)
+
+  await sandbox.commands.run(`${adb} shell am start -a android.settings.SETTINGS`)
+  await sandbox.commands.run('sleep 2')
+
+  const png = await sandbox.commands.run(`${adb} exec-out screencap -p | base64 -w0`)
+  writeFileSync('screenshot.png', Buffer.from(png.stdout, 'base64'))
+} finally {
+  await sandbox.kill()
+}
+```
+
+```python Python
+import base64
+
+from e2b import Sandbox
+
+sandbox = Sandbox.create("android-16", timeout=5 * 60)
+adb = "adb -s 127.0.0.1:5555"
+
+try:
+    sandbox.commands.run("adb connect 127.0.0.1:5555")
+
+    version = sandbox.commands.run(f"{adb} shell getprop ro.build.version.release")
+    print(f"Android {version.stdout.strip()}")
+
+    sandbox.commands.run(f"{adb} shell am start -a android.settings.SETTINGS")
+    sandbox.commands.run("sleep 2")
+
+    png = sandbox.commands.run(f"{adb} exec-out screencap -p | base64 -w0")
+    with open("screenshot.png", "wb") as f:
+        f.write(base64.b64decode(png.stdout))
+finally:
+    sandbox.kill()
+```
+</CodeGroup>
+
+## Install and drive your app
+
+Upload the APK into the sandbox with the filesystem API, install it with `adb install`, then launch it and interact with it. The `-g` flag grants the app's runtime permissions at install, so no permission dialog covers the app on first launch.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { readFileSync } from 'node:fs'
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('android-16', { timeoutMs: 10 * 60_000 })
+const adb = 'adb -s 127.0.0.1:5555'
+
+try {
+  await sandbox.commands.run('adb connect 127.0.0.1:5555')
+
+  await sandbox.files.write('/tmp/app.apk', readFileSync('app.apk').buffer)
+  await sandbox.commands.run(`${adb} install -g /tmp/app.apk`)
+
+  // Find the app's launcher activity and start it. Replace with your app's package name.
+  const activity = await sandbox.commands.run(
+    `${adb} shell cmd package resolve-activity --brief -c android.intent.category.LAUNCHER com.example.app | tail -1`,
+  )
+  await sandbox.commands.run(`${adb} shell am start -W -n ${activity.stdout.trim()}`)
+
+  // Tap, type, and read the UI tree.
+  await sandbox.commands.run(`${adb} shell input tap 360 640`)
+  await sandbox.commands.run(`${adb} shell input text hello`)
+  await sandbox.commands.run(`${adb} shell uiautomator dump /sdcard/ui.xml`)
+  const ui = await sandbox.commands.run(`${adb} shell cat /sdcard/ui.xml`)
+  console.log(ui.stdout)
+} finally {
+  await sandbox.kill()
+}
+```
+
+```python Python
+from e2b import Sandbox
+
+sandbox = Sandbox.create("android-16", timeout=10 * 60)
+adb = "adb -s 127.0.0.1:5555"
+
+try:
+    sandbox.commands.run("adb connect 127.0.0.1:5555")
+
+    with open("app.apk", "rb") as f:
+        sandbox.files.write("/tmp/app.apk", f)
+    sandbox.commands.run(f"{adb} install -g /tmp/app.apk")
+
+    # Find the app's launcher activity and start it. Replace with your app's package name.
+    activity = sandbox.commands.run(
+        f"{adb} shell cmd package resolve-activity --brief -c android.intent.category.LAUNCHER com.example.app | tail -1"
+    )
+    sandbox.commands.run(f"{adb} shell am start -W -n {activity.stdout.strip()}")
+
+    # Tap, type, and read the UI tree.
+    sandbox.commands.run(f"{adb} shell input tap 360 640")
+    sandbox.commands.run(f"{adb} shell input text hello")
+    sandbox.commands.run(f"{adb} shell uiautomator dump /sdcard/ui.xml")
+    ui = sandbox.commands.run(f"{adb} shell cat /sdcard/ui.xml")
+    print(ui.stdout)
+finally:
+    sandbox.kill()
+```
+</CodeGroup>
+
+These are the `adb` commands an agent or test typically needs:
+
+| Action | Command |
+| --- | --- |
+| Take a screenshot | `adb -s 127.0.0.1:5555 exec-out screencap -p` |
+| Tap a point | `adb -s 127.0.0.1:5555 shell input tap <x> <y>` |
+| Swipe | `adb -s 127.0.0.1:5555 shell input swipe <x1> <y1> <x2> <y2>` |
+| Type text | `adb -s 127.0.0.1:5555 shell input text <text>` |
+| Start an app | `adb -s 127.0.0.1:5555 shell am start -W -n <package>/<activity>` |
+| Press a key | `adb -s 127.0.0.1:5555 shell input keyevent KEYCODE_BACK` |
+| Dump the UI hierarchy | `adb -s 127.0.0.1:5555 shell uiautomator dump /sdcard/ui.xml` |
+| Read the device log | `adb -s 127.0.0.1:5555 logcat -d` |
+
+An agent can send the screenshot and the UI hierarchy to a model, then act on its answer with taps, swipes, and key events.
+
+## Pause and resume
+
+By default, pausing saves the sandbox's memory as well as its filesystem. When you resume it with `connect()`, Android is still booted, installed apps are still installed, and the app that was in the foreground is still open. See [Sandbox persistence](/sandbox/persistence) for how pausing works.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+await sandbox.pause()
+
+// Later
+const resumed = await Sandbox.connect(sandbox.sandboxId)
+await resumed.commands.run('adb -s 127.0.0.1:5555 shell getprop sys.boot_completed') // 1
+```
+
+```python Python
+sandbox.pause()
+
+# Later
+resumed = Sandbox.connect(sandbox.sandbox_id)
+resumed.commands.run("adb -s 127.0.0.1:5555 shell getprop sys.boot_completed")  # 1
+```
+</CodeGroup>
+
+## What's in the sandbox
+
+- Android 16 (API level 36), an x86_64 AOSP image, running in a Docker container named `android`.
+- `adb` connected to Android at `127.0.0.1:5555`.
+- A 720x1280 display at 320 dpi, rendered in software (SwiftShader). There is no GPU.
+- 8 vCPUs and 4 GB of RAM, set by the template.
+- The start script's log at `/var/log/android-start.log`. Android's own log is in `logcat`.
+
+## Known limitations
+
+- **No Google Play Services or Play Store.** The image is plain AOSP, so apps that depend on Play Services, or that require the device to pass Play Integrity checks, do not work.
+- **x86_64 only.** An app that ships native libraries needs x86_64 builds of them. An app that ships only arm64 native libraries installs, but fails when it loads those libraries.
+- **64-bit only.** The image supports no 32-bit ABIs.
+- **Software rendering.** Graphics-heavy apps and games run slower than on a phone with a GPU.
+- **Use the template as is.** Android does not start in a custom template built on `android-16`, so its build fails. Install your apps at runtime with `adb install` instead.
