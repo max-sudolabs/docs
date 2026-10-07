@@ -1,0 +1,299 @@
+---
+title: "Claude Toolsets"
+description: "Run Claude Sonnet 5.5 browser use and computer use on private E2B desktop sandboxes."
+icon: "/images/icons/claude-code.svg"
+"og:image": "/images/og/generated/agents/claude-toolsets.png"
+---
+
+Claude Toolsets is a browser use and computer use package that lets you run Claude Sonnet 5.5, trained specifically for Anthropic's browser and computer use toolsets, on E2B sandboxes. It ships special tools for both: `E2BBrowserToolset` drives Chrome through the page itself (elements, forms, tabs, navigation), and `E2BComputerToolset` drives the whole Linux desktop through screenshots, mouse and keyboard, so Claude can work in any desktop app, from a terminal to a LibreOffice spreadsheet. Each sandbox is a private cloud desktop that you can watch live while Claude works.
+
+## How it works
+
+The Claude SDK defines the toolsets (`browser_toolset_20260801` and `computer_toolset_20260801`): it parses the model's input, asks for confirmation, and renders each result for the model. Claude Toolsets is the E2B driver underneath, which executes every action inside an E2B desktop sandbox instead of on your machine.
+
+1. **Create a toolset.** It creates a desktop sandbox, or attaches to one you pass in.
+2. **Pass it in `tools`.** The toolset instance is the `tools[]` entry; there is no wrapper.
+3. **Run the tool runner.** The SDK's tool runner calls the toolset for every action Claude takes.
+4. **Close it.** The tool runner never closes a toolset. Use `try`/`finally` in TypeScript and `with` in Python.
+
+| Toolset | Works on | How |
+| --- | --- | --- |
+| `E2BBrowserToolset` | Websites in Chrome | The page itself: accessibility tree, elements, forms, tabs |
+| `E2BComputerToolset` | The whole desktop | Screenshots, mouse and keyboard |
+
+## Install
+
+<CodeGroup>
+```bash JavaScript & TypeScript
+npm i @e2b/claude-toolsets @anthropic-ai/sdk @e2b/desktop
+```
+```bash Python
+pip install e2b-claude-toolsets anthropic e2b-desktop
+```
+</CodeGroup>
+
+Set `E2B_API_KEY` ([get one](https://e2b.dev/dashboard?tab=keys)) and `ANTHROPIC_API_KEY` in your environment.
+
+## Browser use
+
+The browser toolset starts Chrome on an E2B desktop sandbox. Without a `sandbox` option it creates one and kills it on `close()`.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import Anthropic from '@anthropic-ai/sdk'
+import { E2BBrowserToolset, allowHosts } from '@e2b/claude-toolsets'
+
+const hosts = ['github.com', 'githubassets.com', 'githubusercontent.com']
+const browser = await E2BBrowserToolset.create({
+  allowOut: hosts.flatMap((host) => [host, `*.${host}`]), // what the sandbox can reach (E2B firewall)
+  urlPolicy: allowHosts(hosts), // where the model may navigate (SDK check)
+})
+try {
+  const answer = await new Anthropic().beta.messages.toolRunner({
+    model: 'claude-sonnet-5-5',
+    max_tokens: 1024,
+    tools: [browser],
+    messages: [{ role: 'user', content: 'How many stars does github.com/e2b-dev/E2B have?' }],
+  })
+  for (const block of answer.content) if (block.type === 'text') console.log(block.text)
+} finally {
+  await browser.close()
+}
+```
+```python Python
+from anthropic import Anthropic
+from e2b_claude_toolsets import E2BBrowserToolset, allow_hosts
+
+hosts = ["github.com", "githubassets.com", "githubusercontent.com"]
+with E2BBrowserToolset.create(
+    allow_out=[h for host in hosts for h in (host, f"*.{host}")],  # what the sandbox can reach (E2B firewall)
+    url_policy=allow_hosts(hosts),  # where the model may navigate (SDK check)
+) as browser:
+    answer = Anthropic().beta.messages.tool_runner(
+        model="claude-sonnet-5-5",
+        max_tokens=1024,
+        tools=[browser],
+        messages=[{"role": "user", "content": "How many stars does github.com/e2b-dev/E2B have?"}],
+    ).until_done()
+    print(next(block.text for block in answer.content if block.type == "text"))
+```
+</CodeGroup>
+
+GitHub serves its CSS, scripts and images from `githubassets.com` and `githubusercontent.com`, so those hosts are allowed too.
+
+## Computer use
+
+The computer toolset borrows a desktop sandbox you create. It gives Claude screenshots and mouse and keyboard actions, so it can use any app on the desktop. `liveView` streams that desktop to a local URL so you can watch.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import Anthropic from '@anthropic-ai/sdk'
+import { Sandbox } from '@e2b/desktop'
+import { E2BComputerToolset, liveView } from '@e2b/claude-toolsets'
+
+const desktop = await Sandbox.create({
+  resolution: [1280, 800], // screenshots are sent at this size
+  timeoutMs: 600_000,
+  network: { allowPublicTraffic: false }, // keeps the desktop stream private
+})
+const view = await liveView(desktop)
+console.log('Watch live:', view.url)
+try {
+  const computer = await E2BComputerToolset.create(desktop, {
+    confirm: () => true, // required for key, type and hold_key: approves every call (unattended)
+  })
+  try {
+    const answer = await new Anthropic().beta.messages.toolRunner({
+      model: 'claude-sonnet-5-5',
+      max_tokens: 4096,
+      tools: [computer],
+      messages: [{ role: 'user', content: 'Open a text editor and write a short note about E2B.' }],
+    })
+    for (const block of answer.content) if (block.type === 'text') console.log(block.text)
+  } finally {
+    await computer.close() // leaves the desktop running
+  }
+} finally {
+  await view.stop()
+  await desktop.kill()
+}
+```
+```python Python
+from anthropic import Anthropic
+from e2b_desktop import Sandbox
+from e2b_claude_toolsets import E2BComputerToolset, live_view
+
+desktop = Sandbox.create(
+    resolution=(1280, 800),  # screenshots are sent at this size
+    timeout=600,
+    network={"allow_public_traffic": False},  # keeps the desktop stream private
+)
+try:
+    with live_view(desktop) as view:
+        print("Watch live:", view.url)
+        # confirm is required for key, type and hold_key: approves every call (unattended)
+        with E2BComputerToolset.create(desktop, confirm=lambda context: True) as computer:
+            answer = Anthropic().beta.messages.tool_runner(
+                model="claude-sonnet-5-5",
+                max_tokens=4096,
+                tools=[computer],
+                messages=[{"role": "user", "content": "Open a text editor and write a short note about E2B."}],
+            ).until_done()
+            print("\n".join(block.text for block in answer.content if block.type == "text"))
+finally:
+    desktop.kill()
+```
+</CodeGroup>
+
+The `confirm` hook is where an application can ask a person before Claude types or presses keys. Returning `true` approves every call, which suits unattended runs.
+
+## Watch live
+
+`liveView(desktop)` (`live_view` in Python) starts the desktop's VNC stream and serves it on a random loopback URL on your machine. The E2B traffic token stays in your process, so the sandbox keeps `allowPublicTraffic: false` and only you can watch. Stopping the view closes the stream but never kills the desktop.
+
+<Note>
+The live view needs a fresh desktop created with `allowPublicTraffic: false`. It refuses a desktop that already streams, because stopping a stream is sandbox-wide. Do not share the URL.
+</Note>
+
+## Use both toolsets on one desktop
+
+Pass both toolsets to the same tool runner and Claude picks the right one per step: the browser toolset for web apps, which is faster and more precise than clicking pixels, and the computer toolset for desktop apps and Chrome's own popups, which the page cannot see. To share one desktop, create it yourself and pass it to the browser toolset as `sandbox`.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+const desktop = await Sandbox.create({
+  resolution: [1280, 800],
+  network: {
+    allowPublicTraffic: false, // required: keeps Chrome's DevTools port and the desktop stream private
+    maskRequestHost: 'localhost:${PORT}', // required when the browser toolset attaches
+    allowOut: ['example.com'],
+    denyOut: ['0.0.0.0/0'],
+  },
+})
+const browser = await E2BBrowserToolset.create({ sandbox: desktop, urlPolicy: allowHosts(['example.com']) })
+const computer = await E2BComputerToolset.create(desktop, { confirm: () => true })
+
+const answer = await new Anthropic().beta.messages.toolRunner({
+  model: 'claude-sonnet-5-5',
+  max_tokens: 4096,
+  tools: [browser, computer],
+  messages: [{ role: 'user', content: task }],
+})
+```
+```python Python
+desktop = Sandbox.create(
+    resolution=(1280, 800),
+    network={
+        "allow_public_traffic": False,  # required: keeps Chrome's DevTools port and the desktop stream private
+        "mask_request_host": "localhost:${PORT}",  # required when the browser toolset attaches
+        "allow_out": ["example.com"],
+        "deny_out": ["0.0.0.0/0"],
+    },
+)
+with E2BBrowserToolset.create(sandbox=desktop, url_policy=allow_hosts(["example.com"])) as browser, \
+        E2BComputerToolset.create(desktop, confirm=lambda context: True) as computer:
+    answer = Anthropic().beta.messages.tool_runner(
+        model="claude-sonnet-5-5",
+        max_tokens=4096,
+        tools=[browser, computer],
+        messages=[{"role": "user", "content": task}],
+    ).until_done()
+```
+</CodeGroup>
+
+For a full run, see the [Excel to OrangeHRM example](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/anthropic-computer-use-orangehrm-js) in the E2B cookbook: Claude reads new hires from a spreadsheet in LibreOffice Calc with computer use, enters each one into the OrangeHRM web app with browser use, and writes the assigned Employee Ids back into the spreadsheet.
+
+## Network control
+
+Use both layers. They check different things.
+
+| Layer | Option | Enforced by | What it limits |
+| --- | --- | --- | --- |
+| Sandbox egress | `allowOut` / `allow_out`, or `network.allowOut` on your own sandbox | E2B, outside the browser | Every connection the sandbox makes |
+| URL policy | `urlPolicy: allowHosts([...])` / `url_policy=allow_hosts([...])` | The Claude SDK, before each navigation | Where the model may navigate |
+
+Egress is fixed when the sandbox is created; a URL policy does not change it. `allowHosts` permits HTTP(S) hosts and their subdomains. It is a sample policy, not a DNS firewall, so keep sandbox egress restrictive for sensitive browsing.
+
+## Sandbox ownership
+
+You close what you create:
+
+- **Toolset creates the sandbox** (no `sandbox` option): `close()` kills it. Creation options are `apiKey`, `template` (default `desktop`), `allowOut`, `timeoutMs` (default 10 minutes; `timeout` in seconds in Python) and `metadata`.
+- **You pass a sandbox**: the toolset borrows it, and `close()` stops only the Chrome it started and leaves the sandbox running. The sandbox must already have `allowPublicTraffic: false` and `maskRequestHost: 'localhost:${PORT}'`; creation options are refused.
+
+On a desktop sandbox, Chrome opens visibly so it shows in the live view. Pass `headless: true` to hide it.
+
+## Optional browser actions
+
+Four browser actions are off by default: `file_upload`, `javascript_exec`, `read_console` and `read_network`. Enable them through the SDK's `configs` option. The SDK refuses to enable them without a `confirm` hook.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+const browser = await E2BBrowserToolset.create({
+  allowOut: ['github.com', '*.github.com', 'githubassets.com', '*.githubassets.com'],
+  urlPolicy: allowHosts(['github.com']),
+  configs: { javascript_exec: { enabled: true } }, // the model can run any script on the page
+  confirm: () => true, // required with javascript_exec: approves every call (unattended)
+})
+```
+```python Python
+browser = E2BBrowserToolset.create(
+    allow_out=["github.com", "*.github.com", "githubassets.com", "*.githubassets.com"],
+    url_policy=allow_hosts(["github.com"]),
+    configs={"javascript_exec": {"enabled": True}},  # the model can run any script on the page
+    confirm=lambda context: True,  # required with javascript_exec: approves every call (unattended)
+)
+```
+</CodeGroup>
+
+## Python async
+
+Python has native asyncio drivers next to the sync ones: `AsyncE2BBrowserToolset` and `AsyncE2BComputerToolset`. They accept the same options and borrow an `e2b.AsyncSandbox`.
+
+```python Python
+from anthropic import AsyncAnthropic
+from e2b_claude_toolsets import AsyncE2BBrowserToolset, allow_hosts
+
+async def browse():
+    async with await AsyncE2BBrowserToolset.create(
+        allow_out=["example.com"], url_policy=allow_hosts(["example.com"]),
+    ) as browser, AsyncAnthropic() as client:
+        return await client.beta.messages.tool_runner(
+            model="claude-sonnet-5-5",
+            max_tokens=1024,
+            tools=[browser],
+            messages=[{"role": "user", "content": "Read https://example.com"}],
+        ).until_done()
+```
+
+## Supported actions
+
+| Toolset | Actions |
+| --- | --- |
+| Browser: navigation and capture | `navigate` (URL, back, forward, reload), `screenshot`, `zoom` |
+| Browser: mouse | `left_click`, `right_click`, `middle_click`, `double_click`, `triple_click`, `hover`, `left_click_drag`, `left_mouse_down`, `left_mouse_up`, `mouse_move`, `scroll`, `scroll_to` |
+| Browser: input and reading | `type`, `key`, `hold_key`, `form_input`, `read_page`, `find`, `get_page_text`, `wait` |
+| Browser: tabs | `new_tab`, `list_tabs`, `switch_tab`, `close_tab` |
+| Browser: optional | `file_upload`, `javascript_exec`, `read_console`, `read_network` |
+| Computer | `screenshot`, `cursor_position`, `mouse_move`, `left_click`, `right_click`, `middle_click`, `double_click`, `triple_click`, `left_mouse_down`, `left_mouse_up`, `left_click_drag`, `scroll`, `key`, `hold_key`, `type`, `wait` |
+
+## Limits
+
+- **Screen size:** browser viewport and desktop resolution up to 2560×1440 pixels in total, default 1280×800. Larger sizes are refused rather than silently scaled, because the API would shrink the screenshots and clicks would miss. At 1280×800 each screenshot costs about 1,400 tokens.
+- **Fixed resolution:** keep the desktop resolution fixed for the whole run. Coordinates are screenshot pixels.
+- **Input:** waits and held keys are limited to 30 seconds, key repeats to 100. Input assumes a US keyboard layout.
+- **Downloads** stay in the sandbox. Their bytes are never added to the conversation.
+
+## Related guides
+
+<CardGroup cols={3}>
+  <Card title="Excel to OrangeHRM" icon="table" href="https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/anthropic-computer-use-orangehrm-js">
+    Claude uses both toolsets on one desktop to copy new hires into an HR system
+  </Card>
+  <Card title="Computer use" icon="desktop" href="/use-cases/computer-use">
+    How computer use agents drive E2B Desktop sandboxes
+  </Card>
+  <Card title="Internet access" icon="globe" href="/network/internet-access">
+    Control sandbox egress with allow and deny lists
+  </Card>
+</CardGroup>

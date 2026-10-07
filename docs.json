@@ -256,6 +256,7 @@
               "agents/amp",
               "agents/claude-code",
               "agents/claude-managed-agents",
+              "agents/claude-toolsets",
               "agents/codex",
               "agents/cursor",
               "agents/hermes",
