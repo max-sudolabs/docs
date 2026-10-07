@@ -66,7 +66,7 @@ For example, if you create a sandbox with a 2-minute timeout:
 1. The sandbox runs for 2 minutes, then pauses.
 2. Activity arrives and the sandbox auto-resumes.
 3. A 5-minute timeout starts (the 5-minute minimum applies because the original timeout was shorter).
-4. If no further activity resets the timeout, the sandbox pauses again after 5 minutes.
+4. The sandbox pauses again after 5 minutes. Running commands, reading or writing files, and requests to the sandbox's URL do not reset the timeout of a running sandbox. To extend the timeout, call `setTimeout()` / `set_timeout()`.
 
 If you create a sandbox with a 1-hour timeout, the auto-resume timeout will also be 1 hour, since it exceeds the 5-minute minimum.
 
