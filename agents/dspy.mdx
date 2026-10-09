@@ -1,0 +1,180 @@
+---
+title: "DSPy RLMs"
+description: "Run DSPy RLM-generated Python in E2B with persistent CPython, SQLite, and host-side model tools."
+icon: "code"
+"og:image": "/images/og/generated/agents/dspy.png"
+---
+
+[DSPy RLM](https://dspy.ai/api/modules/RLM/) lets a model explore inputs with Python, call sub-models on selected passages, and submit a typed answer. The [E2B cookbook example](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/dspy-rlms-python) provides an `E2BInterpreter` for DSPy 3.4.0's native `interpreter_factory` interface.
+
+DSPy's default Python interpreter already isolates code in local Deno/Pyodide WASM and can inspect inputs outside the prompt. E2B supplies remote Linux with full CPython, including `sqlite3` and `subprocess`, plus an enforced execution deadline: if generated code loops forever, the adapter kills its sandbox. DSPy 3.4.0's default Python interpreter has no code-execution timeout. This example uses the network-off E2B base environment, without pandas/numpy or a custom template.
+
+## Install the example
+
+Use Python 3.10–3.14 and [uv](https://docs.astral.sh/uv/getting-started/installation/):
+
+```bash
+git clone https://github.com/e2b-dev/e2b-cookbook.git
+cd e2b-cookbook/examples/dspy-rlms-python
+uv sync --frozen
+cp .env.example .env
+```
+
+Set these values in the ignored `.env`:
+
+```bash
+E2B_API_KEY=e2b_...
+OPENAI_API_KEY=...
+MODEL=openai/gpt-5.6-luna
+```
+
+The default model is [GPT-5.6 Luna](https://developers.openai.com/api/docs/models/gpt-5.6-luna). The LM settings are chosen for OpenAI reasoning models: `temperature=None` and `max_tokens=16000`. `MODEL` changes only the identifier; other models may need different LM parameters in `main.py`. Compatibility with other models is not established.
+
+`E2BInterpreter` comes from this locally installed project, with DSPy pinned to 3.4.0 and core E2B 2.53.1 in its lockfile. It is not a native DSPy import or a separately published PyPI package. To use it elsewhere, install the local project with `pip install /path/to/e2b-cookbook/examples/dspy-rlms-python`.
+
+Keys remain on your host. E2B receives generated code and selected inputs; the model provider receives prompts and passages sent to sub-queries. Pass only data those services may process. The sandbox itself has no outbound network access.
+
+## Check persistent SQLite
+
+Save the following as `check_sqlite.py` in the example directory and run `uv run check_sqlite.py`. This calls E2B and needs only `E2B_API_KEY`, with no model request:
+
+```python
+from dotenv import load_dotenv
+from dspy_e2b import E2BInterpreter
+
+load_dotenv()
+interpreter = E2BInterpreter()
+try:
+    interpreter.execute("import sqlite3; db = sqlite3.connect(':memory:')")
+    interpreter.execute("db.execute('CREATE TABLE incidents(region TEXT)')")
+    interpreter.execute("db.executemany('INSERT INTO incidents VALUES (?)', [('eu',), ('eu',), ('us',)])")
+    counts = interpreter.execute("dict(db.execute('SELECT region, count(*) FROM incidents GROUP BY region'))")
+    assert counts == {"eu": 2, "us": 1}
+    print(counts)
+finally:
+    interpreter.shutdown()
+```
+
+The connection survives across execution steps. `shutdown()` deletes the owned sandbox, including its processes and files.
+
+## Run the incident-analysis RLM
+
+```bash
+uv run main.py
+```
+
+This uses E2B and your model provider. `main.py` configures `dspy.LM`, loads the incident records, and uses this typed signature and interpreter factory:
+
+```python
+import dspy
+from dspy_e2b import E2BInterpreter
+
+
+class IncidentAnalysis(dspy.Signature):
+    records: list[dict] = dspy.InputField()
+    query: str = dspy.InputField()
+    candidate_ids: list[str] = dspy.OutputField(desc="Exact SQL-filtered IDs, sorted")
+    queue_incident_ids: list[str] = dspy.OutputField(desc="IDs classified as queue buildup, sorted")
+    counts_by_region: dict[str, int] = dspy.OutputField(desc="SQL counts for queue_incident_ids")
+    summary: str = dspy.OutputField(desc="Short explanation grounded in the selected records")
+
+
+def interpreter_factory():
+    return E2BInterpreter(execution_timeout=120, sandbox_timeout=600)
+
+
+interpreter_factory.execution_instructions = E2BInterpreter.execution_instructions
+
+rlm = dspy.RLM(
+    IncidentAnalysis,
+    interpreter_factory=interpreter_factory,
+    max_iters=6,
+    max_llm_calls=4,
+    max_output_chars=4000,
+)
+```
+
+`main.py` then calls the RLM with the records and query. DSPy creates a fresh interpreter per invocation, registers `llm_query` and `llm_query_batched` as host tools, and shuts the interpreter down in `finally`. Generated code selects resolved, high-severity inference incidents with SQLite, uses sub-queries to classify actual queue buildup, computes region counts with SQL, and calls `SUBMIT`.
+
+The output and `result.json` include `candidate_ids`, `queue_incident_ids`, `counts_by_region`, `summary`, and the native trajectory. The fixture reference contains four candidates, three queue-related incidents (`INC-001`, `INC-004`, `INC-006`), and counts `{"eu": 2, "us": 1}`. These are fixture labels, not guaranteed model output. The example checks exact IDs/counts separately from semantic-label agreement. Review the trajectory to see the generated SQL and sub-query calls; a fixture check is not a general model evaluation.
+
+The eight-record seed is a small first-run check. To explore a larger input, generate 50,000 low-severity background records locally from that seed:
+
+```bash
+uv run main.py --background-records 50000
+```
+
+No downloads are needed. The four high-severity candidates stay the same, so the sub-query budget stays at four. RLM inspects the data through generated code instead of putting the entire dataset in its action prompt. This mode still calls E2B and your model provider; inspect the trajectory and result rather than assuming the model will follow the requested plan.
+
+## Observed model runs
+
+With `openai/gpt-5.6-luna`, one run of each configuration produced matching candidate IDs, region counts and fixture semantic labels:
+
+| Input | Elapsed time | RLM steps | Observed behavior |
+| --- | --- | --- | --- |
+| Eight-record seed | 19 s | 3 | Inspect records; filter in SQLite and call `llm_query_batched` once; aggregate in SQL and SUBMIT from variables. |
+| Seed plus 50,000 background records | 30 s | 5 | Inspect type/count/first/last record; filter four candidates in SQLite; call `llm_query_batched` once; aggregate in SQL; SUBMIT from variables. |
+
+Both runs used Python 3.14, DSPy 3.4.0, E2B 2.53.1, `temperature=None`, `max_tokens=16000`, and a 20-second per-request timeout. Each configuration was run once; these results do not estimate reliability or guarantee timings.
+
+Excerpt from the larger-input trajectory, with the SQLite connection and per-candidate prompts prepared in earlier code:
+
+```python
+selected = conn.execute("""
+    SELECT id, region, summary
+    FROM incidents
+    WHERE service = 'inference'
+      AND status = 'resolved'
+      AND severity = 'high'
+    ORDER BY rowid
+""").fetchall()
+
+print("selected count:", len(selected))
+print("selected IDs:", [x[0] for x in selected])
+
+# After building one prompt per selected record:
+judgments = llm_query_batched(prompts)
+```
+
+The filter printed:
+
+```text
+selected count: 4
+selected IDs: ['INC-001', 'INC-002', 'INC-004', 'INC-006']
+```
+
+The batched answers classified `INC-002` as NO because model loading failed before requests could enter the scheduler. The final answer from that run was:
+
+```json
+{
+  "candidate_ids": [
+    "INC-001",
+    "INC-002",
+    "INC-004",
+    "INC-006"
+  ],
+  "queue_incident_ids": [
+    "INC-001",
+    "INC-004",
+    "INC-006"
+  ],
+  "counts_by_region": {
+    "eu": 2,
+    "us": 1
+  },
+  "summary": "Four resolved high-severity inference incidents were candidates. Three involved actual request queue buildup (INC-001, INC-004, INC-006); INC-002 did not because requests could not enter the scheduler. Queue incidents by region: eu=2, us=1."
+}
+```
+
+The example caps action iterations at six and sub-queries at four. DSPy may make one additional extraction request if the model does not submit. Provider calls have a 20-second timeout, no SDK retries or adapter fallback retries and a 16,000 completion-token budget, including reasoning tokens. The example factory gives each code execution a 120-second deadline, including host-tool waiting; the adapter default remains 60 seconds. Prefer `llm_query_batched` for independent prompts, and use computed variables in `SUBMIT`. These instructions do not guarantee model compliance.
+
+## Lifecycle and boundaries
+
+- DSPy creates one owned sandbox per invocation and deletes it in `finally`. Manual callers use `try/finally` as in the SQLite check; every factory call must return a new interpreter.
+- Imports, generated variables and files persist within an invocation. Inputs are freshly assigned each step; concurrent invocations use separate sandboxes.
+- The execution deadline includes host-tool waiting. The default 600-second sandbox TTL is refreshed at execution boundaries and includes model thinking gaps. Expiry fails explicitly, without recreation or replay.
+- Syntax and generated-code errors are recoverable, so RLM can try another step. Setup, transport, worker death and deadline errors are terminal and trigger sandbox deletion. Oversized printed output is truncated rather than ending the session.
+- Killing the sandbox cannot stop an already running host callable or provider request; set their own deadlines. Validate host-tool arguments and restrict host operations inside each callable. No guest network or package installation is provided.
+- The `dspy_e2b` INFO logger records `sandbox_id` and `dspy_session`. Cleanup errors carry those IDs plus original-failure/submission diagnostics. After a host crash, use the exact session tag to reconcile resources.
+
+See the [cookbook README](https://github.com/e2b-dev/e2b-cookbook/blob/main/examples/dspy-rlms-python/README.md) for input/frame limits, async behavior, cleanup commands and focused offline/live tests.
