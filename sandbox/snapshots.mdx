@@ -88,6 +88,24 @@ print('Snapshot ID:', snapshot.snapshot_id)
 ```
 </CodeGroup>
 
+### Filesystem-only snapshots
+
+By default a snapshot captures both the filesystem and the memory. Pass `mode: 'filesystem'`
+(JavaScript) / `mode="filesystem"` (Python) to capture only the filesystem: the snapshot is
+smaller and faster to take, the source sandbox keeps running, and sandboxes created from it
+reboot from disk instead of restoring memory. See
+[Filesystem-only snapshots](/sandbox/filesystem-only-snapshots) for the details, the
+`SnapshotMode` type and the cases in which the request is refused.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+const snapshot = await sandbox.createSnapshot({ mode: 'filesystem' })
+```
+```python Python
+snapshot = sandbox.create_snapshot(mode="filesystem")
+```
+</CodeGroup>
+
 ## Create a sandbox from a snapshot
 
 The snapshot ID can be used directly with `Sandbox.create()` to spawn a new sandbox from the snapshot. The new sandbox starts with the exact filesystem and memory state captured in the snapshot.

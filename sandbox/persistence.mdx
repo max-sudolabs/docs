@@ -102,7 +102,7 @@ print('Sandbox paused', sbx.sandbox_id)
 </CodeGroup>
 
 
-By default a pause saves **both** the filesystem and the memory. To save only the filesystem — a lighter snapshot that cold-boots (reboots) on resume — pass `keepMemory: false` (JavaScript) / `keep_memory=False` (Python). See [Filesystem-only snapshots](/sandbox/filesystem-only-snapshots).
+By default a pause saves **both** the filesystem and the memory. To save only the filesystem — a lighter snapshot that reboots on resume — pass `mode: 'filesystem'` (JavaScript) / `mode="filesystem"` (Python). The older `keepMemory: false` / `keep_memory=False` form is deprecated but still works. See [Filesystem-only snapshots](/sandbox/filesystem-only-snapshots).
 
 ### When a pause is refused
 
@@ -309,7 +309,7 @@ Auto-pause is persistent, meaning if your sandbox resumes and later times out ag
 
 If the node refuses a memory auto-pause because it is still finishing the sandbox's previous snapshot, E2B keeps the sandbox running and retries the pause for up to about two minutes past its timeout. Only if the node keeps refusing for that whole window is the sandbox paused **filesystem-only**: the disk is preserved and the next resume reboots the sandbox, so the memory state is lost. Under normal conditions this never happens. It protects your sandbox during snapshot backlogs on a node, where the alternative would be losing the sandbox entirely. This behavior is rolling out region by region together with the refusal handling above.
 
-To make the auto-pause filesystem-only — dropping memory so resume cold-boots — use the object form `onTimeout: { action: 'pause', keepMemory: false }` (JavaScript) / `"on_timeout": {"action": "pause", "keep_memory": False}` (Python). See [Filesystem-only snapshots](/sandbox/filesystem-only-snapshots).
+To make the auto-pause filesystem-only — dropping memory so resume reboots the sandbox — use the object form `onTimeout: { action: 'pause', mode: 'filesystem' }` (JavaScript) / `"on_timeout": {"action": "pause", "mode": "filesystem"}` (Python). See [Filesystem-only snapshots](/sandbox/filesystem-only-snapshots).
 
 If you call `.kill()`, the sandbox is permanently deleted and cannot be resumed.
 

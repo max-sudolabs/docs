@@ -5,14 +5,25 @@ description: "Persist only the sandbox filesystem for a lighter snapshot that re
 "og:image": "/images/og/generated/sandbox/filesystem-only-snapshots.png"
 ---
 
-When you [pause](/sandbox/persistence) a sandbox, E2B saves a snapshot you
-can resume later. By default that snapshot includes **both the filesystem and
-the memory**, so resuming restores the sandbox exactly as it was — running
-processes and in-memory state included.
+When you [pause](/sandbox/persistence) a sandbox or [create a snapshot](/sandbox/snapshots)
+from it, E2B saves a snapshot you can resume or create new sandboxes from later. By default
+that snapshot includes **both the filesystem and the memory**, so resuming restores the sandbox
+exactly as it was — running processes and in-memory state included.
 
-A **filesystem-only snapshot** persists only the filesystem. There is no memory
-snapshot, so resuming **reboots** the sandbox from its disk: the files on disk
-survive, but RAM and running processes do not.
+A **filesystem-only snapshot** persists only the filesystem. There is no memory snapshot, so
+resuming it, or creating a sandbox from it, **reboots** the sandbox from its disk: the files on
+disk survive, but RAM and running processes do not.
+
+You choose what a snapshot persists with the `mode` option, which is `'full'` (the default)
+or `'filesystem'`. The same option exists on `pause()`, on the timeout auto-pause, and on
+`createSnapshot()` / `create_snapshot()`. The type is exported as `SnapshotMode` in both SDKs.
+
+<Note>
+`mode` is available from JavaScript SDK `e2b` 2.55.0 and Python SDK `e2b` 2.55.0. Earlier
+SDKs expose the filesystem-only pause through `keepMemory: false` (JavaScript) /
+`keep_memory=False` (Python), which keep working but are deprecated in favor of
+`mode: 'filesystem'` / `mode="filesystem"`. Passing both to the same call is rejected client-side.
+</Note>
 
 ## Full vs. filesystem-only
 
@@ -22,7 +33,7 @@ survive, but RAM and running processes do not.
 | Memory (RAM) | Preserved | **Disposed** |
 | Running processes | Restored | **Terminated** (reboot) |
 | In-memory state (variables, caches) | Restored | **Discarded** (reboot) |
-| Resume behavior | Restored in place | **Reboot** from disk |
+| Resume, or create from the snapshot | Restored in place | **Reboots** from disk |
 | Speed | Baseline | **Faster** |
 
 <Note>
@@ -30,11 +41,67 @@ Network connections to clients **outside** the sandbox drop when it pauses — i
 difference: a full snapshot keeps the process running so it can serve again immediately, while a filesystem-only snapshot reboots, so the service must be restarted first.
 </Note>
 
-Use a filesystem-only snapshot when you only care about the data on disk and don't need running processes restored — for example, persisting a workspace's files between sessions, or checkpointing build/scratch state. The snapshot is lighter to store because there's no memory image, at the cost of a reboot on resume.
+Use a filesystem-only snapshot when you only care about the data on disk and don't need running processes restored — for example, persisting a workspace's files between sessions, checkpointing build or scratch state, or producing a template that many sandboxes start from. The snapshot is smaller and faster to take because there's no memory image, at the cost of a boot when it is used.
+
+## Create a filesystem-only snapshot
+
+Pass `mode: 'filesystem'` (JavaScript) / `mode="filesystem"` (Python) to `createSnapshot()` /
+`create_snapshot()`. The source sandbox is paused while the filesystem is captured and then
+**keeps running** either way; the resulting snapshot has no memory image, so every sandbox
+created from it reboots from disk.
+
+<CodeGroup>
+```js JavaScript & TypeScript highlight={9}
+import { Sandbox } from 'e2b'
+
+const sbx = await Sandbox.create()
+
+await sbx.files.write('/home/user/data.txt', 'survives in the snapshot')
+await sbx.commands.run('sleep 600', { background: true, timeoutMs: 0 })
+
+// Persist only the filesystem — the source keeps running
+const snapshot = await sbx.createSnapshot({ mode: 'filesystem' })
+
+// Sandboxes created from it reboot from disk: the file is there, the process is not
+const fresh = await Sandbox.create(snapshot.snapshotId)
+console.log(await fresh.files.read('/home/user/data.txt')) // "survives in the snapshot"
+```
+```python Python highlight={9}
+from e2b import Sandbox
+
+sbx = Sandbox.create()
+
+sbx.files.write("/home/user/data.txt", "survives in the snapshot")
+sbx.commands.run("sleep 600", background=True, timeout=0)
+
+# Persist only the filesystem — the source keeps running
+snapshot = sbx.create_snapshot(mode="filesystem")
+
+# Sandboxes created from it reboot from disk: the file is there, the process is not
+fresh = Sandbox.create(snapshot.snapshot_id)
+print(fresh.files.read("/home/user/data.txt"))  # "survives in the snapshot"
+```
+</CodeGroup>
+
+Omitting `mode` (or passing `'full'`) takes a full memory snapshot, as before. Everything else
+about snapshots — naming, listing, deleting, creating sandboxes from them — works the same way;
+see [Snapshots](/sandbox/snapshots).
+
+### When the request is refused
+
+If filesystem-only snapshots are not enabled for your project yet, the request is refused
+before the sandbox is touched. The sandbox keeps running and no snapshot is created.
+
+| Status | Error code | Meaning | What to do |
+|---|---|---|---|
+| `400` | `snapshot_filesystem_only_disabled` | Filesystem-only snapshots are not enabled for your project yet | Take a full snapshot, or ask for access at [support@e2b.dev](mailto:support@e2b.dev) |
+
+In JavaScript this is a `SandboxError` with `statusCode` 400; in Python a `SandboxException`
+with `status_code` 400. A full memory snapshot is never affected.
 
 ## Pause filesystem-only
 
-Pass `keepMemory: false` (JavaScript) / `keep_memory=False` (Python) to `pause()`. The filesystem is saved; memory is dropped.
+Pass `mode: 'filesystem'` (JavaScript) / `mode="filesystem"` (Python) to `pause()`. The filesystem is saved; memory is dropped.
 
 <CodeGroup>
 ```js JavaScript & TypeScript highlight={6}
@@ -43,7 +110,7 @@ import { Sandbox } from 'e2b'
 const sbx = await Sandbox.create()
 
 // Save only the filesystem — resuming will reboot the sandbox
-await sbx.pause({ keepMemory: false })
+await sbx.pause({ mode: 'filesystem' })
 
 // Resume: the sandbox reboots from disk (files survive, processes do not)
 const sameSbx = await sbx.connect()
@@ -54,20 +121,22 @@ from e2b import Sandbox
 sbx = Sandbox.create()
 
 # Save only the filesystem — resuming will reboot the sandbox
-sbx.pause(keep_memory=False)
+sbx.pause(mode="filesystem")
 
 # Resume: the sandbox reboots from disk (files survive, processes do not)
 same_sbx = sbx.connect()
 ```
 </CodeGroup>
 
-`keepMemory` / `keep_memory` defaults to `true`, so omitting it (or calling `pause()`) takes a full memory snapshot — see [Persistence](/sandbox/persistence).
+`mode` defaults to `'full'`, so omitting it (or calling `pause()`) takes a full memory snapshot — see [Persistence](/sandbox/persistence).
 
-`keepMemory` is a per-pause choice, not a sandbox-wide mode. Pausing once with `keepMemory: false` / `keep_memory=False` does not lock the sandbox into filesystem-only: after you resume, the next `pause()` takes a full memory snapshot again unless you pass `keepMemory: false` / `keep_memory=False` once more.
+`mode` is a per-pause choice, not a sandbox-wide setting. Pausing once with `mode: 'filesystem'` (JavaScript) / `mode="filesystem"` (Python) does not lock the sandbox into filesystem-only: after you resume, the next `pause()` takes a full memory snapshot again unless you pass it once more.
+
+The older `keepMemory: false` / `keep_memory=False` form still works and means the same as `mode: 'filesystem'` / `mode="filesystem"`; it is deprecated, and a call that passes both options is rejected with `InvalidArgumentError` / `InvalidArgumentException`.
 
 ## Auto-pause filesystem-only
 
-You can also make the timeout-driven [auto-pause](/sandbox/persistence#auto-pause) filesystem-only. Set `onTimeout` / `on_timeout` to the object form and include `keepMemory` / `keep_memory`:
+You can also make the timeout-driven [auto-pause](/sandbox/persistence#auto-pause) filesystem-only. Set `onTimeout` / `on_timeout` to the object form and include `mode`:
 
 <CodeGroup>
 ```js JavaScript & TypeScript highlight={5}
@@ -75,7 +144,7 @@ import { Sandbox } from 'e2b'
 
 const sandbox = await Sandbox.create({
   lifecycle: {
-    onTimeout: { action: 'pause', keepMemory: false },
+    onTimeout: { action: 'pause', mode: 'filesystem' },
   },
 })
 ```
@@ -84,7 +153,7 @@ from e2b import Sandbox
 
 sandbox = Sandbox.create(
     lifecycle={
-        "on_timeout": {"action": "pause", "keep_memory": False},
+        "on_timeout": {"action": "pause", "mode": "filesystem"},
     },
 )
 ```
@@ -94,10 +163,11 @@ When this sandbox times out, it auto-pauses filesystem-only; the next explicit r
 
 ## Type safety and validation
 
-`keepMemory` / `keep_memory` only governs a `pause` action, so the SDK rejects nonsensical combinations:
+`mode` only governs a `pause` action, so the SDK rejects nonsensical combinations:
 
 - It cannot be set when the action is `kill`. In TypeScript this is a **compile-time type error** (the `onTimeout` object is a discriminated union on `action`); in Python it raises `InvalidArgumentException`.
-- It cannot be combined with **auto-resume**. A filesystem-only snapshot can't be woken by inbound traffic (auto-resume restores the running process from memory, which a filesystem-only snapshot doesn't have), so it must be resumed explicitly with [`connect()`](/sandbox/connect). Setting `keepMemory: false` / `keep_memory=False` together with `autoResume: true` / `auto_resume=True` is rejected client-side.
+- It cannot be combined with **auto-resume**. A filesystem-only snapshot can't be woken by inbound traffic (auto-resume restores the running process from memory, which a filesystem-only snapshot doesn't have), so it must be resumed explicitly with [`connect()`](/sandbox/connect). Setting `mode: 'filesystem'` / `mode="filesystem"` together with `autoResume: true` / `auto_resume=True` is rejected client-side.
+- `mode` and the deprecated `keepMemory` / `keep_memory` cannot be passed together.
 
 <Warning>
 A filesystem-only snapshot is **not** compatible with auto-resume. Resume it explicitly via `connect()` — it will not wake on traffic.
@@ -105,9 +175,16 @@ A filesystem-only snapshot is **not** compatible with auto-resume. Resume it exp
 
 ## What changes on resume
 
-Resuming a filesystem-only snapshot is a reboot, so it takes roughly a fresh
-boot rather than the near-instant in-place memory restore. Any service running
-inside the sandbox must be restarted after resume, and clients must reconnect.
+Resuming a filesystem-only snapshot, or creating a sandbox from one, is a reboot from disk
+rather than the near-instant in-place memory restore. Any service running inside the sandbox
+must be started again, and clients must reconnect.
+
+<Note>
+Expect the boot to take several seconds. A filesystem-only snapshot is a new build that no
+node has cached yet, so the first sandboxes started from it read the root filesystem from
+storage block by block while booting. The boot also runs the template's own startup units, so a
+template whose boot is slow stays slow here.
+</Note>
 
 Because resume is a reboot, anything that lived only in memory is gone, while
 everything written to disk persists. The example below writes a file and starts
@@ -121,9 +198,9 @@ import { Sandbox } from 'e2b'
 const sbx = await Sandbox.create()
 
 await sbx.files.write('/home/user/data.txt', 'survives the reboot')
-const cmd = await sbx.commands.run('sleep 600', { background: true })
+const cmd = await sbx.commands.run('sleep 600', { background: true, timeoutMs: 0 })
 
-await sbx.pause({ keepMemory: false })
+await sbx.pause({ mode: 'filesystem' })
 const resumed = await sbx.connect()
 
 // File on disk survives the reboot
@@ -140,9 +217,9 @@ from e2b import Sandbox
 sbx = Sandbox.create()
 
 sbx.files.write("/home/user/data.txt", "survives the reboot")
-cmd = sbx.commands.run("sleep 600", background=True)
+cmd = sbx.commands.run("sleep 600", background=True, timeout=0)
 
-sbx.pause(keep_memory=False)
+sbx.pause(mode="filesystem")
 resumed = sbx.connect()
 
 # File on disk survives the reboot
@@ -161,7 +238,7 @@ print(check.stdout.strip() != "0")  # True — process no longer running
 template, so by default a long-lived paused sandbox stays on that version for its whole
 lifetime and does not pick up later `envd` fixes and improvements.
 
-A filesystem-only resume cold-boots the sandbox from disk, and that reboot can bring the
+A filesystem-only resume reboots the sandbox from disk, and that reboot can bring the
 sandbox up on a newer `envd` than its template shipped. The filesystem is untouched. This
 is how a long-lived sandbox can adopt `envd` improvements - for example around memory
 management, stability, and speed - without losing the data on disk.
@@ -169,8 +246,8 @@ management, stability, and speed - without losing the data on disk.
 To move an existing sandbox onto a newer `envd`:
 
 1. Resume the sandbox.
-2. Pause it filesystem-only with `keepMemory: false` (JavaScript) / `keep_memory=False` (Python).
-3. Resume it again. This cold boot can bring it up on a newer `envd`.
+2. Pause it filesystem-only with `mode: 'filesystem'` (JavaScript) / `mode="filesystem"` (Python).
+3. Resume it again. This reboot can bring it up on a newer `envd`.
 
 <Note>
 A sandbox has to be resumable to use this flow. A sandbox whose snapshot already fails to
@@ -179,6 +256,7 @@ resume cannot be paused filesystem-only in the first place, so it cannot be upgr
 
 ## Related
 
+- [Snapshots](/sandbox/snapshots) — create snapshots and start new sandboxes from them.
 - [Sandbox persistence](/sandbox/persistence) — full (memory + filesystem) pause and resume.
 - [Auto-resume on request](/sandbox/auto-resume) — the full `lifecycle` configuration reference.
 - [Reboot on resume](/sandbox/resume-without-memory) — skip the memory of a snapshot that has it.
