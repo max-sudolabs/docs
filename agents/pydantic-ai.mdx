@@ -1,0 +1,119 @@
+---
+title: "Pydantic AI"
+description: "Run Pydantic AI coding tools in E2B and keep their workspace across runs and worker restarts."
+icon: "code"
+"og:image": "/images/og/generated/agents/pydantic-ai.png"
+---
+
+[Pydantic AI](https://pydantic.dev/docs/ai/) has a native E2B workspace provider in its official harness package. `E2BSandbox` supplies the execution environment; capabilities such as `Shell`, `FileSystem`, and `Coder` run their commands and file operations inside that environment.
+
+Pydantic AI manages the agent loop and workspace selection. E2B supplies the isolated computer and its persistent filesystem. Your application decides when to pause or delete the sandbox.
+
+## Install and authenticate
+
+Use Python 3.11 or newer. Install the native integration and the model provider used below:
+
+```bash
+pip install "pydantic-ai-harness[e2b]>=0.54.0" "pydantic-ai-slim[openai]>=2.54.0"
+```
+
+Set keys in the process running the agent:
+
+```bash
+export E2B_API_KEY="your_e2b_api_key"
+export OPENAI_API_KEY="your_openai_api_key"
+```
+
+The example uses `gpt-4.1-mini` to keep a small coding task inexpensive. Other providers need their corresponding Pydantic AI extra and model configuration. API keys remain on your machine; the sandbox does not inherit your environment.
+
+## Fix a Python log-analysis CLI
+
+This CLI incorrectly counts only HTTP 500 responses as server errors. Seed a small project, let the agent fix it, and verify the actual output independently:
+
+```python
+import asyncio
+
+from pydantic_ai import Agent
+from pydantic_ai.usage import UsageLimits
+from pydantic_ai.workspaces import Workspace
+from pydantic_ai_harness.e2b_sandbox import E2BSandbox, E2BSandboxBackend
+from pydantic_ai_harness.filesystem import FileSystem
+from pydantic_ai_harness.shell import Shell
+
+
+async def main():
+    backend = E2BSandboxBackend(
+        working_dir="/home/user/log-cli",
+        env={"PYTHONDONTWRITEBYTECODE": "1"},
+        sandbox_timeout=300,
+        allow_internet_access=False,
+    )
+    try:
+        workspace = Workspace(backend)
+        await workspace.write_text("log_stats.py", """import json
+from pathlib import Path
+
+records = [json.loads(line) for line in Path('requests.jsonl').read_text().splitlines()]
+print(sum(record['status'] == 500 for record in records))
+""")
+        await workspace.write_text("requests.jsonl", '{"status": 200}\n{"status": 500}\n{"status": 503}\n')
+        agent = Agent(
+            "openai:gpt-4.1-mini",
+            capabilities=[
+                E2BSandbox(),
+                Shell(tools=["run_command"], default_timeout=20),
+                FileSystem(tools=["read_file", "write_file", "edit_file"], content_hashes=False),
+            ],
+            model_settings={"max_tokens": 1024, "timeout": 30, "parallel_tool_calls": False},
+        )
+        async with asyncio.timeout(120):
+            result = await agent.run(
+                "Fix log_stats.py to count all HTTP 500–599 responses as server errors. "
+                "Read both files and run the CLI. Do not change requests.jsonl.",
+                workspace=backend,
+                usage_limits=UsageLimits(request_limit=6, input_tokens_limit=30_000),
+            )
+        check = await workspace.run(["python", "log_stats.py"], timeout=20)
+        assert check.exit_code == 0 and check.stdout.strip() == "2", check
+        assert await workspace.read_text("requests.jsonl") == '{"status": 200}\n{"status": 500}\n{"status": 503}\n'
+        print(f"Sandbox: {result.workspace.ref.id}; verified server errors: 2")
+    finally:
+        if backend.ref is not None:
+            await E2BSandbox().destroy(backend.ref)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+The result prints your sandbox ID and `verified server errors: 2`. The application checks the executed CLI rather than trusting the agent's explanation. Internet access is disabled because this project needs no downloads; model calls happen on the host.
+
+The supplied backend owns the working directory, environment, and lifetime settings. The agent's `E2BSandbox()` capability does not override those settings when `workspace=backend` is supplied. Initialization is inside `try` so a failed file upload or agent run still reaches cleanup.
+
+## Continue after a pause
+
+To keep the workspace, save `result.workspace.ref` and `result.all_messages()` instead of deleting it after the first run. Get the underlying E2B SDK handle with `await backend.get_sandbox()` and pause it with `await sandbox.pause()`.
+
+For the second run, pass the saved ref as `workspace=` and the saved messages as `message_history=`. Configure `E2BSandbox` with the same working directory and environment for reattachment. The first workspace operation reconnects and resumes the paused sandbox; its files are still there. The ref identifies the workspace, while message history also preserves the conversation. A ref contains no credentials, so another process needs its own `E2B_API_KEY`.
+
+A killed or unavailable sandbox raises `WorkspaceUnavailableError`; the integration does not quietly replace it with a new empty sandbox. Use `workspace="new"` only when you intentionally want a separate workspace.
+
+## Recover a Temporal worker
+
+Compose the agent with `TemporalDurability` from `pydantic_ai.durable_exec.temporal`, register it on a `PydanticAIWorkflow`, and connect the Temporal client with `PydanticAIPlugin`. Install the harness's `temporal` extra too. The plugin registers model/tool/workspace activities for the workflow's agents.
+
+Persist the workspace ref before testing a worker crash. A replacement worker uses the same task queue, workflow, agent registration, and ref to continue in that sandbox. Temporal replay preserves completed operations; activities interrupted before their completion is recorded may execute again. Make their side effects repeatable. Killing a worker is not proof that a remote shell command stopped, and recovery is not an exactly-once guarantee for sandbox creation.
+
+## Ownership and lifetime
+
+- Pydantic AI does not delete the sandbox at the end of an agent run. It can keep running and billing until you pause it, delete it, or its lifetime expires.
+- Native E2B sandboxes default to a 3,600-second lifetime and pause on timeout. `sandbox_timeout` also applies on reattachment. A command's `timeout` separately bounds that command.
+- Call `await E2BSandbox().destroy(ref)` when the application is finished. It deletes a paused sandbox by ID without resuming it. Preserve the ref and report cleanup errors so deletion can be retried.
+- File tools and shell commands share the sandbox. File-tool path restrictions do not constrain arbitrary shell commands, and the model should not receive host-file transfer tools or API keys it does not need.
+
+See [E2B persistence](/sandbox/persistence), [the native Pydantic AI guide](https://pydantic.dev/docs/ai/harness/e2b-sandbox/), and [Pydantic AI's Temporal documentation](https://pydantic.dev/docs/ai/capabilities/durable_execution/temporal/).
+
+## Complete cookbook examples
+
+- **Pause/resume:** `pydantic-ai-python` diagnoses a JSONL log CLI, pauses the sandbox, then repairs it in a second run. It checks the same ID, preserved file checksums, original regression tests, and cleanup. [View cookbook](https://github.com/e2b-dev/e2b-cookbook/tree/7976c3d02982e56755f6883c92f6fbc6f5e2ab1f/examples/pydantic-ai-python).
+- **Temporal crash recovery:** `pydantic-ai-temporal-python` kills and restarts a worker after a durable diagnosis checkpoint, then verifies the same sandbox ID and no additional running/paused sandboxes. [View cookbook](https://github.com/e2b-dev/e2b-cookbook/tree/7976c3d02982e56755f6883c92f6fbc6f5e2ab1f/examples/pydantic-ai-temporal-python).
