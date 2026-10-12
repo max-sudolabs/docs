@@ -5,6 +5,51 @@ rss: true
 "og:image": "/images/og/changelog.png"
 ---
 
+<Update label="October 12, 2026" description="Filesystem snapshots, lifecycle event modes, Azure Embed" tags={["SDK", "API", "Dashboard", "Self-hosted"]} rss={{ title: "Filesystem-Only Snapshots & Lifecycle Pause Modes", description: "This week improves snapshots and lifecycle events with filesystem-only snapshots, pause and resume modes, and clearer errors for stopped sandboxes." }}>
+
+## Filesystem-Only Snapshots & Lifecycle Pause Modes
+
+This week improves snapshots and lifecycle events with filesystem-only snapshots, pause and resume modes, and clearer errors for stopped sandboxes.
+
+### Filesystem-only snapshots
+
+Snapshots, pauses, and auto-pause now accept a [`mode` option](/sandbox/filesystem-only-snapshots). Pass `'filesystem'` for smaller, faster snapshots that save only the filesystem and boot fresh. The `keepMemory` option is deprecated. Shipped in the JavaScript and Python SDKs 2.55.0. ([#1925](https://github.com/e2b-dev/E2B/pull/1925))
+
+### Pause and resume modes in lifecycle events
+
+Paused and resumed events in webhooks, the events API, and the dashboard now carry `event_data.pause_mode` (`full` or `filesystem`) and `event_data.resume_mode` (`restore` or `reboot`), so you can tell whether a sandbox kept its memory. ([`8ad50e8`](https://github.com/e2b-dev/runtime/commit/8ad50e85de5460261afc5783c1d99dd2fd039e27))
+
+### Secured access for API-created sandboxes
+
+The deprecated `POST /sandboxes` endpoint now always enables [secured access](/sandbox/secured-access) and ignores the `secure` field. Calls to the sandbox controller (envd) must send the returned `envdAccessToken` in the `X-Access-Token` header, or envd returns `401`. Current SDKs already do this. Templates too old for secured access return `400` and must be rebuilt. ([`315a94e`](https://github.com/e2b-dev/runtime/commit/315a94e737da604abb5ec54081d88198c400c8eb))
+
+### Errors for stopped and unreachable sandboxes
+
+The SDKs now raise a sandbox-not-running error when a sandbox has stopped, so you know a retry will not help, and a sandbox-unreachable error when it does not answer. In JavaScript, calls on a stopped sandbox throw `SandboxNotRunningError` instead of `SandboxNotFoundError`. Shipped in the SDKs 2.53.1. ([#1949](https://github.com/e2b-dev/E2B/pull/1949))
+
+### Dockerfile parsing that matches Docker
+
+Converting a Dockerfile with [`fromDockerfile()`](/template/base-image#parsing-existing-dockerfiles) now follows Docker's parsing rules for quoting, escapes, heredocs, and `COPY --chmod`. Shipped in the JavaScript and Python SDKs 2.55.0. ([#1936](https://github.com/e2b-dev/E2B/pull/1936))
+
+### Dashboard secrets and billing
+
+Every project now has a Secrets page in the dashboard. Billing collects your billing address with your card, explains why an untaxable card is refused, and requires a valid default card to upgrade a personal workspace. Pro concurrency add-ons are temporarily unavailable to buy, so [contact support](/support) instead.
+
+### Azure deployment for E2B Embed
+
+Self-hosted E2B Embed now runs on a single Azure node with a new Terraform module, and refuses a pause the disk cannot hold so the sandbox keeps running. The `PAUSE_ADMISSION_DISK_HEADROOM_MIB` setting controls the required headroom. ([`a28962e`](https://github.com/e2b-dev/runtime/commit/a28962e2735487d468f34aa4262fe30df735e3d2), [`0059190`](https://github.com/e2b-dev/runtime/commit/005919063d42455098e33ca49110c5c32dce85c8), [`e3ef7c6`](https://github.com/e2b-dev/runtime/commit/e3ef7c64abfda0eacae13d589e2d0ab6c157992e))
+
+### Fixes
+
+- Fixed the API returning `401` instead of a retryable `500` when an API key lookup failed. ([`296f183`](https://github.com/e2b-dev/runtime/commit/296f183480cc177a34e04c1229a5a21e5ed60323))
+- Fixed `git clone` into a volume failing with a stale file handle error. ([`5457911`](https://github.com/e2b-dev/runtime/commit/54579116c68676336586cfa56adb5114e6df2313))
+- Fixed lifecycle events reporting the wrong execution start time after a snapshot of a running sandbox. ([`0535e35`](https://github.com/e2b-dev/runtime/commit/0535e351319a9d8c1172a7a4632bfe8528192a37))
+- Fixed template builds failing on a transient status error while still running. ([`7ecd661`](https://github.com/e2b-dev/runtime/commit/7ecd661dedafb324010ee8e7816afc4c78d1bce1))
+- Fixed the JavaScript Code Interpreter SDK breaking Unicode characters split across response chunks. Shipped in `@e2b/code-interpreter` 2.8.2. ([#1946](https://github.com/e2b-dev/E2B/pull/1946))
+- Reliability and security hardening across platform services, including dependency and base image CVE patches.
+
+</Update>
+
 <Update label="October 5, 2026" description="SDK retries, HTTP/1.1 option, dashboard hold banners" tags={["SDK", "CLI", "API", "Dashboard", "Self-hosted"]} rss={{ title: "Broader SDK Retries, HTTP/1.1 Option & Dashboard Hold Banners", description: "This week improves SDK reliability and the dashboard with 502 and 503 retries, an HTTP/1.1 option, Docker-style ignore patterns, and hold banners." }}>
 
 ## Broader SDK Retries, HTTP/1.1 Option & Dashboard Hold Banners
