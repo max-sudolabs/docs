@@ -1,0 +1,211 @@
+---
+title: "LangGraph"
+description: "Run code from your own LangGraph graph in an E2B sandbox, and keep that sandbox alive across graph steps, checkpoints and human-in-the-loop interrupts."
+icon: "/images/icons/langgraph.svg"
+"og:image": "/images/og/generated/agents/langgraph.png"
+---
+
+[LangGraph](https://docs.langchain.com/oss/python/langgraph/overview) is LangChain's runtime for building agents as explicit graphs — you write the nodes, the edges and the state. With E2B, code execution becomes a tool your graph calls: model-generated Python or shell commands run in an isolated sandbox, and the results flow back into graph state.
+
+This page is for graphs you build yourself. If you want a ready-made harness where E2B is the agent's whole environment, use [Deep Agents](/agents/deep-agents); for a deployable coding agent, use [Open SWE](/agents/open-swe). The [comparison](#langgraph-vs-deep-agents-vs-open-swe) at the end spells out the difference.
+
+## Install the dependencies
+
+```bash
+pip install langgraph langchain langchain-openai e2b-code-interpreter
+```
+
+Set API keys for E2B and your model provider:
+
+```bash
+export E2B_API_KEY="e2b_***"        # get yours at https://console.e2b.dev
+export OPENAI_API_KEY="sk-***"
+```
+
+## A code-execution tool
+
+The smallest useful integration is a tool that runs Python in a sandbox, given to a tool-calling agent. The sandbox is not created inside the tool — it is passed in through LangGraph's **runtime context**, so every call in the run reuses the same kernel and the same filesystem:
+
+```python
+from dataclasses import dataclass
+
+from e2b_code_interpreter import Sandbox
+from langchain.agents import create_agent
+from langchain.tools import ToolRuntime, tool
+from langchain_openai import ChatOpenAI
+
+
+@dataclass
+class Context:
+    sandbox: Sandbox
+
+
+@tool
+def run_python(code: str, runtime: ToolRuntime[Context]) -> str:
+    """Run Python in a Jupyter kernel. Returns stdout, the last result, or the error."""
+    execution = runtime.context.sandbox.run_code(code)
+    if execution.error:
+        return f"{execution.error.name}: {execution.error.value}"
+    return "\n".join(execution.logs.stdout) + (execution.text or "")
+
+
+agent = create_agent(
+    ChatOpenAI(model="gpt-5.6-luna", use_responses_api=True, reasoning={"effort": "high"}),
+    tools=[run_python],
+    system_prompt="Answer by running Python. Check the tool result for an error before answering.",
+    context_schema=Context,
+)
+
+sandbox = Sandbox.create(timeout=600)
+try:
+    result = agent.invoke(
+        {"messages": [("human", "How many r's are in 'strawberry'? Use code.")]},
+        context=Context(sandbox=sandbox),
+    )
+    print(result["messages"][-1].text)
+finally:
+    sandbox.kill()
+```
+
+`runtime: ToolRuntime[Context]` is injected by LangGraph and never appears in the schema the model sees — the model only sees `code`. You pass `context=` on every `invoke`, which is what makes the lifecycle below possible. Any tool-calling chat model works here; for OpenAI reasoning models use the Responses API (`use_responses_api=True`) and set `reasoning={"effort": ...}` — OpenAI recommends Responses for function calling with reasoning models.
+
+## Sandbox lifecycle across graph steps
+
+A LangGraph run can outlive a single tool call by a lot: nodes run one after another, a checkpointer persists state between them, and `interrupt()` can hold the graph for as long as a human takes to answer. The sandbox has its own lifecycle. Three rules keep the two in step.
+
+### Keep the `Sandbox` in context and the `sandbox_id` in state
+
+Graph state is checkpointed, so everything in it must be serialisable. The `Sandbox` object is not — it holds a live connection. Put the object in `context_schema` and its id in state:
+
+```python
+from typing import TypedDict
+
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.graph import END, START, StateGraph
+from langgraph.runtime import Runtime
+
+
+class State(TypedDict, total=False):
+    sandbox_id: str
+    output: str
+
+
+def run_step(state: State, runtime: Runtime[Context]) -> State:
+    sandbox = runtime.context.sandbox
+    execution = sandbox.run_code("import platform; print(platform.python_version())")
+    return {"sandbox_id": sandbox.sandbox_id, "output": execution.logs.stdout[0]}
+
+
+graph = (
+    StateGraph(State, context_schema=Context)
+    .add_node("run_step", run_step)
+    .add_edge(START, "run_step")
+    .add_edge("run_step", END)
+    .compile(checkpointer=InMemorySaver())
+)
+
+config = {"configurable": {"thread_id": "review-42"}}
+graph.invoke({}, config=config, context=Context(sandbox=sandbox))
+```
+
+Every node in the run reads `runtime.context.sandbox` and gets the same sandbox. Files written in one node are there for the next; variables defined in one `run_code` call are defined in the next.
+
+### Rebuild the context when you resume
+
+Context is **not** checkpointed. After an `interrupt()`, or when a resume runs in a different process from the original invoke, nodes see `runtime.context` as `None`. The only thing the checkpoint kept is the `sandbox_id` in state — reconnect from it:
+
+```python
+from langgraph.types import Command
+
+result = graph.invoke({}, config=config, context=Context(sandbox=sandbox))
+
+if "__interrupt__" in result:
+    sandbox = Sandbox.connect(graph.get_state(config).values["sandbox_id"])
+    result = graph.invoke(
+        Command(resume=True),
+        config=config,
+        context=Context(sandbox=sandbox),
+    )
+```
+
+`Sandbox.connect()` returns a handle to the same sandbox, with its filesystem and running processes intact. If the sandbox was paused in the meantime, `connect()` resumes it.
+
+### Let the sandbox outlive the interrupt
+
+The default sandbox timeout is 300 seconds. A human reviewing a plan may take longer, and a sandbox that hit its timeout is gone. Tell E2B to pause instead of kill, and to wake up when the graph comes back:
+
+```python
+sandbox = Sandbox.create(
+    timeout=600,
+    lifecycle={"on_timeout": "pause", "auto_resume": True},
+)
+```
+
+On timeout the sandbox is paused with its memory and filesystem preserved, and it stays paused until you kill it. The next SDK call — `Sandbox.connect()`, `run_code()`, `files.read()` — resumes it automatically. See [Auto-resume](/sandbox/auto-resume) and [Persistence](/sandbox/persistence).
+
+### Tear down explicitly
+
+Kill the sandbox in a `finally` block so cleanup runs whether the graph finished, was rejected at the interrupt, or raised. If you would rather tie it to the agent's lifetime, an [`AgentMiddleware`](https://docs.langchain.com/oss/python/langchain/middleware) `after_agent` hook receives the same `runtime` and can call `runtime.context.sandbox.kill()`.
+
+## Plan-and-execute coding agent
+
+The [cookbook example](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/langgraph-plan-and-execute-python) puts all of this into one hand-wired graph. It repairs a small Python project whose tests fail:
+
+```
+START → bootstrap → plan → approve → execute ─┐
+                      ▲                       │ (more steps)
+                      │                       ▼
+                      └──(red, < 3 tries)── verify ──(green)── summarize → END
+```
+
+- `bootstrap` uploads the project, installs pytest and records the failing output — in a sandbox created with `on_timeout: pause`.
+- `plan` asks the model for an ordered list of file changes as structured output.
+- `approve` stops the graph with `interrupt()`; the resume reconnects from `sandbox_id`.
+- `execute` runs one plan step per node visit with a small tool-calling agent (`read_file`, `write_file`, `run_command`), always in the same sandbox — pytest installed in `bootstrap` is still there.
+- `verify` re-runs the suite; the graph re-plans on red, at most three times, and exits non-zero if the tests never pass.
+
+The example ships with unit tests that run the graph against a fake sandbox, so the resume and re-plan paths are checked without a network.
+
+## Results and errors
+
+`run_code()` returns an `Execution`:
+
+- `logs.stdout` / `logs.stderr` — lists of output lines;
+- `results` — rich outputs such as text, charts (`png`), HTML or JSON; `execution.text` is the text of the last one;
+- `error` — `None`, or an object with `name`, `value` and `traceback` when the cell raised.
+
+Return the error to the model and tell it to check for one before answering; a wrong answer with an unread traceback is the most common failure mode. For shell commands, `sandbox.commands.run()` raises `CommandExitException` on a non-zero exit — it carries `exit_code`, `stdout` and `stderr`, so a tool can catch it and return all three.
+
+## Security considerations
+
+E2B isolates model-generated code from the machine running your graph. The sandbox still processes untrusted input and produces untrusted output:
+
+- do not expose API keys or other host secrets to the sandbox unless the task needs them;
+- keep sandbox and per-call timeouts as short as the workload allows, and use `on_timeout: pause` rather than a very long timeout when a human is in the loop;
+- kill sandboxes you own, in `finally`;
+- treat files the agent writes as a proposal to review, not a result to trust.
+
+## LangGraph vs. Deep Agents vs. Open SWE
+
+All three are LangChain projects and all three run on the LangGraph runtime. They differ in how much graph you write and in what role the sandbox plays:
+
+| | **LangGraph** (this page) | **[Deep Agents](/agents/deep-agents)** | **[Open SWE](/agents/open-swe)** |
+|---|---|---|---|
+| What it is | The graph runtime — you write nodes, edges and state | A ready-made agent harness on LangGraph | A deployable coding agent on Deep Agents |
+| Role of E2B | A **tool** your graph calls; results land in state | The agent's **environment** — files and shell live in the sandbox | Same as Deep Agents, managed per thread |
+| How you use E2B | Pass a `Sandbox` in runtime context, `Sandbox.connect()` on resume | Pass `E2BSandbox(sandbox)` from `langchain-e2b` to `create_deep_agent` | Set `SANDBOX_TYPE="e2b"` |
+| Use it when | You need custom control flow: plan-and-execute, approval gates, re-planning | You want a coding agent with filesystem and shell tools out of the box | You want a GitHub/Slack/Linear-driven coding agent for your org |
+
+## Related guides
+
+<CardGroup cols={3}>
+  <Card title="Sandbox persistence" icon="clock" href="/sandbox/persistence">
+    Pause and resume sandboxes with memory and filesystem intact
+  </Card>
+  <Card title="Auto-resume" icon="rotate-reverse" href="/sandbox/auto-resume">
+    Pause on timeout and wake up on the next request
+  </Card>
+  <Card title="Deep Agents" icon="/images/icons/deep-agents.svg" href="/agents/deep-agents">
+    LangChain's agent harness with E2B as the sandbox backend
+  </Card>
+</CardGroup>
