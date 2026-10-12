@@ -277,6 +277,7 @@
               "agents/agno",
               "agents/mastra",
               "agents/crewai",
+              "agents/dspy",
               "agents/pydantic-ai",
               "agents/letta",
               "agents/openai-agents-api",
