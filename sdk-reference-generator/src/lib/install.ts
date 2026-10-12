@@ -2,6 +2,24 @@ import { execa } from "execa";
 import type { GeneratorType, InstallResult } from "../types.js";
 import { log } from "./log.js";
 
+/**
+ * Builds the workspace packages the SDK depends on (e.g. @e2b/dockerfile-utils),
+ * whose types resolve from their dist/ and are missing after a bare install.
+ * Best-effort: a failure here surfaces as the real error in the SDK step.
+ */
+async function buildWorkspaceDependencies(sdkDir: string): Promise<void> {
+  log.info("Building workspace dependencies...", 1);
+  try {
+    await execa(
+      "pnpm",
+      ["--filter", "{.}^...", "run", "--if-present", "build"],
+      { cwd: sdkDir, stdio: "inherit" }
+    );
+  } catch {
+    log.warn("Workspace dependency build failed, continuing...", 1);
+  }
+}
+
 export async function installDependencies(
   sdkDir: string,
   generator: GeneratorType
@@ -21,6 +39,7 @@ export async function installDependencies(
           cwd: sdkDir,
           stdio: "inherit",
         });
+        await buildWorkspaceDependencies(sdkDir);
       } catch {
         log.warn("pnpm failed, falling back to npm...", 1);
         await execa(
