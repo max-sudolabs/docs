@@ -290,7 +290,14 @@
                   "agents/openclaw/openclaw-telegram"
                 ]
               },
-              "agents/opencode"
+              {
+                "group": "OpenCode",
+                "icon": "terminal",
+                "pages": [
+                  "agents/opencode",
+                  "agents/opencode/workspace-plugin"
+                ]
+              }
             ]
           },
           {

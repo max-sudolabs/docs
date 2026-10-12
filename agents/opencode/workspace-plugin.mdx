@@ -1,0 +1,125 @@
+---
+title: "OpenCode workspaces"
+description: "Use E2B sandboxes as remote workspaces for a local OpenCode session, and move sessions into them with /warp."
+searchable: false
+icon: "/images/icons/opencode.svg"
+"og:image": "/images/og/generated/agents/opencode/workspace-plugin.png"
+---
+
+The [OpenCode E2B workspace plugin](https://github.com/e2b-dev/opencode-e2b) registers an `e2b` workspace type in OpenCode. OpenCode keeps running on your machine. Each workspace is an E2B sandbox that runs a remote OpenCode server on a copy of your project. You can start a session inside the sandbox, or move an existing local session into it with `/warp`.
+
+<Note>
+The plugin builds on OpenCode's experimental workspace API. See [Known limitations](#known-limitations) before relying on it.
+</Note>
+
+## Prerequisites
+
+- An [E2B API key](/api-key).
+- OpenCode `1.16.0` or newer.
+- A macOS or Linux host. See [Known limitations](#known-limitations) for Windows.
+
+## Install
+
+Add the plugin to your OpenCode config. The second element of the tuple is optional and holds the plugin [options](#options).
+
+```json opencode.json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    [
+      "opencode-e2b-workspace-plugin",
+      {
+        "nodeVariant": "22-slim",
+        "sandboxTimeoutMs": 3600000
+      }
+    ]
+  ]
+}
+```
+
+Start OpenCode with your E2B API key and the workspace flag.
+
+```bash
+E2B_API_KEY=e2b_*** OPENCODE_EXPERIMENTAL_WORKSPACES=true opencode
+```
+
+## Use
+
+<Steps>
+  <Step title="Create a workspace">
+    In OpenCode, run `/warp` and choose **E2B Sandbox**. The plugin builds a sandbox template for your project, uploads a snapshot of the project, and starts a remote OpenCode server. The first build for a project takes one to two minutes. Later workspaces reuse the template.
+  </Step>
+  <Step title="Work inside the sandbox">
+    Send a prompt. The agent runs inside the sandbox, on the sandbox copy of your project. The workspace is named after your branch, for example `e2b-main`.
+  </Step>
+  <Step title="Move a session">
+    From an existing local session, run `/warp` and pick the workspace. OpenCode moves the session history into the sandbox. To move a session back to your machine, run `/warp` and choose **None**. OpenCode then offers to move the sandbox's file changes with it: the diff of what the agent changed is applied to your project as a patch. Your local history is untouched, and commits made inside the sandbox do not travel back. Your project must be a git repository root for the patch to apply.
+  </Step>
+  <Step title="Start a new session">
+    `/new` starts a new local session. Run `/warp` again to put it in the sandbox.
+  </Step>
+</Steps>
+
+## How it works
+
+The plugin layers a small workspace template on top of the published E2B template `e2b/opencode:v<version>`, where `<version>` matches your local OpenCode. If that template is not available, the plugin builds its own base from the configured Node image and installs the same OpenCode version. Managed templates use the `opencode-e2b-` alias prefix, and a best-effort cleanup removes old ones.
+
+Inside the sandbox, the project lives at the **same path as on your host**, and the remote OpenCode server runs as the sandbox user. OpenCode resolves a session directory on both the host and the sandbox, so a shared path is what lets a warped session work on both sides. The plugin returns the workspace only after the remote server answers on its health and sync endpoints.
+
+## Options
+
+| Option | Description | Default |
+| --- | --- | --- |
+| `nodeVariant` | Node image variant for managed templates. | `22-slim` |
+| `sandboxTimeoutMs` | Sandbox lifetime. Every request OpenCode sends to the workspace extends the lifetime by this amount, so it acts as an inactivity limit. When it runs out, E2B destroys the sandbox. | `3600000` (1 hour) |
+| `projectPath` | Project directory inside the sandbox. Any absolute path. | Your project's path on the host. Falls back to `/home/user/project` when the host path cannot be mirrored. |
+| `serverPort` | Port of the remote OpenCode server. | `4096` |
+| `secure` | Use E2B secure sandbox traffic. | `true` |
+| `metadata` | Extra key-value metadata attached to each sandbox. | `{}` |
+| `network.allowPublicTraffic` | Allow unauthenticated access to sandbox URLs. When `false`, requests carry E2B's traffic access token. | `false` |
+| `network.allowOut` / `network.denyOut` | Outbound network allow and deny lists, passed to E2B as-is. | `[]` |
+| `network.maskRequestHost` | Host to present on outbound requests, passed to E2B as-is. | unset |
+| `upload.ignore` | Paths or path segments to skip when the project snapshot is uploaded. Your list replaces the default list. | `.git`, `node_modules`, `dist`, `build`, `.next`, `.turbo`, `.cache`, `.DS_Store` |
+| `upload.includeDotGit` | Upload the local `.git` directory. | `false` |
+| `upload.followSymlinks` | Follow symlinks during upload. Symlinks that leave the project are rejected. | `false` |
+| `upload.batchSize` | Files per upload request. | `100` |
+| `bootstrap.prepareCommands` | Shell commands to run in the sandbox after upload and before the remote server starts. | `[]` |
+| `bootstrap.waitForPath` | Path polled on the remote server until it answers. | `/global/health` |
+| `bootstrap.waitForTimeoutMs` | How long to wait for the remote server and its sync endpoints. | `30000` |
+| `templateGc.enabled` | Remove old managed templates at plugin load and after a workspace is removed. | `true` |
+| `templateGc.ttlMs` | Age after which an unused managed template is removed. Values below 1 hour are raised to 1 hour. | `259200000` (3 days) |
+| `templateGc.cooldownMs` | Minimum gap between two cleanup passes. | `600000` (10 minutes) |
+
+`bootstrap.installCommand` and `bootstrap.startCommand` from older configs are accepted but ignored: the template installs OpenCode and starts the server.
+
+## Known limitations
+
+### Experimental foundation
+
+The plugin uses the `experimental_workspace` API of OpenCode. You must set `OPENCODE_EXPERIMENTAL_WORKSPACES=true`. OpenCode can change this API without notice.
+
+### macOS and Linux hosts only
+
+The sandbox stores the project at the same path as the host, which is what makes a session directory valid on both machines. A Windows path cannot exist in the sandbox, so on Windows the project lives at `/home/user/project` instead and the host cannot open that path. Workspaces created on Windows are not supported.
+
+### A sandbox does not survive inactivity
+
+E2B destroys a sandbox once `sandboxTimeoutMs` passes without any request from OpenCode. The default is 1 hour. The workspace then shows as unavailable and you must create it again. For long breaks, set a higher `sandboxTimeoutMs`.
+
+### Warp of a session with history can fail
+
+A warp of a new session is reliable. A warp of a session with existing messages can fail with a sync error ("sequence mismatch"). If this happens, try the warp again, or start the session inside the workspace.
+
+## Related guides
+
+<CardGroup cols={3}>
+  <Card title="Run OpenCode in a sandbox" icon="/images/icons/opencode.svg" href="/agents/opencode">
+    The other direction: run the OpenCode agent inside an E2B sandbox
+  </Card>
+  <Card title="Sandbox persistence" icon="clock" href="/sandbox/persistence">
+    Pause and resume sandboxes to keep state beyond the timeout
+  </Card>
+  <Card title="Templates" icon="cube" href="/template/quickstart">
+    How E2B templates are built and cached
+  </Card>
+</CardGroup>

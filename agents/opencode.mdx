@@ -7,6 +7,8 @@ icon: "/images/icons/opencode.svg"
 
 [OpenCode](https://opencode.ai) is an open-source coding agent that supports multiple LLM providers. E2B provides a pre-built `opencode` template with OpenCode already installed.
 
+This page runs the whole agent inside a sandbox. To keep OpenCode on your machine and use sandboxes as remote workspaces instead, see [OpenCode workspaces](/agents/opencode/workspace-plugin).
+
 ## CLI
 
 Create a sandbox with the [E2B CLI](/cli).
@@ -274,7 +276,10 @@ python build.py
 
 ## Related guides
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
+  <Card title="OpenCode workspaces" icon="/images/icons/opencode.svg" href="/agents/opencode/workspace-plugin">
+    Keep OpenCode local and warp sessions into E2B sandboxes
+  </Card>
   <Card title="Sandbox persistence" icon="clock" href="/sandbox/persistence">
     Auto-pause, resume, and manage sandbox lifecycle
   </Card>
