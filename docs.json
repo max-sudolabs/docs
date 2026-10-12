@@ -322,8 +322,22 @@
             "icon": "square-js",
             "versions": [
               {
-                "version": "v2.53.1 (JS)",
+                "version": "v2.55.0 (JS)",
                 "default": true,
+                "pages": [
+                  "sdk-reference/js-sdk/v2.55.0/errors",
+                  "sdk-reference/js-sdk/v2.55.0/sandbox",
+                  "sdk-reference/js-sdk/v2.55.0/sandbox-commands",
+                  "sdk-reference/js-sdk/v2.55.0/sandbox-filesystem",
+                  "sdk-reference/js-sdk/v2.55.0/template",
+                  "sdk-reference/js-sdk/v2.55.0/template-logger",
+                  "sdk-reference/js-sdk/v2.55.0/template-readycmd",
+                  "sdk-reference/js-sdk/v2.55.0/volume"
+                ]
+              },
+              {
+                "version": "v2.53.1 (JS)",
+                "default": false,
                 "pages": [
                   "sdk-reference/js-sdk/v2.53.1/errors",
                   "sdk-reference/js-sdk/v2.53.1/sandbox",
@@ -2142,8 +2156,40 @@
             "icon": "python",
             "versions": [
               {
-                "version": "v2.53.1 (Python)",
+                "version": "v2.55.1 (Python)",
                 "default": true,
+                "pages": [
+                  "sdk-reference/python-sdk/v2.55.1/exceptions",
+                  "sdk-reference/python-sdk/v2.55.1/logger",
+                  "sdk-reference/python-sdk/v2.55.1/readycmd",
+                  "sdk-reference/python-sdk/v2.55.1/sandbox_async",
+                  "sdk-reference/python-sdk/v2.55.1/sandbox_sync",
+                  "sdk-reference/python-sdk/v2.55.1/template",
+                  "sdk-reference/python-sdk/v2.55.1/template_async",
+                  "sdk-reference/python-sdk/v2.55.1/template_sync",
+                  "sdk-reference/python-sdk/v2.55.1/volume_async",
+                  "sdk-reference/python-sdk/v2.55.1/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.55.0 (Python)",
+                "default": false,
+                "pages": [
+                  "sdk-reference/python-sdk/v2.55.0/exceptions",
+                  "sdk-reference/python-sdk/v2.55.0/logger",
+                  "sdk-reference/python-sdk/v2.55.0/readycmd",
+                  "sdk-reference/python-sdk/v2.55.0/sandbox_async",
+                  "sdk-reference/python-sdk/v2.55.0/sandbox_sync",
+                  "sdk-reference/python-sdk/v2.55.0/template",
+                  "sdk-reference/python-sdk/v2.55.0/template_async",
+                  "sdk-reference/python-sdk/v2.55.0/template_sync",
+                  "sdk-reference/python-sdk/v2.55.0/volume_async",
+                  "sdk-reference/python-sdk/v2.55.0/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.53.1 (Python)",
+                "default": false,
                 "pages": [
                   "sdk-reference/python-sdk/v2.53.1/exceptions",
                   "sdk-reference/python-sdk/v2.53.1/logger",
@@ -4819,8 +4865,17 @@
             "icon": "terminal",
             "versions": [
               {
-                "version": "v2.21.1 (CLI)",
+                "version": "v2.21.2 (CLI)",
                 "default": true,
+                "pages": [
+                  "sdk-reference/cli/v2.21.2/auth",
+                  "sdk-reference/cli/v2.21.2/sandbox",
+                  "sdk-reference/cli/v2.21.2/template"
+                ]
+              },
+              {
+                "version": "v2.21.1 (CLI)",
+                "default": false,
                 "pages": [
                   "sdk-reference/cli/v2.21.1/auth",
                   "sdk-reference/cli/v2.21.1/sandbox",
@@ -6191,12 +6246,12 @@
     },
     {
       "source": "/sdk-reference/js-sdk/latest/:slug*",
-      "destination": "/sdk-reference/js-sdk/v2.53.1/:slug*",
+      "destination": "/sdk-reference/js-sdk/v2.55.0/:slug*",
       "permanent": false
     },
     {
       "source": "/sdk-reference/python-sdk/latest/:slug*",
-      "destination": "/sdk-reference/python-sdk/v2.53.1/:slug*",
+      "destination": "/sdk-reference/python-sdk/v2.55.1/:slug*",
       "permanent": false
     },
     {
@@ -6221,7 +6276,7 @@
     },
     {
       "source": "/sdk-reference/cli/latest/:slug*",
-      "destination": "/sdk-reference/cli/v2.21.1/:slug*",
+      "destination": "/sdk-reference/cli/v2.21.2/:slug*",
       "permanent": false
     }
   ]
