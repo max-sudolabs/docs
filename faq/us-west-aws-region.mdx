@@ -1,0 +1,41 @@
+---
+title: "Can I run sandboxes in the US West (AWS) region?"
+description: "Yes. US West (AWS) is a managed E2B region on AWS us-west-2, available on every plan with the same features, pricing, and limits as the US region. Contact support to get a project there."
+sidebarTitle: US West (AWS) region
+"og:image": "/images/og/generated/faq/us-west-aws-region.png"
+---
+
+Yes. US West (AWS) is a managed E2B region hosted in AWS `us-west-2`. It's available on all plans, with the same features, pricing, and limits as the US region.
+
+## Get access
+
+[Contact support](https://console.e2b.dev/?support=true) to request a [project](/projects) in US West (AWS). We'll create it for you, and you can manage it alongside your other projects in the [E2B Console](https://console.e2b.dev/).
+
+## Connect to the region
+
+Each project belongs to a single region and has its own API keys. Create an API key in your new project, then set these environment variables wherever you run your code or the CLI:
+
+```bash
+E2B_API_KEY=e2b_YOUR_US_WEST_AWS_KEY
+E2B_DOMAIN=foxtrot-2.e2b.dev
+```
+
+The SDKs and CLI both use `E2B_DOMAIN` to connect to the region. To use multiple regions in the same process, create a separate client for each region. See [Multiple regions](/client#multiple-regions) for details.
+
+## Templates and resources
+
+Your existing resources stay in their original project:
+
+- **Templates:** Rebuild your custom templates in the new project. You can reuse the same template names.
+- **Sandboxes and snapshots:** Create new sandboxes and snapshots in US West (AWS).
+- **Volumes:** Existing volumes and their data remain in their original project.
+
+## Billing
+
+Each project has its own subscription. If you're moving all your usage to US West (AWS), support can transfer your current plan to the new project.
+
+You can also continue using both regions, with a separate subscription for each project.
+
+## Egress IP ranges
+
+If you need a strict IP allowlist, route sandbox traffic through your own proxy. See [Egress IP ranges](/faq/egress-ip-ranges) for more details.

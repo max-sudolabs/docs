@@ -5788,6 +5788,7 @@
             "group": "Networking & deployment",
             "pages": [
               "faq/eu-region",
+              "faq/us-west-aws-region",
               "faq/egress-ip-ranges",
               "faq/iptables-xt-owner",
               "faq/port-49999-not-open",

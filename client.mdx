@@ -155,19 +155,29 @@ Regions do not share state. A project and its API key belong to exactly one regi
 
 If a single process only ever talks to one region, you do not need a client at all. Set `E2B_API_KEY` and `E2B_DOMAIN` to that region's values and keep using the top-level exports.
 
-E2B's managed cloud runs in three regions: US, EU, and APAC. US is the default on every plan. EU and APAC are available on the Pro plan and above, and are enabled for your account by [support](https://console.e2b.dev/?support=true). See [EU region](/faq/eu-region) and [Egress IP ranges](/faq/egress-ip-ranges) for more on where sandboxes run.
+E2B's managed cloud runs in four regions: US, US West (AWS), EU, and APAC. US is the default on every plan. US West (AWS) is available on every plan, and EU and APAC on the Pro plan and above. [Support](https://console.e2b.dev/?support=true) enables US West (AWS), EU, and APAC for your account. See [US West (AWS) region](/faq/us-west-aws-region), [EU region](/faq/eu-region), and [Egress IP ranges](/faq/egress-ip-ranges) for more on where sandboxes run.
 
-There is no `region` option. Each region is a separate deployment with its own API endpoint, so you select one by pointing a client at that region's `domain`. When support enables a region, they give you its domain and help you create a [project](/projects) there. That project has its own API key, so a multiregion setup is one client per region, each with its own key and domain.
+There is no `region` option. Each region is a separate deployment with its own API endpoint, so you select one by pointing a client at that region's `domain`:
+
+| Region | Domain |
+| --- | --- |
+| US | `e2b.app` (default) |
+| US West (AWS) | `foxtrot-2.e2b.dev` |
+| EU | `e2b-juliett.dev` |
+| APAC | `e2b-tango.dev` |
+
+When support enables a region, they help you create a [project](/projects) there. That project has its own API key, so a multiregion setup is one client per region, each with its own key and domain.
 
 <CodeGroup>
 ```js JavaScript & TypeScript
 import { E2B } from 'e2b'
 
-// Support gives you the domain for each region it enables for you.
+// One client per region, each with the API key of that region's project.
 const regions = {
   us: new E2B({ apiKey: 'e2b_YOUR_US_KEY' }), // Default domain: e2b.app
-  eu: new E2B({ apiKey: 'e2b_YOUR_EU_KEY', domain: 'EU_REGION_DOMAIN' }),
-  apac: new E2B({ apiKey: 'e2b_YOUR_APAC_KEY', domain: 'APAC_REGION_DOMAIN' }),
+  usWestAws: new E2B({ apiKey: 'e2b_YOUR_US_WEST_AWS_KEY', domain: 'foxtrot-2.e2b.dev' }),
+  eu: new E2B({ apiKey: 'e2b_YOUR_EU_KEY', domain: 'e2b-juliett.dev' }),
+  apac: new E2B({ apiKey: 'e2b_YOUR_APAC_KEY', domain: 'e2b-tango.dev' }),
 }
 
 // Route each workload to the region it should run in.
@@ -180,11 +190,12 @@ console.log(result.stdout) // Hello from E2B!
 ```python Python
 from e2b import E2B
 
-# Support gives you the domain for each region it enables for you.
+# One client per region, each with the API key of that region's project.
 regions = {
     "us": E2B(api_key="e2b_YOUR_US_KEY"),  # Default domain: e2b.app
-    "eu": E2B(api_key="e2b_YOUR_EU_KEY", domain="EU_REGION_DOMAIN"),
-    "apac": E2B(api_key="e2b_YOUR_APAC_KEY", domain="APAC_REGION_DOMAIN"),
+    "us_west_aws": E2B(api_key="e2b_YOUR_US_WEST_AWS_KEY", domain="foxtrot-2.e2b.dev"),
+    "eu": E2B(api_key="e2b_YOUR_EU_KEY", domain="e2b-juliett.dev"),
+    "apac": E2B(api_key="e2b_YOUR_APAC_KEY", domain="e2b-tango.dev"),
 }
 
 # Route each workload to the region it should run in.
@@ -197,11 +208,12 @@ print(result.stdout)  # Hello from E2B!
 ```python Python (async)
 from e2b import E2B
 
-# Support gives you the domain for each region it enables for you.
+# One client per region, each with the API key of that region's project.
 regions = {
     "us": E2B(api_key="e2b_YOUR_US_KEY"),  # Default domain: e2b.app
-    "eu": E2B(api_key="e2b_YOUR_EU_KEY", domain="EU_REGION_DOMAIN"),
-    "apac": E2B(api_key="e2b_YOUR_APAC_KEY", domain="APAC_REGION_DOMAIN"),
+    "us_west_aws": E2B(api_key="e2b_YOUR_US_WEST_AWS_KEY", domain="foxtrot-2.e2b.dev"),
+    "eu": E2B(api_key="e2b_YOUR_EU_KEY", domain="e2b-juliett.dev"),
+    "apac": E2B(api_key="e2b_YOUR_APAC_KEY", domain="e2b-tango.dev"),
 }
 
 # Route each workload to the region it should run in.
