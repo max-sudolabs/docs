@@ -5788,7 +5788,7 @@
             "group": "Networking & deployment",
             "pages": [
               "faq/eu-region",
-              "faq/us-west-aws-region",
+              "faq/migrate-between-regions",
               "faq/egress-ip-ranges",
               "faq/iptables-xt-owner",
               "faq/port-49999-not-open",
@@ -5879,6 +5879,11 @@
     }
   },
   "redirects": [
+    {
+      "source": "/faq/us-west-aws-region",
+      "destination": "/faq/migrate-between-regions",
+      "permanent": true
+    },
     {
       "source": "/docs",
       "destination": "/",

@@ -1,0 +1,39 @@
+---
+title: "How do I migrate to a different region?"
+description: "Each region is a separate deployment. Contact support to get a project in the new region, connect to it with that project's API key and the region's domain, and rebuild your templates there."
+sidebarTitle: Migrate between regions
+"og:image": "/images/og/generated/faq/migrate-between-regions.png"
+---
+
+E2B's managed cloud runs in several regions, and each region is a separate deployment. Migrating means setting up a new project in the region you want. Nothing is copied between regions automatically.
+
+## Get a project in the new region
+
+[Contact support](https://console.e2b.dev/?support=true) and tell us which region you want to move to. We'll create a [project](/projects) there for you, and you can manage it alongside your other projects in the [E2B Console](https://console.e2b.dev/).
+
+## Connect to the region
+
+Each project belongs to a single region and has its own API keys. Create an API key in your new project, then set these environment variables wherever you run your code or the CLI:
+
+```bash
+E2B_API_KEY=e2b_YOUR_NEW_PROJECT_KEY
+E2B_DOMAIN=YOUR_NEW_REGION_DOMAIN
+```
+
+The SDKs and CLI both use `E2B_DOMAIN` to connect to the region. See [Multiple regions](/client#multiple-regions) for each region's domain, and for how to use multiple regions in the same process.
+
+## Templates and resources
+
+Your existing resources stay in their original project and region:
+
+- **Templates:** Rebuild your custom templates in the new project. You can reuse the same template names.
+- **Sandboxes and snapshots:** A sandbox ID only resolves in the region that created it. Create new sandboxes and snapshots in the new region.
+- **Volumes:** Existing volumes and their data remain in their original project.
+
+## Billing
+
+If you're moving all your usage to the new region, support can transfer your current plan to the new project. If you'd rather keep using both regions, let support know and we'll help you set up billing for each project.
+
+## Egress IP ranges
+
+If you need a strict IP allowlist, route sandbox traffic through your own proxy. See [Egress IP ranges](/faq/egress-ip-ranges) for more details.
