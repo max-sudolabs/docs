@@ -297,6 +297,20 @@ The payload structure matches the event format from the API:
 - `resume_failed` - the sandbox failed to resume after a snapshot and was killed
 - `unknown` - the reason was not recorded
 
+`event_data.pause_mode` is included on `sandbox.lifecycle.paused` events and describes what the pause saved. The values match the `mode` option of `pause()`:
+
+- `full` - the filesystem and the memory were saved; resuming restores the sandbox where it left off
+- `filesystem` - only the filesystem was saved; resuming reboots the sandbox from disk. See [Filesystem-only snapshots](/sandbox/filesystem-only-snapshots)
+
+The value describes the snapshot that was taken, not the one that was requested. A memory auto-pause that keeps being refused falls back to a [filesystem-only pause](/sandbox/persistence#auto-pause), and its event says `filesystem`.
+
+`event_data.resume_mode` is included on `sandbox.lifecycle.resumed` events and describes how the sandbox started. The values match the `onResume` option of `connect()`:
+
+- `restore` - the memory snapshot was restored, so running processes continue
+- `reboot` - the sandbox booted from its saved filesystem, either because the snapshot has no memory or because it was resumed with `onResume: 'reboot'` / `on_resume="reboot"`. See [Resume without memory](/sandbox/resume-without-memory)
+
+Events recorded before these fields were added don't include them. Treat a missing `pause_mode` or `resume_mode` as unknown, not as `full` or `restore`.
+
 `events_ttl_days` is the number of days the event is retained and remains available through the lifecycle events API.
 
 # Webhook verification

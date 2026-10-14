@@ -17,6 +17,8 @@ Query Parameters:
 - `orderAsc` (optional): Sort order - true for ascending, false for descending (default: false)
 - `types` (optional): Filter by event type. Can be specified multiple times to match any of the given types.
 
+Each event's `eventData` carries the same fields as `event_data` in the [webhook payload](/sandbox/lifecycle-events-webhooks#webhook-payload), for example `kill_reason` on killed events, `pause_mode` on paused events and `resume_mode` on resumed events.
+
 <CodeGroup>
 ```js JavaScript & TypeScript
 import { Sandbox } from 'e2b'
