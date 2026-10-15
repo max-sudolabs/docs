@@ -6294,6 +6294,171 @@
       "permanent": true
     },
     {
+      "source": "/self-hosting",
+      "destination": "/byoc#byoc-is-not-self-hosting",
+      "permanent": true
+    },
+    {
+      "source": "/self-host",
+      "destination": "/byoc#byoc-is-not-self-hosting",
+      "permanent": true
+    },
+    {
+      "source": "/embed",
+      "destination": "/byoc#byoc-is-not-self-hosting",
+      "permanent": true
+    },
+    {
+      "source": "/infrastructure",
+      "destination": "/byoc",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/lifecycle",
+      "destination": "/sandbox",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/overview",
+      "destination": "/sandbox",
+      "permanent": true
+    },
+    {
+      "source": "/pricing",
+      "destination": "/billing",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/limits",
+      "destination": "/billing",
+      "permanent": true
+    },
+    {
+      "source": "/limits",
+      "destination": "/billing",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/compute",
+      "destination": "/billing#customizing-compute-resources",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/resources",
+      "destination": "/billing#customizing-compute-resources",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/regions",
+      "destination": "/client#multiple-regions",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/region",
+      "destination": "/client#multiple-regions",
+      "permanent": true
+    },
+    {
+      "source": "/regions",
+      "destination": "/client#multiple-regions",
+      "permanent": true
+    },
+    {
+      "source": "/desktop",
+      "destination": "/use-cases/computer-use",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/desktop",
+      "destination": "/use-cases/computer-use",
+      "permanent": true
+    },
+    {
+      "source": "/desktop/streaming",
+      "destination": "/use-cases/computer-use#setting-up-the-sandbox",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/networking",
+      "destination": "/network/internet-access",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/network",
+      "destination": "/network/internet-access",
+      "permanent": true
+    },
+    {
+      "source": "/security",
+      "destination": "/faq/security-and-compliance",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/security",
+      "destination": "/faq/security-and-compliance",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/commands",
+      "destination": "/commands",
+      "permanent": true
+    },
+    {
+      "source": "/commands/run",
+      "destination": "/commands",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/pause",
+      "destination": "/sandbox/persistence",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/secrets",
+      "destination": "/secrets",
+      "permanent": true
+    },
+    {
+      "source": "/template/desktop",
+      "destination": "/template/examples/desktop",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox-template/customization",
+      "destination": "/template/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/customization",
+      "destination": "/template/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/filesystem",
+      "destination": "/filesystem",
+      "permanent": true
+    },
+    {
+      "source": "/sandbox/connect-to-sandbox",
+      "destination": "/sandbox/connect",
+      "permanent": true
+    },
+    {
+      "source": "/code-interpreter",
+      "destination": "/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/envd/get-the-environment-variables",
+      "destination": "/api-reference/envd/environment-variables",
+      "permanent": true
+    },
+    {
+      "source": "/api-reference/volumes/get-volumes",
+      "destination": "/api-reference/volumes/list-team-volumes",
+      "permanent": true
+    },
+    {
       "source": "/sdk-reference/js-sdk/latest/:slug*",
       "destination": "/sdk-reference/js-sdk/v2.56.0/:slug*",
       "permanent": false
