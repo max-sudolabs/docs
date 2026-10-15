@@ -282,6 +282,7 @@
               "agents/letta",
               "agents/openai-agents-api",
               "agents/openai-agents-sdk",
+              "agents/openai-computer-use",
               "agents/vercel-ai-sdk",
               "agents/nemo-gym",
               "agents/openenv",

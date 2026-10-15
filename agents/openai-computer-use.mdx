@@ -1,0 +1,286 @@
+---
+title: "Use OpenAI computer-use helpers with E2B Desktop"
+sidebarTitle: "OpenAI computer use"
+description: "Run OpenAI's computer-use helpers against a private E2B desktop sandbox you can watch live."
+icon: "/images/icons/openai-agents-sdk.svg"
+"og:image": "/images/og/generated/agents/openai-computer-use.png"
+---
+
+The OpenAI SDKs ship computer-use helpers: `ComputerToolset` runs the [computer tool](https://developers.openai.com/api/docs/guides/tools-computer-use) loop on the Responses API, and you supply a driver that executes each action the model asks for. E2B Desktop is that driver's target: a private Ubuntu desktop in the cloud, isolated from your machine, that you can watch live while the model clicks and types.
+
+## How it works
+
+1. **Create a desktop.** `Sandbox.create()` from E2B Desktop starts an XFCE desktop with LibreOffice, a file manager and other common apps.
+2. **Write a driver.** One method per computer action (`click`, `type`, `scroll`, and so on) plus `screenshot`, each mapped to an E2B Desktop call.
+3. **Run the toolset.** `ComputerToolset(driver).run(client, params)` calls the Responses API, dispatches every action to your driver, sends back a screenshot, and repeats until the model answers.
+4. **Kill the desktop.** The helper never creates or closes the environment. You own it.
+
+## Install
+
+The helpers need `openai` 3.31.0 or newer in Python and 7.33.0 or newer in Node.
+
+<CodeGroup>
+```bash JavaScript & TypeScript
+npm i openai @e2b/desktop
+```
+```bash Python
+pip install openai e2b-desktop
+```
+</CodeGroup>
+
+Set `E2B_API_KEY` ([get one](https://e2b.dev/dashboard?tab=keys)) and `OPENAI_API_KEY` in your environment. Your OpenAI project needs access to a model that supports the `computer` tool.
+
+## Run an agent on a desktop
+
+This script seeds two order notes on a fresh desktop, opens their folder, and asks the model for the order number of the priority one. It prints a live view URL first, so you can watch the run.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript expandable
+import { Sandbox } from '@e2b/desktop'
+import OpenAI, { ComputerToolset, type ComputerDriver } from 'openai'
+
+const MODEL = 'gpt-6-luna'
+// OpenAI key names that e2b-desktop does not map on its own
+const KEYS: Record<string, string> = {
+  ARROWUP: 'up', ARROWDOWN: 'down', ARROWLEFT: 'left', ARROWRIGHT: 'right',
+  PAGEUP: 'page_up', PAGEDOWN: 'page_down',
+}
+
+function noHeldKeys(keys?: string[] | null) {
+  if (keys?.length) throw new Error('Holding keys during mouse actions is not supported')
+}
+
+// Runs each action the model asks for on an E2B desktop.
+function e2bDesktopDriver(desktop: Sandbox): ComputerDriver {
+  return {
+    async screenshot() {
+      const png = await desktop.screenshot()
+      return {
+        type: 'computer_screenshot',
+        image_url: `data:image/png;base64,${Buffer.from(png).toString('base64')}`,
+      }
+    },
+    async click({ button, x, y, keys }) {
+      noHeldKeys(keys)
+      if (button === 'left') await desktop.leftClick(x, y)
+      else if (button === 'right') await desktop.rightClick(x, y)
+      else if (button === 'wheel') await desktop.middleClick(x, y)
+      else throw new Error(`Unsupported button: ${button}`)
+    },
+    async double_click({ x, y, keys }) {
+      noHeldKeys(keys)
+      await desktop.doubleClick(x, y)
+    },
+    async drag({ path: [start, ...rest], keys }) {
+      noHeldKeys(keys)
+      await desktop.moveMouse(start.x, start.y)
+      await desktop.mousePress()
+      for (const point of rest) await desktop.moveMouse(point.x, point.y)
+      await desktop.mouseRelease()
+    },
+    async move({ x, y }) {
+      await desktop.moveMouse(x, y)
+    },
+    async scroll({ x, y, scroll_x, scroll_y, keys }) {
+      noHeldKeys(keys)
+      if (scroll_x) throw new Error('Horizontal scroll is not supported')
+      await desktop.moveMouse(x, y)
+      // The model sends pixels; one wheel step scrolls about 100
+      const steps = Math.max(1, Math.floor(Math.abs(scroll_y) / 100))
+      await desktop.scroll(scroll_y > 0 ? 'down' : 'up', steps)
+    },
+    async keypress({ keys }) {
+      await desktop.press(keys.map((key) => KEYS[key.toUpperCase()] ?? key))
+    },
+    async type({ text }) {
+      await desktop.write(text)
+    },
+    async wait() {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+    },
+  }
+}
+
+const desktop = await Sandbox.create({ resolution: [1280, 800], timeoutMs: 300_000 })
+try {
+  await desktop.stream.start({ requireAuth: true })
+  const authKey = desktop.stream.getAuthKey()
+  console.log('Live view:', desktop.stream.getUrl({ authKey, viewOnly: true }))
+
+  await desktop.files.write('/home/user/orders/priority-order.txt', 'Order number: PO-7731\nPriority: high\n')
+  await desktop.files.write('/home/user/orders/standard-order.txt', 'Order number: PO-1001\nPriority: standard\n')
+  await desktop.open('/home/user/orders')
+  await desktop.wait(3000)
+
+  const response = await new ComputerToolset(e2bDesktopDriver(desktop)).run(
+    new OpenAI(),
+    {
+      model: MODEL,
+      store: false,
+      tools: [{ type: 'computer' }],
+      input: 'Open priority-order.txt and reply with only its order number.',
+    },
+    {
+      maxSteps: 15,
+      beforeAction: (action) => {
+        console.log('action:', action.type)
+        return true // approve every action; put your own policy here
+      },
+    },
+  )
+  console.log('Answer:', response.output_text)
+} finally {
+  await desktop.kill()
+}
+```
+```python Python expandable
+import base64
+import time
+
+from e2b_desktop import Sandbox
+from openai import OpenAI
+from openai.lib.computer import ComputerToolset, ComputerUseError
+
+MODEL = "gpt-6-luna"
+# OpenAI key names that e2b-desktop does not map on its own
+KEYS = {"ARROWUP": "up", "ARROWDOWN": "down", "ARROWLEFT": "left", "ARROWRIGHT": "right",
+        "PAGEUP": "page_up", "PAGEDOWN": "page_down"}
+
+
+class E2BDesktopDriver:
+    """Runs each action the model asks for on an E2B desktop."""
+
+    def __init__(self, desktop: Sandbox):
+        self.desktop = desktop
+
+    def screenshot(self):
+        png = self.desktop.screenshot()
+        return {"type": "computer_screenshot",
+                "image_url": "data:image/png;base64," + base64.b64encode(png).decode()}
+
+    def click(self, action):
+        no_held_keys(action)
+        if action.button == "left":
+            self.desktop.left_click(action.x, action.y)
+        elif action.button == "right":
+            self.desktop.right_click(action.x, action.y)
+        elif action.button == "wheel":
+            self.desktop.middle_click(action.x, action.y)
+        else:
+            raise ComputerUseError(f"Unsupported button: {action.button}")
+
+    def double_click(self, action):
+        no_held_keys(action)
+        self.desktop.double_click(action.x, action.y)
+
+    def drag(self, action):
+        no_held_keys(action)
+        start, *rest = action.path
+        self.desktop.move_mouse(start.x, start.y)
+        self.desktop.mouse_press()
+        for point in rest:
+            self.desktop.move_mouse(point.x, point.y)
+        self.desktop.mouse_release()
+
+    def move(self, action):
+        self.desktop.move_mouse(action.x, action.y)
+
+    def scroll(self, action):
+        no_held_keys(action)
+        if action.scroll_x:
+            raise ComputerUseError("Horizontal scroll is not supported")
+        self.desktop.move_mouse(action.x, action.y)
+        # The model sends pixels; one wheel step scrolls about 100
+        steps = max(1, abs(action.scroll_y) // 100)
+        self.desktop.scroll("down" if action.scroll_y > 0 else "up", steps)
+
+    def keypress(self, action):
+        self.desktop.press([KEYS.get(key.upper(), key) for key in action.keys])
+
+    def type(self, action):
+        self.desktop.write(action.text)
+
+    def wait(self, action):
+        time.sleep(1)
+
+
+def no_held_keys(action):
+    if getattr(action, "keys", None):
+        raise ComputerUseError("Holding keys during mouse actions is not supported")
+
+
+def approve(action):
+    print("action:", action.type)
+    return True  # approve every action; put your own policy here
+
+
+desktop = Sandbox.create(resolution=(1280, 800), timeout=300)
+try:
+    desktop.stream.start(require_auth=True)
+    auth_key = desktop.stream.get_auth_key()
+    print("Live view:", desktop.stream.get_url(auth_key=auth_key, view_only=True))
+
+    desktop.files.write("/home/user/orders/priority-order.txt", "Order number: PO-7731\nPriority: high\n")
+    desktop.files.write("/home/user/orders/standard-order.txt", "Order number: PO-1001\nPriority: standard\n")
+    desktop.open("/home/user/orders")
+    desktop.wait(3000)
+
+    with OpenAI() as client:
+        response = ComputerToolset(E2BDesktopDriver(desktop)).run(
+            client,
+            {
+                "model": MODEL,
+                "store": False,
+                "tools": [{"type": "computer"}],
+                "input": "Open priority-order.txt and reply with only its order number.",
+            },
+            max_steps=15,
+            before_action=approve,
+        )
+    print("Answer:", response.output_text)
+finally:
+    desktop.kill()
+```
+</CodeGroup>
+
+Run it with `python agent.py`, or `npx tsx agent.ts` in an ES module project. A run takes a few model turns and ends with `Answer: PO-7731`.
+
+The driver covers every action the computer tool can send. It refuses what E2B Desktop has no direct call for, such as clicks with held modifier keys and horizontal scrolling: a driver must raise instead of silently skipping an action, and the helper stops the run.
+
+<Note>
+The examples use `gpt-6-luna`. In our runs of multi-step LibreOffice Calc and web app tasks on E2B Desktop, it finished about twice as fast as Claude Haiku 5.5 at about a tenth of the cost, mostly because OpenAI caches the repeated screenshot history automatically.
+</Note>
+
+## Watch live
+
+`stream.start()` serves the desktop over noVNC. With `require_auth=True` (`requireAuth: true`) the URL carries a generated password, and `view_only` keeps viewers from moving the mouse under the model. Anyone with the URL can watch until the desktop is killed, so do not share it.
+
+## Approve actions
+
+`before_action` (`beforeAction`) runs before every action, including the final screenshot, and must return exactly `True` to let it through. The example approves everything and logs the action type; this is where an application checks or asks a person before consequential clicks and keystrokes.
+
+Calls that carry pending safety checks stop the run unless you also pass `approve_safety_checks` (`approveSafetyChecks`) and return `True`.
+
+## Sandbox ownership
+
+- **Cleanup:** the helper never kills the desktop. Call `kill()` in `finally` so a failed or cancelled run does not leave it running until its timeout.
+- **Timeout:** `timeout=300` (`timeoutMs: 300_000`) is a backstop. Keep it longer than a run of `max_steps` model turns can take.
+- **Cancellation:** pass `cancelled` (Python) or `signal` (Node) to stop between model calls and actions.
+- **Egress:** the desktop has internet access by default. Restrict it with [`allow_internet_access` or `network.allow_out`](/network/internet-access) when the task does not need the open web.
+
+## Related guides
+
+{/* TODO: confirm cookbook path once e2b-cookbook feat/openai-computer-use-python merges */}
+<CardGroup cols={3}>
+  <Card title="Excel to OrangeHRM" icon="table" href="https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/openai-computer-use-python">
+    `gpt-6-luna` copies new hires from a spreadsheet into an HR system on one desktop
+  </Card>
+  <Card title="Computer use" icon="desktop" href="/use-cases/computer-use">
+    How computer use agents drive E2B Desktop sandboxes
+  </Card>
+  <Card title="Desktop template" icon="window-maximize" href="/template/examples/desktop">
+    What the desktop sandbox ships with and how to customize it
+  </Card>
+</CardGroup>
+
+OpenAI's references: the [computer use guide](https://developers.openai.com/api/docs/guides/tools-computer-use), the [Node helper guide](https://github.com/openai/openai-node/blob/main/docs/computer.md) and the [Python helper source](https://github.com/openai/openai-python/blob/main/src/openai/lib/computer.py).
