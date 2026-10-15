@@ -8,6 +8,13 @@ icon: "/images/icons/openai-agents-sdk.svg"
 
 The OpenAI SDKs ship computer-use helpers: `ComputerToolset` runs the [computer tool](https://developers.openai.com/api/docs/guides/tools-computer-use) loop on the Responses API, and you supply a driver that executes each action the model asks for. E2B Desktop is that driver's target: a private Ubuntu desktop in the cloud, isolated from your machine, that you can watch live while the model clicks and types.
 
+OpenAI documents two ways to connect a model to a screen, and both run on E2B Desktop:
+
+- **Code execution**, which OpenAI recommends for `gpt-6-astra`: the model writes PyAutoGUI or Playwright code, and the desktop runs it. See [Use code execution](#use-code-execution).
+- **The computer tool**: the model returns structured clicks and keystrokes, and your driver performs them. See [Run an agent on a desktop](#run-an-agent-on-a-desktop).
+
+The E2B cookbook has runnable examples of both, including Excel to OrangeHRM, in [Python](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/openai-computer-use-python) and [TypeScript](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/openai-computer-use-js).
+
 ## How it works
 
 1. **Create a desktop.** `Sandbox.create()` from E2B Desktop starts an XFCE desktop with LibreOffice, a file manager and other common apps.
@@ -251,6 +258,68 @@ The driver covers every action the computer tool can send. It refuses what E2B D
 
 <Note>
 The examples use `gpt-6-luna`. In our runs of multi-step LibreOffice Calc and web app tasks on E2B Desktop, it finished about twice as fast as Claude Haiku 5.5 at about a tenth of the cost, mostly because OpenAI caches the repeated screenshot history automatically.
+</Note>
+
+## Use code execution
+
+With code execution, the model gets one function tool instead of the computer tool: `exec_py` for Python with [PyAutoGUI](https://pyautogui.readthedocs.io), or `exec_js` for JavaScript with [Playwright](https://playwright.dev). One call can batch several actions, read text from the screen or the page, and check its own result before the model looks again. Your application runs the code and returns its text and screenshots.
+
+E2B Desktop is where that code runs. It executes inside the sandbox, never on your machine, and the desktop stays up between calls, so windows, variables and logins carry over. The E2B side has three parts:
+
+1. **A template with the library.** Build it once per E2B team on top of the stock `desktop` template:
+
+<CodeGroup>
+```typescript JavaScript & TypeScript (exec_js)
+import { Template, defaultBuildLogger } from 'e2b'
+
+const template = Template()
+  .fromTemplate('desktop')
+  .setUser('root')
+  .runCmd(['curl -fsSL https://deb.nodesource.com/setup_22.x | bash -', 'apt-get install -y nodejs'])
+  .setUser('user')
+  .setWorkdir('/home/user')
+  // playwright-core only: Playwright drives the desktop's own Chrome over CDP
+  .runCmd('mkdir -p /home/user/.exec_js && cd /home/user/.exec_js && npm install playwright-core@1.64.0')
+
+await Template.build(template, 'openai-computer-use-exec-js', {
+  cpuCount: 8,
+  memoryMB: 8192,
+  onBuildLogs: defaultBuildLogger(),
+})
+```
+```python Python (exec_py)
+from e2b import Template, default_build_logger
+
+# python-xlib replaces the python3-Xlib fork PyAutoGUI asks for: the desktop's
+# X server listens only on an abstract socket, which python3-Xlib cannot reach.
+PACKAGES = [
+    "pyautogui==0.9.54", "mouseinfo==0.1.3", "pygetwindow==0.0.9", "pymsgbox==2.0.1",
+    "pyperclip==1.11.0", "pyrect==0.2.0", "pyscreeze==1.0.1", "pytweening==1.2.0",
+    "python-xlib==0.33", "six==1.17.0", "pillow==11.3.0",
+]
+
+template = (
+    Template()
+    .from_template("desktop")
+    .set_user("root")
+    .apt_install(["python3-tk"])  # importing PyAutoGUI exits without tkinter
+    .run_cmd("pip install --no-deps " + " ".join(PACKAGES))
+    .set_user("user")
+    .set_workdir("/home/user")
+)
+
+Template.build(template, "openai-computer-use-exec-py", cpu_count=8, memory_mb=8192,
+               on_build_logs=default_build_logger())
+```
+</CodeGroup>
+
+2. **A persistent runtime inside the desktop.** A small process you start in the background keeps one Python namespace (or one Playwright context connected to the desktop's Chrome) for the whole run. It gives the code `log` or `console.log` for text and `display` for screenshots, and answers each call with the `input_text` and `input_image` items the Responses API takes as a `function_call_output`. Write each call to a file in the sandbox, and have the runtime run that file when `curl` posts to its Unix socket through `commands.run`, so nothing listens outside the sandbox.
+3. **OpenAI's loop.** The `exec_py` or `exec_js` tool definition and the Responses loop from [OpenAI's guide](https://developers.openai.com/api/docs/guides/tools-computer-use#use-code-execution), with each `function_call` sent to the runtime and its output returned unchanged.
+
+The E2B cookbook has both as a hello world, next to the computer-tool examples and with the same order-number task as above. In [Python](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/openai-computer-use-python), `gpt-6-astra` opens the file in the file manager with PyAutoGUI. In [TypeScript](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/openai-computer-use-js), it opens the same folder in Chrome with Playwright. Each run took Astra two calls. The runtimes are adapted from [OpenAI's CUA sample app](https://github.com/openai/openai-cua-sample-app), which runs the generated code on your own computer; on E2B it runs in a throwaway desktop with no internet access.
+
+<Note>
+PyAutoGUI drives the whole desktop by screen coordinates, so it works with any app. Playwright drives only the browser, but it can read page text and click elements by role, so it needs fewer screenshots.
 </Note>
 
 ## Watch live
