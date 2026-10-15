@@ -245,6 +245,8 @@ finally:
 
 Run it with `python agent.py`, or `npx tsx agent.ts` in an ES module project. A run takes a few model turns and ends with `Answer: PO-7731`.
 
+For a full run, see the Excel to OrangeHRM example in the E2B cookbook, in [Python](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/openai-computer-use-python) and [TypeScript](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/openai-computer-use-js): `gpt-6-luna` reads new hires from a spreadsheet in LibreOffice Calc, enters each one into the OrangeHRM web app in Chrome, and writes the assigned Employee Ids back into the spreadsheet. It is the same task as the [Claude toolsets](/agents/claude-toolsets) example, driven by the computer tool alone.
+
 The driver covers every action the computer tool can send. It refuses what E2B Desktop has no direct call for, such as clicks with held modifier keys and horizontal scrolling: a driver must raise instead of silently skipping an action, and the helper stops the run.
 
 <Note>
@@ -270,7 +272,6 @@ Calls that carry pending safety checks stop the run unless you also pass `approv
 
 ## Related guides
 
-{/* TODO: confirm cookbook path once e2b-cookbook feat/openai-computer-use-python merges */}
 <CardGroup cols={3}>
   <Card title="Excel to OrangeHRM" icon="table" href="https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/openai-computer-use-python">
     `gpt-6-luna` copies new hires from a spreadsheet into an HR system on one desktop
