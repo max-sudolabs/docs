@@ -15,7 +15,7 @@ The same client code works for all three agents below. Only the sandbox template
 | [OpenCode](https://opencode.ai/docs/acp/) | `opencode` | `opencode acp` | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` or [another provider](https://opencode.ai/docs/config/) |
 | [Claude Code](https://github.com/agentclientprotocol/claude-agent-acp) | `claude` | `claude-agent-acp` | `ANTHROPIC_API_KEY` |
 
-Other ACP agents can run the same way if you install them in a [custom template](/template/quickstart). This page does not test them.
+Other ACP agents can run the same way once they are installed in a [custom template](/template/quickstart).
 
 ## Install
 
@@ -130,7 +130,7 @@ asyncio.run(main())
 ```
 </CodeGroup>
 
-OpenCode reads its model from `~/.config/opencode/opencode.json`. The cookbook example writes `{"model": "openai/gpt-5.6-luna"}` there before it starts the agent.
+OpenCode reads its model from `~/.config/opencode/opencode.json`. The [TypeScript cookbook example](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/acp-agents-js) writes `{"model": "openai/gpt-5.6-luna"}` there before it starts the agent.
 
 The agent writes and runs `fizzbuzz.py` in the sandbox, so the file is there afterwards for `sandbox.files.read()` or `sandbox.commands.run()`.
 
@@ -161,7 +161,7 @@ Your client still receives permission requests. Whether an agent asks before a t
     One client for goose, OpenCode and Claude Code
   </Card>
   <Card title="ACP agents in Python" icon="code" href="https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/acp-agents-python">
-    The same example with the agent-client-protocol package
+    The Python version of the same example, built on agent-client-protocol
   </Card>
   <Card title="OpenCode" icon="/images/icons/opencode.svg" href="/agents/opencode">
     Run OpenCode headless or with its own HTTP server
