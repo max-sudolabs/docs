@@ -7,7 +7,7 @@ icon: "plug"
 
 The [Agent Client Protocol](https://agentclientprotocol.com) (ACP) is an open protocol between coding agents and the clients that drive them. With `sandbox.acp`, the agent runs inside an E2B sandbox and your application is the ACP client: it starts sessions, sends prompts, receives the agent's messages and tool calls, and answers permission requests.
 
-One client works for every ACP agent. Only the sandbox template and the command that starts the agent change.
+The same client code works for all three agents below. Only the sandbox template and the command that starts the agent change.
 
 | Agent | Template | Command | Provider key |
 |---|---|---|---|
@@ -15,7 +15,7 @@ One client works for every ACP agent. Only the sandbox template and the command 
 | [OpenCode](https://opencode.ai/docs/acp/) | `opencode` | `opencode acp` | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` or [another provider](https://opencode.ai/docs/config/) |
 | [Claude Code](https://github.com/agentclientprotocol/claude-agent-acp) | `claude` | `claude-agent-acp` | `ANTHROPIC_API_KEY` |
 
-Any other ACP agent works the same way once it is installed in your [template](/template/quickstart).
+Other ACP agents can run the same way if you install them in a [custom template](/template/quickstart). This page does not test them.
 
 ## Install
 
@@ -28,9 +28,11 @@ pip install e2b agent-client-protocol
 ```
 </CodeGroup>
 
+Set `E2B_API_KEY` to your E2B API key, and the provider key for the agent you run.
+
 ## Run an agent
 
-`sandbox.acp.start()` starts the agent in the sandbox and talks ACP over its stdin and stdout. Pass the result to the ACP client of your language: `agent.stream` in JavaScript, or the agent itself in Python.
+`sandbox.acp.start()` starts the agent in the sandbox and talks ACP over its stdin and stdout. Pass the result to the ACP client for your language: `agent.stream` in JavaScript, or the agent itself in Python.
 
 <CodeGroup>
 ```typescript JavaScript & TypeScript
@@ -128,6 +130,8 @@ asyncio.run(main())
 ```
 </CodeGroup>
 
+OpenCode reads its model from `~/.config/opencode/opencode.json`. The cookbook example writes `{"model": "openai/gpt-5.6-luna"}` there before it starts the agent.
+
 The agent writes and runs `fizzbuzz.py` in the sandbox, so the file is there afterwards for `sandbox.files.read()` or `sandbox.commands.run()`.
 
 The ACP Python SDK is asynchronous, so use it with `AsyncSandbox`. `Sandbox.acp.start()` in the synchronous SDK returns an agent with blocking `send()` and `receive()` for raw JSON-RPC messages.
@@ -145,12 +149,24 @@ Your client still receives permission requests. Whether an agent asks before a t
 
 ## Lifecycle
 
-- `agent.close()` closes the agent's stdin, waits up to 5 seconds (`timeoutMs` in JavaScript, `timeout` in Python) and kills the agent if it is still running. Messages the agent sends after `close()` are discarded. In JavaScript, closing `agent.stream.writable` instead also sends EOF but lets your client read the agent's remaining messages.
+- `agent.close()` closes the agent's stdin, waits up to 5 seconds (`timeoutMs` in JavaScript, `timeout` in Python) and kills the agent if it is still running. Messages the agent sends after `close()` are discarded.
 - `agent.wait()` resolves with the exit code once the agent exits. If the agent exits with an error, reading from the stream fails with the error and the end of the agent's stderr. Pass `onStderr` (`on_stderr` in Python) to receive the agent's logs.
 - The agent runs as long as the sandbox does. If your application stops without calling `close()`, the agent keeps running until the sandbox times out, so set the sandbox `timeoutMs`/`timeout` for the longest task you expect.
 - A single message from the agent can be up to 32 MiB. Change it with `maxMessageBytes` (`max_message_bytes` in Python).
 
-## Examples
+## Related guides
 
-- [ACP agents in TypeScript](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/acp-agents-js) and [Python](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/acp-agents-python): one client for goose, OpenCode and Claude Code.
-- [OpenCode](/agents/opencode) and [Claude Code](/agents/claude-code): other ways to run these agents in a sandbox.
+<CardGroup cols={2}>
+  <Card title="ACP agents in TypeScript" icon="code" href="https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/acp-agents-js">
+    One client for goose, OpenCode and Claude Code
+  </Card>
+  <Card title="ACP agents in Python" icon="code" href="https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/acp-agents-python">
+    The same example with the agent-client-protocol package
+  </Card>
+  <Card title="OpenCode" icon="/images/icons/opencode.svg" href="/agents/opencode">
+    Run OpenCode headless or with its own HTTP server
+  </Card>
+  <Card title="Claude Code" icon="/images/icons/claude-code.svg" href="/agents/claude-code">
+    Run Claude Code headless with structured output and sessions
+  </Card>
+</CardGroup>
