@@ -32,7 +32,13 @@ Set `E2B_API_KEY` to your E2B API key, and the provider key for the agent you ru
 
 ## Run an agent
 
-`sandbox.acp.start()` starts the agent in the sandbox and talks ACP over its stdin and stdout. Pass the result to the ACP client for your language: `agent.stream` in JavaScript, or the agent itself in Python.
+Your code creates a sandbox from a template that already has the agent installed. Then `sandbox.acp.start()` runs the agent inside that sandbox and talks ACP over its stdin and stdout. The agent process runs in the sandbox, not on your machine:
+
+```bash
+goose acp --with-builtin developer
+```
+
+Pass the result to the ACP client for your language: `agent.stream` in JavaScript, or the agent itself in Python.
 
 <CodeGroup>
 ```typescript JavaScript & TypeScript
