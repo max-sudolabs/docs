@@ -5,7 +5,7 @@ icon: "plug"
 "og:image": "/images/og/generated/agents/acp.png"
 ---
 
-The [Agent Client Protocol](https://agentclientprotocol.com) (ACP) is an open protocol between coding agents and the clients that drive them. With `sandbox.acp`, the agent runs inside an E2B sandbox and your application is the ACP client: it starts sessions, sends prompts, receives the agent's messages and tool calls, and answers permission requests.
+The [Agent Client Protocol](https://agentclientprotocol.com) (ACP) is an open protocol between coding agents and the clients that drive them. With the E2B ACP package (`@e2b/acp` for JavaScript, `e2b-acp` for Python), the agent runs inside an E2B sandbox and your application is the ACP client: it starts sessions, sends prompts, receives the agent's messages and tool calls, and answers permission requests.
 
 The same client code works for all three agents below. Only the sandbox template and the command that starts the agent change.
 
@@ -21,10 +21,10 @@ Other ACP agents can run the same way once they are installed in a [custom templ
 
 <CodeGroup>
 ```bash JavaScript & TypeScript
-npm install e2b @agentclientprotocol/sdk
+npm install e2b @e2b/acp @agentclientprotocol/sdk
 ```
 ```bash Python
-pip install e2b agent-client-protocol
+pip install e2b e2b-acp agent-client-protocol
 ```
 </CodeGroup>
 
@@ -32,27 +32,25 @@ Set `E2B_API_KEY` to your E2B API key, and the provider key for the agent you ru
 
 ## Run an agent
 
-Your code creates a sandbox from a template that already has the agent installed. Then `sandbox.acp.start()` runs the agent inside that sandbox and talks ACP over its stdin and stdout. The agent process runs in the sandbox, not on your machine:
+Your code creates a sandbox from a template that already has the agent installed. Then `connectAcpAgent()` (`connect_acp_agent()` in Python) runs the agent inside that sandbox and connects your ACP client to it over the agent's stdin and stdout. The agent process runs in the sandbox, not on your machine:
 
 ```bash
 goose acp --with-builtin developer
 ```
 
-Pass the result to the ACP client for your language: `agent.stream` in JavaScript, or the agent itself in Python.
+Use `agent.connection` to initialize the agent, create sessions and send prompts.
 
 <CodeGroup>
 ```typescript JavaScript & TypeScript
 import { Sandbox } from 'e2b'
-import {
-  ClientSideConnection,
-  PROTOCOL_VERSION,
-  type Client,
-} from '@agentclientprotocol/sdk'
+import { connectAcpAgent } from '@e2b/acp'
+import { PROTOCOL_VERSION, type Client } from '@agentclientprotocol/sdk'
 
 const client: Client = {
-  // Approve every tool call. The tools run inside the sandbox.
+  // Approve tool calls; the agent's tools run inside the sandbox.
   async requestPermission({ options }) {
-    return { outcome: { outcome: 'selected', optionId: options[0].optionId } }
+    const allow = options.find((o) => o.kind === 'allow_once') ?? options[0]
+    return { outcome: { outcome: 'selected', optionId: allow.optionId } }
   },
   async sessionUpdate({ update }) {
     if (update.sessionUpdate === 'agent_message_chunk' && update.content.type === 'text') {
@@ -61,25 +59,23 @@ const client: Client = {
   },
 }
 
-const sandbox = await Sandbox.create('goose', { timeoutMs: 10 * 60_000 })
+const sandbox = await Sandbox.create('goose', { timeoutMs: 600_000 })
 try {
-  const agent = await sandbox.acp.start('goose acp --with-builtin developer', {
-    cwd: '/home/user',
+  const agent = await connectAcpAgent(sandbox, {
+    command: 'goose acp --with-builtin developer',
+    client,
     envs: {
       GOOSE_PROVIDER: 'openai',
       GOOSE_MODEL: 'gpt-5.6-luna',
       OPENAI_API_KEY: process.env.OPENAI_API_KEY!,
     },
   })
-  const connection = new ClientSideConnection(() => client, agent.stream)
-
-  await connection.initialize({ protocolVersion: PROTOCOL_VERSION, clientCapabilities: {} })
-  const { sessionId } = await connection.newSession({ cwd: '/home/user', mcpServers: [] })
-  await connection.prompt({
+  await agent.connection.initialize({ protocolVersion: PROTOCOL_VERSION, clientCapabilities: {} })
+  const { sessionId } = await agent.connection.newSession({ cwd: '/home/user', mcpServers: [] })
+  await agent.connection.prompt({
     sessionId,
     prompt: [{ type: 'text', text: 'Create fizzbuzz.py for 1 to 15 and run it.' }],
   })
-
   await agent.close()
 } finally {
   await sandbox.kill()
@@ -91,14 +87,17 @@ import os
 
 import acp
 from acp import schema
+
 from e2b import AsyncSandbox
+from e2b_acp import connect_acp_agent
 
 
 class Client:
-    # Approve every tool call. The tools run inside the sandbox.
+    # Approve tool calls; the agent's tools run inside the sandbox.
     async def request_permission(self, session_id, tool_call, options, **kwargs):
+        allow = next((o for o in options if o.kind == "allow_once"), options[0])
         return schema.RequestPermissionResponse(
-            outcome=schema.AllowedOutcome(outcome="selected", option_id=options[0].option_id)
+            outcome=schema.AllowedOutcome(outcome="selected", option_id=allow.option_id)
         )
 
     async def session_update(self, session_id, update, **kwargs):
@@ -109,24 +108,22 @@ class Client:
 async def main():
     sandbox = await AsyncSandbox.create("goose", timeout=600)
     try:
-        agent = await sandbox.acp.start(
+        agent = await connect_acp_agent(
+            sandbox,
             "goose acp --with-builtin developer",
-            cwd="/home/user",
+            Client(),
             envs={
                 "GOOSE_PROVIDER": "openai",
                 "GOOSE_MODEL": "gpt-5.6-luna",
                 "OPENAI_API_KEY": os.environ["OPENAI_API_KEY"],
             },
         )
-        connection = acp.connect_to_agent(Client(), agent)
-
-        await connection.initialize(protocol_version=acp.PROTOCOL_VERSION)
-        session = await connection.new_session(cwd="/home/user", mcp_servers=[])
-        await connection.prompt(
+        await agent.connection.initialize(protocol_version=acp.PROTOCOL_VERSION)
+        session = await agent.connection.new_session(cwd="/home/user", mcp_servers=[])
+        await agent.connection.prompt(
             session_id=session.session_id,
-            prompt=[acp.text_block("Create fizzbuzz.py for 1 to 15 and run it.")],
+            prompt=[acp.text_block('Create fizzbuzz.py for 1 to 15 and run it.')],
         )
-
         await agent.close()
     finally:
         await sandbox.kill()
@@ -136,27 +133,27 @@ asyncio.run(main())
 ```
 </CodeGroup>
 
-OpenCode reads its model from `~/.config/opencode/opencode.json`. The [TypeScript cookbook example](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/acp-agents-js) writes `{"model": "openai/gpt-5.6-luna"}` there before it starts the agent.
-
 The agent writes and runs `fizzbuzz.py` in the sandbox, so the file is there afterwards for `sandbox.files.read()` or `sandbox.commands.run()`.
 
-The ACP Python SDK is asynchronous, so use it with `AsyncSandbox`. `Sandbox.acp.start()` in the synchronous SDK returns an agent with blocking `send()` and `receive()` for raw JSON-RPC messages.
+OpenCode takes its model from its config. Pass it in the `OPENCODE_CONFIG_CONTENT` environment variable, as the [TypeScript cookbook example](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/acp-agents-js) does with `{"model": "openai/gpt-5.6-luna"}`.
 
-## Tools stay in the sandbox
+The ACP Python SDK is asynchronous, so use it with `AsyncSandbox`.
 
-ACP lets an agent ask its client to read and write files or run terminal commands on the client's machine. `sandbox.acp` keeps all of that in the sandbox:
+## Where the agent's tools run
+
+ACP lets an agent ask its client to read and write files or run terminal commands on the client's machine. The E2B ACP package keeps that work in the sandbox:
 
 - In `initialize`, the client filesystem and terminal capabilities are always turned off, whatever your client sends.
 - Agent requests for `fs/*` or `terminal/*` are answered with an error and never reach your client.
 
-The agent uses its own tools instead, so files it edits and commands it runs stay in the sandbox even if your client also works as an editor. MCP servers that you pass in `session/new` with a command are started by the agent, so they run in the sandbox too.
+The agent uses its own tools instead, so files it edits and commands it runs stay in the sandbox even if your client also works as an editor. The package does not restrict the agent's network access or the MCP servers you pass to it: an MCP server you pass with a command is started by the agent in the sandbox, while a remote MCP server is reached over the network.
 
 Your client still receives permission requests. Whether an agent asks before a tool call depends on the agent's own settings.
 
 ## Lifecycle
 
-- `agent.close()` closes the agent's stdin, waits up to 5 seconds (`timeoutMs` in JavaScript, `timeout` in Python) and kills the agent if it is still running. Messages the agent sends after `close()` are discarded.
-- `agent.wait()` resolves with the exit code once the agent exits. If the agent exits with an error, reading from the stream fails with the error and the end of the agent's stderr. Pass `onStderr` (`on_stderr` in Python) to receive the agent's logs.
+- `agent.close()` sends EOF to the agent and kills it if it has not exited within 5 seconds of the call (`timeoutMs` in JavaScript, `timeout` in Python). Messages the agent sends after `close()` are not delivered.
+- `agent.wait()` returns the exit code once the agent exits. If the agent exits with an error, the connection fails with the exit code and the end of the agent's stderr. Pass `onStderr` (`on_stderr` in Python) to receive the agent's logs.
 - The agent runs as long as the sandbox does. If your application stops without calling `close()`, the agent keeps running until the sandbox times out, so set the sandbox `timeoutMs`/`timeout` for the longest task you expect.
 - A single message from the agent can be up to 32 MiB. Change it with `maxMessageBytes` (`max_message_bytes` in Python).
 
