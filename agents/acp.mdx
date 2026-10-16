@@ -153,7 +153,7 @@ Your client still receives permission requests. Whether an agent asks before a t
 ## Lifecycle
 
 - `agent.close()` sends EOF to the agent and kills it if it has not exited within 5 seconds of the call (`timeoutMs` in JavaScript, `timeout` in Python). Messages the agent sends after `close()` are not delivered.
-- `agent.wait()` returns the exit code once the agent exits. If the agent exits with an error, the connection fails with the exit code and the end of the agent's stderr. Pass `onStderr` (`on_stderr` in Python) to receive the agent's logs.
+- `agent.wait()` returns the exit code once the agent exits. If the agent exits with an error, pending requests fail with the exit code and the end of the agent's stderr in JavaScript, and with a connection error in Python. Pass `onStderr` (`on_stderr` in Python) to receive the agent's logs.
 - The agent runs as long as the sandbox does. If your application stops without calling `close()`, the agent keeps running until the sandbox times out, so set the sandbox `timeoutMs`/`timeout` for the longest task you expect.
 - A single message from the agent can be up to 32 MiB. Change it with `maxMessageBytes` (`max_message_bytes` in Python).
 
