@@ -1,0 +1,80 @@
+---
+sidebarTitle: "Client"
+"og:image": "/images/og/sdk-reference.png"
+"twitter:image": "/images/og/sdk-reference.png"
+noindex: true
+---
+
+{/* version-banner:start */}
+<Warning>
+  You are currently viewing documentation for version 2.52.1 of the E2B SDK (JavaScript).
+
+  [View the latest version of this page](/sdk-reference/js-sdk/latest/client).
+</Warning>
+{/* version-banner:end */}
+
+### E2B
+
+E2B client with an explicitly bound connection configuration.
+
+The resources exposed by the client (E2B.Sandbox,
+E2B.Volume, E2B.Template, E2B.Secret) behave exactly
+like the top-level `Sandbox` / `Volume` / `Template` / `Secret` exports,
+except the options passed to the client are used as the defaults instead of
+the environment variables.
+Per-call options still take precedence over the client's options.
+
+Multiple clients are fully isolated from each other and from the top-level
+env-configured exports.
+
+#### Example
+
+```ts
+import { E2B } from 'e2b'
+
+const client = new E2B({ apiKey: 'e2b_...', domain: 'e2b.dev' })
+
+const sandbox = await client.Sandbox.create()
+const volumes = await client.Volume.list()
+await client.Template.build(client.Template().fromPythonImage('3'), 'my-env')
+```
+
+#### Constructors
+
+```ts
+new E2B(opts?: E2BClientOpts): E2B
+```
+
+Create a new client with the connection options bound to it.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts`? | `E2BClientOpts` | connection options used as the defaults for every call made through this client's resource classes. |
+
+###### Returns
+
+`E2B`
+
+#### Properties
+
+| Property | Modifier | Type | Description |
+| ------ | ------ | ------ | ------ |
+| <a id="sandbox"></a> `Sandbox` | `readonly` | *typeof* `Sandbox` | `Sandbox` class bound to this client's connection configuration. |
+| <a id="secret"></a> `Secret` | `readonly` | *typeof* `Secret` | `Secret` class bound to this client's connection configuration. |
+| <a id="template"></a> `Template` | `readonly` | `CallableTemplate`\<*typeof* `TemplateBase`\> | `Template` bound to this client's connection configuration. Both the builder (`client.Template()`) and the statics (`client.Template.build(...)`, `client.Template.exists(...)`, …) work like the top-level `Template`. |
+| <a id="volume"></a> `Volume` | `readonly` | *typeof* `Volume` | `Volume` class bound to this client's connection configuration. |
+
+## Type Aliases
+
+### E2BClientOpts
+
+```ts
+type E2BClientOpts = Omit<ConnectionOpts, "signal">;
+```
+
+Connection options bound to an E2B client.
+
+Same as ConnectionOpts without `signal`, which cancels a single
+request and therefore can only be passed per call.

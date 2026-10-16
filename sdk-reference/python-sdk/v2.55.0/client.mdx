@@ -1,0 +1,75 @@
+---
+sidebarTitle: "Client"
+"og:image": "/images/og/sdk-reference.png"
+"twitter:image": "/images/og/sdk-reference.png"
+noindex: true
+---
+
+{/* version-banner:start */}
+<Warning>
+  You are currently viewing documentation for version 2.55.0 of the E2B SDK (Python).
+
+  [View the latest version of this page](/sdk-reference/python-sdk/latest/client).
+</Warning>
+{/* version-banner:end */}
+
+
+
+
+
+
+## E2BClientParams
+
+```python
+class E2BClientParams(ApiParams)
+```
+
+Params bound to an :class:`E2B` client, used as the defaults for every
+call made through its resource classes. Same shape as :class:`ApiParams`.
+
+
+
+## E2B
+
+```python
+class E2B()
+```
+
+E2B client with an explicitly bound connection configuration.
+
+The resource classes exposed by the client (`Sandbox`, `AsyncSandbox`,
+`Volume`, `AsyncVolume`, `Template`, `AsyncTemplate`, `Secret`,
+`AsyncSecret`) behave exactly like the top-level exports of the same name,
+except the params passed to the client are used as the defaults instead of
+the environment variables.
+Per-call params still take precedence over the client's params.
+
+Multiple clients are fully isolated from each other and from the top-level
+env-configured exports.
+
+**Example**:
+
+```python
+from e2b import E2B
+
+client = E2B(api_key="e2b_...", domain="e2b.dev")
+
+sandbox = client.Sandbox.create()
+volumes = client.Volume.list()
+exists = client.Template.exists("my-template")
+```
+
+
+
+### \_\_init\_\_
+
+```python
+def __init__(**opts: Unpack[E2BClientParams])
+```
+
+Create a new client with the API params bound to it.
+
+**Arguments**:
+
+- `opts`: API params used as the defaults for every call made
+through this client's resource classes.

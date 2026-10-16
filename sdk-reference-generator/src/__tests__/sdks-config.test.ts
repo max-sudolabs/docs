@@ -73,6 +73,70 @@ describe("sdks.config - js-sdk version overrides", () => {
       "v2.10.1"
     );
     expect(v2_10_1.entryPoints).toHaveLength(8); // + 3 template modules
+
+    const v2_42_0 = resolveConfig(
+      jsSdkConfig.defaultConfig,
+      jsSdkConfig.configOverrides,
+      "v2.42.0"
+    );
+    expect(v2_42_0.entryPoints).toHaveLength(9); // + volume
+
+    const v2_43_0 = resolveConfig(
+      jsSdkConfig.defaultConfig,
+      jsSdkConfig.configOverrides,
+      "v2.43.0"
+    );
+    expect(v2_43_0.entryPoints).toHaveLength(10); // + secrets
+
+    const v2_44_0 = resolveConfig(
+      jsSdkConfig.defaultConfig,
+      jsSdkConfig.configOverrides,
+      "v2.44.0"
+    );
+    expect(v2_44_0.entryPoints).toHaveLength(11); // + client
+  });
+
+  it("should include secrets starting in v2.43.0", () => {
+    for (const version of ["v2.43.0", "v2.56.0"]) {
+      const resolved = resolveConfig(
+        jsSdkConfig.defaultConfig,
+        jsSdkConfig.configOverrides,
+        version
+      );
+
+      expect(resolved.entryPoints).toContain("src/secret.ts");
+    }
+
+    for (const version of ["v2.42.0", "v2.18.0"]) {
+      const resolved = resolveConfig(
+        jsSdkConfig.defaultConfig,
+        jsSdkConfig.configOverrides,
+        version
+      );
+
+      expect(resolved.entryPoints).not.toContain("src/secret.ts");
+      expect(resolved.entryPoints).toContain("src/volume/index.ts");
+    }
+  });
+
+  it("should include the client starting in v2.44.0", () => {
+    for (const version of ["v2.44.0", "v2.56.0"]) {
+      const resolved = resolveConfig(
+        jsSdkConfig.defaultConfig,
+        jsSdkConfig.configOverrides,
+        version
+      );
+
+      expect(resolved.entryPoints).toContain("src/client.ts");
+    }
+
+    const v2_43_0 = resolveConfig(
+      jsSdkConfig.defaultConfig,
+      jsSdkConfig.configOverrides,
+      "v2.43.0"
+    );
+    expect(v2_43_0.entryPoints).not.toContain("src/client.ts");
+    expect(v2_43_0.entryPoints).toContain("src/secret.ts");
   });
 });
 
@@ -134,6 +198,71 @@ describe("sdks.config - python-sdk version overrides", () => {
       "v2.10.1"
     );
     expect(v2_10_1.allowedPackages).toHaveLength(8); // + 5 template packages
+
+    const v2_42_0 = resolveConfig(
+      pythonSdkConfig.defaultConfig,
+      pythonSdkConfig.configOverrides,
+      "v2.42.0"
+    );
+    expect(v2_42_0.allowedPackages).toHaveLength(10); // + volume packages
+
+    const v2_43_0 = resolveConfig(
+      pythonSdkConfig.defaultConfig,
+      pythonSdkConfig.configOverrides,
+      "v2.43.0"
+    );
+    expect(v2_43_0.allowedPackages).toHaveLength(11); // + secrets
+
+    const v2_44_0 = resolveConfig(
+      pythonSdkConfig.defaultConfig,
+      pythonSdkConfig.configOverrides,
+      "v2.44.0"
+    );
+    expect(v2_44_0.allowedPackages).toHaveLength(12); // + client
+  });
+
+  it("should include secrets starting in v2.43.0", () => {
+    for (const version of ["v2.43.0", "v2.56.0"]) {
+      const resolved = resolveConfig(
+        pythonSdkConfig.defaultConfig,
+        pythonSdkConfig.configOverrides,
+        version
+      );
+
+      expect(resolved.allowedPackages).toContain("e2b.secret");
+    }
+
+    for (const version of ["v2.42.0", "v2.19.0"]) {
+      const resolved = resolveConfig(
+        pythonSdkConfig.defaultConfig,
+        pythonSdkConfig.configOverrides,
+        version
+      );
+
+      expect(resolved.allowedPackages).not.toContain("e2b.secret");
+      expect(resolved.allowedPackages).toContain("e2b.volume.volume_sync");
+      expect(resolved.allowedPackages).toContain("e2b.volume.volume_async");
+    }
+  });
+
+  it("should include the client starting in v2.44.0", () => {
+    for (const version of ["v2.44.0", "v2.56.0"]) {
+      const resolved = resolveConfig(
+        pythonSdkConfig.defaultConfig,
+        pythonSdkConfig.configOverrides,
+        version
+      );
+
+      expect(resolved.allowedPackages).toContain("e2b.client");
+    }
+
+    const v2_43_0 = resolveConfig(
+      pythonSdkConfig.defaultConfig,
+      pythonSdkConfig.configOverrides,
+      "v2.43.0"
+    );
+    expect(v2_43_0.allowedPackages).not.toContain("e2b.client");
+    expect(v2_43_0.allowedPackages).toContain("e2b.secret");
   });
 });
 
