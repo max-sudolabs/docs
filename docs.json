@@ -6025,6 +6025,11 @@
       "permanent": true
     },
     {
+      "source": "/getting-started/api-key",
+      "destination": "/api-key",
+      "permanent": true
+    },
+    {
       "source": "/legacy/getting-started/installation",
       "destination": "/quickstart",
       "permanent": true
