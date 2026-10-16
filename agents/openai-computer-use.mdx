@@ -278,8 +278,11 @@ const template = Template()
   .runCmd(['curl -fsSL https://deb.nodesource.com/setup_22.x | bash -', 'apt-get install -y nodejs'])
   .setUser('user')
   .setWorkdir('/home/user')
-  // playwright-core only: Playwright drives the desktop's own Chrome over CDP
-  .runCmd('mkdir -p /home/user/.exec_js && cd /home/user/.exec_js && npm install playwright-core@1.64.0')
+  // The runtime launches Playwright's own Chromium, as OpenAI's sample app does
+  .runCmd('mkdir -p /home/user/.exec_js && cd /home/user/.exec_js && npm install playwright@1.64.0 && npx playwright install chromium')
+  .setUser('root')
+  .runCmd('cd /home/user/.exec_js && npx playwright install-deps chromium')
+  .setUser('user')
 
 await Template.build(template, 'openai-computer-use-exec-js', {
   cpuCount: 8,
@@ -313,13 +316,13 @@ Template.build(template, "openai-computer-use-exec-py", cpu_count=8, memory_mb=8
 ```
 </CodeGroup>
 
-2. **A persistent runtime inside the desktop.** A small process you start in the background keeps one Python namespace (or one Playwright context connected to the desktop's Chrome) for the whole run. It gives the code `log` or `console.log` for text and `display` for screenshots, and answers each call with the `input_text` and `input_image` items the Responses API takes as a `function_call_output`. Write each call to a file in the sandbox, and have the runtime run that file when `curl` posts to its Unix socket through `commands.run`, so nothing listens outside the sandbox.
+2. **A persistent runtime inside the desktop.** A small process you start in the background keeps one Python namespace (or one Chromium that Playwright launches, visible on the desktop) for the whole run. It gives the code `log` or `console.log` for text and `display` for screenshots, and answers each call with the `input_text` and `input_image` items the Responses API takes as a `function_call_output`. Write each call to a file in the sandbox, and have the runtime run that file when `curl` posts to its Unix socket through `commands.run`, so nothing listens outside the sandbox.
 3. **OpenAI's loop.** The `exec_py` or `exec_js` tool definition and the Responses loop from [OpenAI's guide](https://developers.openai.com/api/docs/guides/tools-computer-use#use-code-execution), with each `function_call` sent to the runtime and its output returned unchanged.
 
-The E2B cookbook has both as a hello world, next to the computer-tool examples and with the same order-number task as above. In [Python](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/openai-computer-use-python), `gpt-6-astra` opens the file in the file manager with PyAutoGUI. In [TypeScript](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/openai-computer-use-js), it opens the same folder in Chrome with Playwright. Each run took Astra two calls. The runtimes are adapted from [OpenAI's CUA sample app](https://github.com/openai/openai-cua-sample-app), which runs the generated code on your own computer; on E2B it runs in a throwaway desktop with no internet access.
+The E2B cookbook has both as a hello world, next to the computer-tool examples and with the same order-number task as above. In [Python](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/openai-computer-use-python), `gpt-6-astra` opens the file in the file manager with PyAutoGUI. In [TypeScript](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/openai-computer-use-js), it opens the same folder in Chromium with Playwright. The runtimes are adapted from [OpenAI's CUA sample app](https://github.com/openai/openai-cua-sample-app), which runs the generated code on your own computer; on E2B it runs in a throwaway desktop that can reach only the hosts you allow.
 
 <Note>
-PyAutoGUI drives the whole desktop by screen coordinates, so it works with any app. Playwright drives only the browser, but it can read page text and click elements by role, so it needs fewer screenshots.
+PyAutoGUI drives the whole desktop by screen coordinates, so it works with any app. Playwright drives only the browser, but it can read page text and click elements by role, so it needs fewer screenshots. The TypeScript runtime also gives the code a `desktop` object (screenshot, click, type, key and more, through xdotool) for apps outside the browser, which the TypeScript Excel to OrangeHRM example uses for LibreOffice Calc.
 </Note>
 
 ## Watch live
