@@ -1,0 +1,156 @@
+---
+title: "Agent Client Protocol (ACP)"
+description: "Run goose, OpenCode, Claude Code or any other ACP agent in an E2B sandbox and drive it from your code with an ACP client."
+icon: "plug"
+"og:image": "/images/og/generated/agents/acp.png"
+---
+
+The [Agent Client Protocol](https://agentclientprotocol.com) (ACP) is an open protocol between coding agents and the clients that drive them. With `sandbox.acp`, the agent runs inside an E2B sandbox and your application is the ACP client: it starts sessions, sends prompts, receives the agent's messages and tool calls, and answers permission requests.
+
+One client works for every ACP agent. Only the sandbox template and the command that starts the agent change.
+
+| Agent | Template | Command | Provider key |
+|---|---|---|---|
+| [goose](https://github.com/aaif-goose/goose) | `goose` | `goose acp --with-builtin developer` | Set with `GOOSE_PROVIDER`, `GOOSE_MODEL` and the provider's key |
+| [OpenCode](https://opencode.ai/docs/acp/) | `opencode` | `opencode acp` | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` or [another provider](https://opencode.ai/docs/config/) |
+| [Claude Code](https://github.com/agentclientprotocol/claude-agent-acp) | `claude` | `claude-agent-acp` | `ANTHROPIC_API_KEY` |
+
+Any other ACP agent works the same way once it is installed in your [template](/template/quickstart).
+
+## Install
+
+<CodeGroup>
+```bash JavaScript & TypeScript
+npm install e2b @agentclientprotocol/sdk
+```
+```bash Python
+pip install e2b agent-client-protocol
+```
+</CodeGroup>
+
+## Run an agent
+
+`sandbox.acp.start()` starts the agent in the sandbox and talks ACP over its stdin and stdout. Pass the result to the ACP client of your language: `agent.stream` in JavaScript, or the agent itself in Python.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+import {
+  ClientSideConnection,
+  PROTOCOL_VERSION,
+  type Client,
+} from '@agentclientprotocol/sdk'
+
+const client: Client = {
+  // Approve every tool call. The tools run inside the sandbox.
+  async requestPermission({ options }) {
+    return { outcome: { outcome: 'selected', optionId: options[0].optionId } }
+  },
+  async sessionUpdate({ update }) {
+    if (update.sessionUpdate === 'agent_message_chunk' && update.content.type === 'text') {
+      process.stdout.write(update.content.text)
+    }
+  },
+}
+
+const sandbox = await Sandbox.create('goose', { timeoutMs: 10 * 60_000 })
+try {
+  const agent = await sandbox.acp.start('goose acp --with-builtin developer', {
+    cwd: '/home/user',
+    envs: {
+      GOOSE_PROVIDER: 'openai',
+      GOOSE_MODEL: 'gpt-5.6-luna',
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY!,
+    },
+  })
+  const connection = new ClientSideConnection(() => client, agent.stream)
+
+  await connection.initialize({ protocolVersion: PROTOCOL_VERSION, clientCapabilities: {} })
+  const { sessionId } = await connection.newSession({ cwd: '/home/user', mcpServers: [] })
+  await connection.prompt({
+    sessionId,
+    prompt: [{ type: 'text', text: 'Create fizzbuzz.py for 1 to 15 and run it.' }],
+  })
+
+  await agent.close()
+} finally {
+  await sandbox.kill()
+}
+```
+```python Python
+import asyncio
+import os
+
+import acp
+from acp import schema
+from e2b import AsyncSandbox
+
+
+class Client:
+    # Approve every tool call. The tools run inside the sandbox.
+    async def request_permission(self, session_id, tool_call, options, **kwargs):
+        return schema.RequestPermissionResponse(
+            outcome=schema.AllowedOutcome(outcome="selected", option_id=options[0].option_id)
+        )
+
+    async def session_update(self, session_id, update, **kwargs):
+        if isinstance(update, schema.AgentMessageChunk) and update.content.type == "text":
+            print(update.content.text, end="")
+
+
+async def main():
+    sandbox = await AsyncSandbox.create("goose", timeout=600)
+    try:
+        agent = await sandbox.acp.start(
+            "goose acp --with-builtin developer",
+            cwd="/home/user",
+            envs={
+                "GOOSE_PROVIDER": "openai",
+                "GOOSE_MODEL": "gpt-5.6-luna",
+                "OPENAI_API_KEY": os.environ["OPENAI_API_KEY"],
+            },
+        )
+        connection = acp.connect_to_agent(Client(), agent)
+
+        await connection.initialize(protocol_version=acp.PROTOCOL_VERSION)
+        session = await connection.new_session(cwd="/home/user", mcp_servers=[])
+        await connection.prompt(
+            session_id=session.session_id,
+            prompt=[acp.text_block("Create fizzbuzz.py for 1 to 15 and run it.")],
+        )
+
+        await agent.close()
+    finally:
+        await sandbox.kill()
+
+
+asyncio.run(main())
+```
+</CodeGroup>
+
+The agent writes and runs `fizzbuzz.py` in the sandbox, so the file is there afterwards for `sandbox.files.read()` or `sandbox.commands.run()`.
+
+The ACP Python SDK is asynchronous, so use it with `AsyncSandbox`. `Sandbox.acp.start()` in the synchronous SDK returns an agent with blocking `send()` and `receive()` for raw JSON-RPC messages.
+
+## Tools stay in the sandbox
+
+ACP lets an agent ask its client to read and write files or run terminal commands on the client's machine. `sandbox.acp` keeps all of that in the sandbox:
+
+- In `initialize`, the client filesystem and terminal capabilities are always turned off, whatever your client sends.
+- Agent requests for `fs/*` or `terminal/*` are answered with an error and never reach your client.
+
+The agent uses its own tools instead, so files it edits and commands it runs stay in the sandbox even if your client also works as an editor. MCP servers that you pass in `session/new` with a command are started by the agent, so they run in the sandbox too.
+
+Your client still receives permission requests. Whether an agent asks before a tool call depends on the agent's own settings.
+
+## Lifecycle
+
+- `agent.close()` closes the agent's stdin, waits up to 5 seconds (`timeoutMs` in JavaScript, `timeout` in Python) and kills the agent if it is still running. Messages the agent sends after `close()` are discarded. In JavaScript, closing `agent.stream.writable` instead also sends EOF but lets your client read the agent's remaining messages.
+- `agent.wait()` resolves with the exit code once the agent exits. If the agent exits with an error, reading from the stream fails with the error and the end of the agent's stderr. Pass `onStderr` (`on_stderr` in Python) to receive the agent's logs.
+- The agent runs as long as the sandbox does. If your application stops without calling `close()`, the agent keeps running until the sandbox times out, so set the sandbox `timeoutMs`/`timeout` for the longest task you expect.
+- A single message from the agent can be up to 32 MiB. Change it with `maxMessageBytes` (`max_message_bytes` in Python).
+
+## Examples
+
+- [ACP agents in TypeScript](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/acp-agents-js) and [Python](https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/acp-agents-python): one client for goose, OpenCode and Claude Code.
+- [OpenCode](/agents/opencode) and [Claude Code](/agents/claude-code): other ways to run these agents in a sandbox.

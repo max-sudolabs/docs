@@ -253,6 +253,7 @@
           {
             "group": "Agents",
             "pages": [
+              "agents/acp",
               "agents/amp",
               "agents/claude-code",
               "agents/claude-managed-agents",
