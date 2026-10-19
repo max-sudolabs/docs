@@ -5,11 +5,6 @@ description: "Route outbound sandbox traffic through a SOCKS5 proxy you run"
 "og:image": "/images/og/generated/network/byop.png"
 ---
 
-<Note>
-Bring your own proxy is currently in private beta.
-If you'd like access, please reach out to us at [support@e2b.dev](mailto:support@e2b.dev).
-</Note>
-
 With Bring your own proxy (BYOP), you can route outbound TCP connections from your sandbox through a SOCKS5 proxy you operate.
 
 Unlike [proxy tunneling](/network/ip-tunneling), nothing runs inside the sandbox. There is no custom template, no proxy client, and no in-guest configuration, so the code running in the sandbox cannot see the proxy or route around it.
@@ -216,7 +211,6 @@ An invalid proxy configuration is rejected when the sandbox is created, so a rej
 
 | Error | Cause |
 | --- | --- |
-| `Egress proxy (network.egressProxy) is not enabled for this team.` | Your team is not in the private beta yet. |
 | `Invalid egress proxy config: egress proxy address must be in host:port form` | `address` is missing the port or is not in `host:port` form. |
 | `Invalid egress proxy config: egress proxy port ... is not a valid 1-65535 value` | The port is out of range or not a number. |
 | `Invalid egress proxy config: resolve egress proxy host ...` | The proxy hostname does not resolve. |
