@@ -26,7 +26,8 @@ HANDLER_STATUSES = {
     # packages/api/internal/handlers/sandbox_create.go:66-412
     ('post', '/sandboxes'): ('400', '403', '404', '429', '500', '503', '504'),
     # packages/api/internal/handlers/sandbox_create.go:82-412
-    ('post', '/v2/sandboxes'): ('400', '403', '404', '429', '500', '503', '504'),
+    # 409/422: idempotency/executor.go at the infra commit cited in _remaining_handler_examples
+    ('post', '/v2/sandboxes'): ('400', '403', '404', '409', '422', '429', '500', '503', '504'),
     # packages/api/internal/handlers/sandboxes_list.go:242-402
     ('get', '/v2/sandboxes'): ('400', '500'),
     # packages/api/internal/handlers/sandboxes_list_metrics.go:23-94
@@ -445,6 +446,17 @@ def _remaining_handler_examples(spec: dict) -> None:
         # sandbox_create.go:219-228,355-356.
         _add(spec, "post", path, "400", "invalidAutoPausePolicy", "autoPauseMemory=false only applies when autoPause is true.", "Filesystem-only auto-pause was requested without enabling auto-pause")
         _add(spec, "post", path, "500", "volumeConversionFailed", "failed to convert volume mounts", "Resolving requested volume mounts fails")
+
+    # Idempotency-Key replays on POST /v2/sandboxes. Source for these messages:
+    # https://github.com/e2b-dev/infra/blob/511d90369919d2b4c001f6db48e2134564c1d6e7/packages/api/internal/middleware/idempotency/executor.go#L77-L97
+    op = _operation(spec, "post", "/v2/sandboxes")
+    if op is not None:
+        for status, name, message, semantic, condition in (
+            ("409", "idempotencyRequestMismatch", "Idempotency-Key was already used with a different request", "idempotency_request_mismatch", "The Idempotency-Key was already used with different request parameters"),
+            ("409", "idempotencyInProgress", "The original request has not recorded a response yet. Retry with the same Idempotency-Key.", "idempotency_in_progress", "A matching original request with this Idempotency-Key has not recorded a response yet and is still within its expected response window"),
+            ("422", "idempotencyOutcomeUnknown", "The original request has no recorded response and its outcome is unknown. This request was not executed again.", "idempotency_outcome_unknown", "A matching original request with this Idempotency-Key has no recorded response and its outcome is unknown"),
+        ):
+            _example(spec, op, status, name, message, condition, {"error_code": semantic})
 
     # Template parsing: handlers below call shared/pkg/id/id.go:41-45,94-136.
     for path in ("/templates/{templateID}", "/v2/templates/{templateID}"):
