@@ -1,30 +1,41 @@
 ---
 title: "Workspaces"
-description: "A workspace groups your E2B projects under one name. Manage multiple projects, and who has access to them, from a single place in the console."
+description: "A workspace groups your E2B projects and holds their billing. Manage your projects, who has access to them, and billing from a single place in the console."
 "og:image": "/images/og/generated/workspaces.png"
 ---
 
-A **workspace** is a group of your [projects](/projects). It gives you one place to see and create projects, and one place to manage who has access to them. Each project inside a workspace keeps its own API keys, sandboxes, templates, and billing.
+A **workspace** is a group of your [projects](/projects). It gives you one place to see and create projects, one place to manage who has access to them, and one billing account that pays for all of them. Each project inside a workspace keeps its own API keys, sandboxes, templates, and plan.
 
 <Info>
-Workspaces are rolling out now. You will see a workspace picker in the <a href="https://console.e2b.dev/sign-in?signup_source=docs_console" target="_blank" rel="noopener">E2B Console</a>, and your existing projects are already grouped into one. Nothing inside your projects has changed.
+Billing now lives on the workspace. Every workspace has one billing account for all of its projects, and existing projects were moved onto it automatically. API keys, sandboxes, templates, and project plans did not change.
 </Info>
 
 ## What a workspace is for
 
 - **One place for all your projects.** Switch between projects, create new ones for a new environment or product, and see everything your organization runs on E2B without signing in and out of separate accounts.
 - **One place to manage access.** Add people to the workspace and they can use every project in it. If someone should only see one project, add them to that project instead. Inside a project, all members have the same permissions.
-- **One place for billing, later.** Billing is per project today: each project keeps its own plan and invoice. Consolidated workspace-level billing is on the roadmap.
+- **One place for billing.** The workspace has one default payment method, one billing email, one credit balance, and one monthly invoice for all of its projects. Each project still has its own plan and spending limit.
 
 ## Workspace vs project
 
 | | Workspace | Project |
 |:--|:--|:--|
-| **Holds** | Name, members, projects | API keys, templates, sandboxes, volumes |
+| **Holds** | Name, members, projects, billing account | API keys, templates, sandboxes, volumes |
 | **Access** | Members can use every project in the workspace | A person added to a single project sees only that project |
-| **Billing and limits** | Nothing today (consolidated billing planned) | Plan, tier limits, invoice. See [Billing](/billing) |
+| **Billing** | Payment method, billing email, shared credits, invoices | Plan, add-ons, tier limits, spending limit. See [Billing](/billing) |
 | **API keys** | None. Keys are always scoped to a project | Each key authenticates against one project. See [API key](/api-key) |
 | **Templates** | None | Namespaced by the project slug. See [Template names](/template/names) |
+
+## Billing
+
+Every workspace has one billing account, and every project in the workspace is billed through it. You manage it on the workspace's billing page in the <a href="https://console.e2b.dev/sign-in?signup_source=docs_console" target="_blank" rel="noopener">E2B Console</a>.
+
+- **One default payment method.** The monthly invoice for all projects in the workspace is charged to the workspace's default payment method.
+- **One billing email.** The workspace has a single billing email, which you can change on its billing page.
+- **Shared credits.** Credits on the workspace pay for usage in any of its projects.
+- **One monthly invoice.** On self-serve plans, plan fees, add-ons, and usage for all projects in the workspace are billed together each month. A plan upgrade or add-on bought mid-month is charged when you buy it. Enterprise billing follows your contract.
+- **Plans stay per project.** Each project keeps its own plan, add-ons, tier limits, and [spending limit](https://console.e2b.dev/?tab=budget). Upgrading one project to Pro does not change the others, and each Pro project has its own monthly plan fee.
+- **Blocking.** When a project reaches its spending limit, only that project is blocked. When a workspace without a payment method runs out of credits, every project in it is blocked shortly afterwards, until you add a payment method.
 
 ## Existing projects
 
@@ -35,7 +46,7 @@ Every project that existed before workspaces was carried over as-is and placed i
 
 Project IDs, API keys, templates, sandboxes, volumes, template slugs, and regions are unchanged. Your code keeps working without any modification.
 
-If a project should be in a different workspace, you can move it yourself: you need to be an owner of both the workspace it is in and the workspace it is going to. The project keeps its identity, API keys, templates, sandboxes, and billing through the move. If your workspace does not look the way you expect otherwise, for example a project is missing, contact [support@e2b.dev](mailto:support@e2b.dev) and we will fix the grouping for you.
+If a project should be in a different workspace, you can move it yourself when you are an owner of both the workspace it is in and the workspace it is going to, and the project is on the Hobby plan with no paid add-ons. A Pro project has to be downgraded first and can move once the downgrade takes effect at the start of the next month. The project keeps its identity, API keys, templates, sandboxes, and spending limit through the move. Usage before the move is billed to the workspace it left, and usage after the move to the workspace it joined. If your workspace does not look the way you expect otherwise, for example a project is missing, contact [support@e2b.dev](mailto:support@e2b.dev) and we will fix the grouping for you.
 
 ## Frequently asked questions
 
@@ -49,7 +60,10 @@ Workspace members get access to every project in the workspace. To give someone 
 Not yet. Inside a project, all members have the same permissions.
 
 **Will my bill change?**
-No. Each project keeps its plan and invoice. Workspace-level billing will follow in the future.
+Plan prices stay the same, and each project keeps its plan. On self-serve plans, a workspace with several projects now gets one invoice for their plan fees and usage, and their usage draws from one shared credit balance.
+
+**Can projects in the same workspace use different cards?**
+No. The monthly invoice for all projects in a workspace is charged to the workspace's default payment method. The one exception is the final invoice from a previous subscription, which is charged to the card that subscription used.
 
 **Can I move a project to another workspace?**
-Yes, if you are an owner of both workspaces. Move the project from the console and it keeps its API keys, templates, sandboxes, and billing. If you are not an owner of both, ask an owner to do it or contact [support@e2b.dev](mailto:support@e2b.dev).
+Yes, if you are an owner of both workspaces and the project is on the Hobby plan with no paid add-ons. A Pro project can move once its downgrade to Hobby has taken effect. Move the project from the console and it keeps its API keys, templates, sandboxes, and spending limit. From then on its usage is billed to the new workspace. If you are not an owner of both, ask an owner to do it or contact [support@e2b.dev](mailto:support@e2b.dev).
