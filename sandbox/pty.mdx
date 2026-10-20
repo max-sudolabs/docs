@@ -158,6 +158,30 @@ terminal.wait(on_pty=lambda data: print(data.decode(), end=''))
 ```
 </CodeGroup>
 
+### Stream input
+
+To send many small chunks, such as individual keystrokes, open an input stream with `pty.streamInput()` in JavaScript or `pty.stream_input()` in Python. All chunks go over one connection in order, which is faster than calling `sendInput()` / `send_stdin()` once per chunk. Pass `timeoutMs: 0` / `timeout=0` to keep the stream open for the whole session. See [Stream input](/commands/streaming#stream-input) for how the stream behaves.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+const input = sandbox.pty.streamInput(terminal.pid, { timeoutMs: 0 })
+for (const key of 'echo "Hello from PTY"\n') {
+  await input.send(key)
+}
+await input.close()
+```
+
+```python Python
+sandbox.pty.stream_input(terminal.pid, iter('echo "Hello from PTY"\nexit\n'))
+```
+
+```python Python (async)
+async with sandbox.pty.stream_input(terminal.pid, timeout=0) as input:
+    for key in 'echo "Hello from PTY"\nexit\n':
+        await input.send(key)
+```
+</CodeGroup>
+
 ## Resize the terminal
 
 When the user's terminal window changes size, notify the PTY with `resize()`. The `cols` and `rows` parameters are measured in characters, not pixels.

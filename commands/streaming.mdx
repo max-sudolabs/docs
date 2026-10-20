@@ -1,10 +1,12 @@
 ---
-title: "Streaming command output"
+title: "Streaming commands"
 sidebarTitle: Streaming
 "og:image": "/images/og/generated/commands/streaming.png"
 ---
 
 import StreamLifetime from '/snippets/StreamLifetime.mdx';
+
+## Stream output
 
 To stream command output as it is being executed, pass the `onStdout`, `onStderr` callbacks to the `commands.run()` method in JavaScript
 or the `on_stdout`, `on_stderr` callbacks to the `commands.run()` method in Python.
@@ -36,3 +38,68 @@ result = sandbox.commands.run('echo hello; sleep 1; echo world', on_stdout=lambd
 print(result)
 ```
 </CodeGroup>
+
+## Stream input
+
+To send input to a running command's stdin as you produce it, open an input stream with `commands.streamInput()` in JavaScript or `commands.stream_input()` in Python. All chunks go over one connection in the order you send them, so sending many small chunks (for example, keystrokes) is faster than calling `commands.sendStdin()` once per chunk.
+
+Start the command in the background with `stdin` enabled, then send input to it by its `pid`:
+
+<CodeGroup>
+```js JavaScript & TypeScript highlight={11-14}
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create()
+
+const command = await sandbox.commands.run('cat', {
+  background: true,
+  stdin: true,
+  onStdout: (data) => console.log(data),
+})
+
+const input = sandbox.commands.streamInput(command.pid)
+await input.send('hello\n')
+await input.send('world\n')
+await input.close()
+
+// Closing the input stream doesn't close stdin; do it to signal EOF
+await sandbox.commands.closeStdin(command.pid)
+await command.wait()
+```
+```python Python highlight={7}
+from e2b import Sandbox
+
+sandbox = Sandbox.create()
+
+command = sandbox.commands.run('cat', background=True, stdin=True)
+
+sandbox.commands.stream_input(command.pid, ['hello\n', 'world\n'])
+
+# Closing the input stream doesn't close stdin; do it to signal EOF
+sandbox.commands.close_stdin(command.pid)
+command.wait(on_stdout=lambda data: print(data))
+```
+```python Python (async) highlight={7-9}
+from e2b import AsyncSandbox
+
+sandbox = await AsyncSandbox.create()
+
+command = await sandbox.commands.run('cat', background=True, stdin=True, on_stdout=lambda data: print(data))
+
+async with sandbox.commands.stream_input(command.pid) as input:
+    await input.send('hello\n')
+    await input.send('world\n')
+
+# Closing the input stream doesn't close stdin; do it to signal EOF
+await sandbox.commands.close_stdin(command.pid)
+await command.wait()
+```
+</CodeGroup>
+
+- **JavaScript and async Python** return a handle. `send()` accepts a string or bytes and queues it in order. `close()` (or leaving the `async with` block) ends the stream and waits until the sandbox has received all of the input. It throws if the stream failed, for example when the command doesn't exist or the sandbox was killed.
+- **Sync Python** takes any iterable of strings or bytes, such as a list or a generator, and blocks until the iterable is exhausted. Each item is sent as soon as the iterable yields it.
+- **Timeout.** The input stream closes after 60 seconds by default. Pass `timeoutMs: 0` in JavaScript or `timeout=0` in Python to keep it open for as long as the command needs input. While a JavaScript or async Python stream is idle, the SDK sends a keepalive every 50 seconds. Sync Python sends no keepalives while it waits for the next item.
+
+<Note>
+In browsers, input streaming needs `fetch` support for streaming request bodies, which only Chromium-based browsers have, and only over HTTP/2. In other browsers, use `commands.sendStdin()`.
+</Note>
