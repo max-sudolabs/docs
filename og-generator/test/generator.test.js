@@ -61,7 +61,7 @@ test('getOgPages reads tab navigation and skips SDK reference routes', () => {
             },
           ],
         },
-        { tab: 'Use cases', pages: ['use-cases/coding-agents'] },
+        { tab: 'Guides', pages: ['use-cases/coding-agents'] },
         { tab: 'SDK Reference', pages: ['sdk-reference/example'] },
       ],
     },
@@ -71,7 +71,7 @@ test('getOgPages reads tab navigation and skips SDK reference routes', () => {
     ['getting-started', 'Getting started'],
     ['quickstart', 'Getting started'],
     ['sandbox', 'Sandbox'],
-    ['use-cases/coding-agents', 'Use cases'],
+    ['use-cases/coding-agents', 'Guides'],
   ])
 })
 

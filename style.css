@@ -864,7 +864,7 @@ body:has(#changelog-filters) #content .update .prose-sm :not(pre) > code {
     line-height: 1.5;
 }
 
-/* Keep Code interpreting visually grouped with the primary use cases. */
+/* Keep Code interpreting visually grouped with the primary guides. */
 #sidebar .sidebar-group:has(> li[id="/code-interpreting/analyze-data-with-ai"]) {
     margin-top: 0 !important;
 }
