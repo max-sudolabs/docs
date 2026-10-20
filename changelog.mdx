@@ -5,6 +5,51 @@ rss: true
 "og:image": "/images/og/changelog.png"
 ---
 
+<Update label="October 19, 2026" description="Pause mode, SDK runtimes, project deletion" tags={["SDK", "API", "Dashboard", "Self-hosted"]} rss={{ title: "Pause Mode Reporting, SDK Runtime Requirements & Project Deletion", description: "This week improves sandboxes, the SDKs, and the dashboard with pause mode reporting, new minimum Node.js and Python versions, and project deletion." }}>
+
+## Pause Mode Reporting, SDK Runtime Requirements & Project Deletion
+
+This week improves sandboxes, the SDKs, and the dashboard with pause mode reporting, new minimum Node.js and Python versions, and project deletion.
+
+### Pause mode for paused sandboxes
+
+The `GET /sandboxes/{sandboxID}` endpoint now returns `pauseMode` (`full` or `filesystem`) for a paused sandbox, so you can tell whether it will resume with its memory or boot fresh from a [filesystem-only snapshot](/sandbox/filesystem-only-snapshots). The dashboard marks filesystem-only pauses with an "FS only" badge. ([`c45276c`](https://github.com/e2b-dev/runtime/commit/c45276c975c433f3fb16c8b6c4633c3b2b730139))
+
+### Node.js 22.19 requirement in the JavaScript SDKs and CLI
+
+The JavaScript SDK 2.56.0 requires Node.js 22.19.0 or later and follows the server's HTTP/2 stream limit instead of its own in-flight caps, so `E2B_API_INFLIGHT_REQUESTS`, `E2B_ENVD_INFLIGHT_REQUESTS`, and `E2B_ENVD_RPC_INFLIGHT_REQUESTS` are removed. Code Interpreter 2.9.0, Desktop 2.5.0, and the CLI 2.22.0 require Node.js 22.19.0 or later too. ([#1733](https://github.com/e2b-dev/E2B/pull/1733), [#1979](https://github.com/e2b-dev/E2B/pull/1979))
+
+### Python 3.11 requirement in the Python SDKs
+
+The Python SDK 2.56.0 requires Python 3.11 or later and opens a new connection when existing ones reach the server's stream limit, up to `E2B_MAX_CONNECTIONS` per address (default 200). `E2B_STREAMS_PER_CONNECTION` is removed. Code Interpreter 2.11.0 and Desktop 2.7.0 require Python 3.11 or later too. ([#1931](https://github.com/e2b-dev/E2B/pull/1931), [#1974](https://github.com/e2b-dev/E2B/pull/1974))
+
+### Project deletion in the dashboard
+
+Workspace owners can delete a project from the Danger Zone in its General settings. Personal workspaces can't delete projects.
+
+### Dashboard API keys and concurrency
+
+The API keys page shows who created each key, including CLI keys, and keeps a new key visible until you confirm you saved it. The usage page shows current and peak concurrent sandboxes against your limit and warns at 80 percent.
+
+### Self-hosted logging and version overrides
+
+For self-hosted deployments, `E2B_DISABLE_STACKTRACES=true` removes stack traces from service logs, and `DEFAULT_FIRECRACKER_VERSIONS` overrides the built-in sandbox VM version map when no feature flag service is configured. ([`16e86b6`](https://github.com/e2b-dev/runtime/commit/16e86b63a21db1d4a3ee27fe7631339742bcfe8e), [`1633454`](https://github.com/e2b-dev/runtime/commit/1633454416c6a03835f9022548301d172ed624db))
+
+### Fixes
+
+- Fixed a regression that slowed sandbox pause and resume. ([`568cfaa`](https://github.com/e2b-dev/runtime/commit/568cfaa93e4b62556bc3730ac343ce1cd8f36095))
+- Fixed sandbox creation succeeding when a requested volume could not be mounted. ([`ef1b99a`](https://github.com/e2b-dev/runtime/commit/ef1b99a7c7241ef4c0284b99951bc02ec6aa1cd8))
+- Fixed connecting to or signaling a process by tag failing when several processes had tags. ([`67b3182`](https://github.com/e2b-dev/runtime/commit/67b318240f4b6acc497411aa968b817b338f62e6))
+- Fixed HTTP/1.1 requests to a sandbox losing the rest of their request body once the sandbox started responding. ([`4f35ab0`](https://github.com/e2b-dev/runtime/commit/4f35ab01d346408b29b843eac98fdea61a21f8d1))
+- Fixed sandbox metrics omitting the newest data point. ([`1a46961`](https://github.com/e2b-dev/runtime/commit/1a469614915804263f4c1b434026e4202930d517))
+- Fixed an edge case where extending a sandbox timeout moved its expiry even though the request failed. ([`9ba6ef0`](https://github.com/e2b-dev/runtime/commit/9ba6ef0a32670e5895c1bcd6b5d204946e81792e))
+- Fixed listing sandboxes intermittently returning `500`. ([`d1682ae`](https://github.com/e2b-dev/runtime/commit/d1682aef3a406fc627092e101b87d5016d9686fa))
+- Fixed an auto-resume stopping when the client that triggered it disconnected. ([`90f3409`](https://github.com/e2b-dev/runtime/commit/90f340920192c944583f064b5fbcc494ebabe3e2))
+- Fixed timeout and network updates racing a sandbox's teardown. An update that arrives after teardown has started now returns `404`. ([`74558d3`](https://github.com/e2b-dev/runtime/commit/74558d3d21c34b8f2a4e2390f8191b8df8d5dbe0))
+- Reliability and security hardening across platform services, including dependency and base image CVE patches.
+
+</Update>
+
 <Update label="October 12, 2026" description="Filesystem snapshots, lifecycle event modes, Azure Embed" tags={["SDK", "API", "Dashboard", "Self-hosted"]} rss={{ title: "Filesystem-Only Snapshots & Lifecycle Pause Modes", description: "This week improves snapshots and lifecycle events with filesystem-only snapshots, pause and resume modes, and clearer errors for stopped sandboxes." }}>
 
 ## Filesystem-Only Snapshots & Lifecycle Pause Modes
