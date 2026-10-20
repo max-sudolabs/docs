@@ -869,7 +869,7 @@ body:has(#changelog-filters) #content .update .prose-sm :not(pre) > code {
     margin-top: 0 !important;
 }
 
-/* Promote the collapsible Sandboxes sections to primary sidebar headings. */
+/* Promote the collapsible Docs sections to primary sidebar headings. */
 nav[aria-label="Pages"]:has(li[data-title="Sandbox"] > button) li:is(
     [data-title="Sandbox"],
     [data-title="Templates"],

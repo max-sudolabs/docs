@@ -400,7 +400,7 @@ describe("mergeNavigation", () => {
     await fs.writeJSON(docsJsonPath, {
       navigation: {
         tabs: [
-          { tab: "Sandboxes", groups: [] },
+          { tab: "Docs", groups: [] },
           { tab: "SDK Reference", icon: "brackets-curly", dropdowns: [] },
         ],
       },

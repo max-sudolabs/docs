@@ -49,7 +49,7 @@ test('getOgPages reads tab navigation and skips SDK reference routes', () => {
     navigation: {
       tabs: [
         {
-          tab: 'Sandboxes',
+          tab: 'Docs',
           groups: [
             {
               group: 'Getting started',
