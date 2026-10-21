@@ -297,7 +297,7 @@
               },
               {
                 "group": "OpenCode",
-                "icon": "terminal",
+                "icon": "/images/icons/opencode.svg",
                 "pages": [
                   "agents/opencode",
                   "agents/opencode/workspace-plugin"
