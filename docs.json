@@ -251,6 +251,7 @@
               "agents/muse",
               "agents/pi",
               "agents/prime",
+              "agents/qm",
               "agents/langgraph",
               "agents/deep-agents",
               "agents/open-swe",

@@ -1,0 +1,102 @@
+---
+title: "QM"
+description: "Deploy QM, Y Combinator's multiplayer agent harness, on E2B with an isolated sandbox for every person and room."
+icon: "/images/icons/qm.png"
+"og:image": "/images/og/generated/agents/qm.png"
+---
+
+[QM](https://github.com/yc-software/qm) is Y Combinator's open-source multiplayer agent harness for work. Teams use it in Slack and on the web: every person and every room gets its own scoped memory, files, permissions, and a durable computer the agent works on. E2B provides two pre-built templates: `qm-core` runs QM itself, and `qm-sandbox` is the agent computer QM creates for each person and room.
+
+## Deploy QM on E2B
+
+Create the setup sandbox with the [E2B CLI](/cli).
+
+```bash
+e2b sandbox create qm
+```
+
+The terminal prints a private link. Open it in your browser and walk through the setup:
+
+1. **E2B**: the API key of the team that will own QM.
+2. **Organization**: the admin email and an org id.
+3. **Models**: an OpenAI key, and optionally an Anthropic key for Claude models and Claude Code.
+4. **Email**: none, SMTP, or Resend, so teammates can sign in by email.
+5. **Deploy**: creates a persistent sandbox for QM core and deploys QM there, in about ten minutes.
+
+When the deploy finishes, the page shows a **Sign in to QM** button that signs you in as the first admin. Invite teammates from the Users page of the admin console.
+
+<Note>
+QM core runs in a sandbox that pauses instead of stopping when it reaches the 24 hour timeout, and wakes on the next visit in the browser. Slack messages cannot wake a paused core, so a team that mostly uses QM from Slack needs an external job that pauses and resumes the sandbox once a day. This needs a plan that allows a 24 hour timeout (Pro). The setup checks this when you enter the E2B key.
+</Note>
+
+To get a new admin sign-in link later, run `qm admin-login` inside the core sandbox.
+
+```bash
+e2b sandbox exec -u root <sandbox-id> "cd /home/user/qm && qm admin-login"
+```
+
+## Use E2B sandboxes from an existing QM deployment
+
+If QM core already runs elsewhere (Fly, AWS, or plain Docker), point it at the `qm-sandbox` template and it creates an E2B sandbox for every person and room.
+
+```jsonc qm.config.jsonc
+"sandbox": { "backend": "e2b" },
+"env": { "core": { "E2B_TEMPLATE_ID": "qm-sandbox:v1.0.0" } }
+```
+
+Set `E2B_API_KEY` with `qm secrets set`. Pin a version tag so a new template release does not change the image new sandboxes get. On plans capped at one hour, also set `E2B_MAX_LIFETIME_SEC=3600` in `env.core`.
+
+## What's inside the agent computer
+
+Every `qm-sandbox` ships with the tools QM's agents expect: Claude Code, Codex CLI, GitHub CLI, AWS CLI, Node.js 24, and Python 3.11. Each sandbox gets 8 vCPU and 8 GiB of memory. Sandboxes pause instead of stopping when their timeout runs out and resume on the next turn, and core restores a scope's home from its newest snapshot if a sandbox is lost.
+
+You can also create the agent computer directly with the SDK to look around.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('qm-sandbox', {
+  timeoutMs: 3_600_000,
+  lifecycle: { onTimeout: 'pause', autoResume: false },
+})
+
+const result = await sandbox.commands.run('whoami; claude --version; codex --version')
+console.log(result.stdout)
+
+await sandbox.kill()
+```
+```python Python
+from e2b import Sandbox
+
+sandbox = Sandbox.create(
+    "qm-sandbox",
+    timeout=3600,
+    lifecycle={"on_timeout": "pause", "auto_resume": False},
+)
+
+result = sandbox.commands.run("whoami; claude --version; codex --version")
+print(result.stdout)
+
+sandbox.kill()
+```
+</CodeGroup>
+
+## How it works
+
+1. **Core** keeps the org's conversations, memory, and permissions. It runs in `qm-core` on E2B, or anywhere else QM supports.
+2. **One sandbox per scope**: core creates a `qm-sandbox` for each person and each room through its E2B backend, and finds it again by name on the next turn.
+3. **Durable by default**: sandboxes pause rather than stop, and recovery snapshots carry a scope's files across pauses and lost sandboxes.
+
+QM's own [E2B template guide](https://github.com/yc-software/qm/blob/main/docs/e2b-template.md) covers building your own sandbox image, routing egress through QM's proxy, and running published apps on E2B.
+
+## Related guides
+
+<CardGroup cols={2}>
+  <Card title="Sandbox persistence" icon="clock" href="/sandbox/persistence">
+    Auto-pause, resume, and manage sandbox lifecycle
+  </Card>
+  <Card title="Internet access" icon="globe" href="/network/internet-access">
+    Restrict where sandboxes can connect with outbound network rules
+  </Card>
+</CardGroup>
