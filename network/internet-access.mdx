@@ -122,7 +122,7 @@ sandbox = Sandbox.create(
 </CodeGroup>
 
 <Note>
-When any domain is used, the default nameserver `8.8.8.8` is automatically allowed to ensure proper DNS resolution.
+When any domain is used, the default nameserver `8.8.8.8` is automatically allowed so that names resolve. To turn this off, see [DNS when you filter by domain](#dns-when-you-filter-by-domain).
 </Note>
 
 You can also use wildcards to allow all subdomains of a domain:
@@ -223,13 +223,118 @@ curl --max-time 10 http://1.1.1.1
 curl --max-time 10 https://1.1.1.1
 ```
 
-Other ports require an IP/CIDR allowance. UDP DNS to `8.8.8.8:53` remains allowed by the automatic nameserver exception.
+Other ports require an IP/CIDR allowance. Traffic to the allowed DNS servers (`8.8.8.8` by default) also stays open, see [DNS when you filter by domain](#dns-when-you-filter-by-domain).
 
 For proxy routing and IP-literal policies, see [Using a wildcard with BYOP](/network/byop#using-a-wildcard-with-byop).
 
 <Warning>
 On shared infrastructure such as CDNs and object storage, allowing one hostname can also permit access to other destinations on the same endpoint. For stricter isolation, use dedicated endpoints or enforce destination restrictions through [your own proxy](/network/byop), and scope credentials and validate destinations in your application.
 </Warning>
+
+### DNS when you filter by domain
+
+When `allowOut` / `allow_out` contains a domain, E2B also allows traffic to `8.8.8.8`, Google's public resolver, so programs in the sandbox can look up names. The sandbox's `/etc/resolv.conf` points at it. This covers **all traffic to `8.8.8.8`**, not only DNS. It isn't listed in `allowOut`, and adding `8.8.8.8` to `denyOut` doesn't remove it.
+
+You can choose which DNS servers are allowed with `dnsServers` / `dns_servers`:
+
+- **Leave it out** to allow `8.8.8.8`.
+- **Pass a list of up to 10 IPv4 addresses** to allow those servers instead of `8.8.8.8`.
+- **Pass an empty list** to allow no DNS server at all.
+
+Like `8.8.8.8`, every server you list gets all traffic allowed, not only DNS. Without a domain in `allowOut`, `dnsServers` has no effect.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create({
+  network: {
+    allowOut: ['api.example.com'],
+    denyOut: ({ allTraffic }) => [allTraffic],
+    dnsServers: [], // allow no DNS server
+  },
+})
+```
+```python Python
+from e2b import Sandbox
+
+sandbox = Sandbox.create(
+    network={
+        "allow_out": ["api.example.com"],
+        "deny_out": lambda ctx: [ctx.all_traffic],
+        "dns_servers": [],  # allow no DNS server
+    }
+)
+```
+</CodeGroup>
+
+You can change it on a running sandbox with `updateNetwork` / `update_network`. Like the other network fields, leaving it out of an update resets it to the default (`8.8.8.8`), so pass it on every update to keep a custom list. When you've set a list, `getInfo()` / `get_info()` shows it in the sandbox's network info. When it's missing there, the default applies.
+
+#### Using a different DNS server
+
+`dnsServers` only opens the firewall. It doesn't change the sandbox's `/etc/resolv.conf`, which still points at `8.8.8.8`. To use another server, allow it and point `/etc/resolv.conf` at it:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create({
+  network: {
+    allowOut: ['api.example.com'],
+    denyOut: ({ allTraffic }) => [allTraffic],
+    dnsServers: ['203.0.113.53'], // your DNS server's IP
+  },
+})
+
+await sandbox.commands.run("echo 'nameserver 203.0.113.53' > /etc/resolv.conf", {
+  user: 'root',
+})
+```
+```python Python
+from e2b import Sandbox
+
+sandbox = Sandbox.create(
+    network={
+        "allow_out": ["api.example.com"],
+        "deny_out": lambda ctx: [ctx.all_traffic],
+        "dns_servers": ["203.0.113.53"],  # your DNS server's IP
+    }
+)
+
+sandbox.commands.run("echo 'nameserver 203.0.113.53' > /etc/resolv.conf", user="root")
+```
+</CodeGroup>
+
+Since all traffic to a listed server is allowed, a public resolver such as `1.1.1.1` opens the same kind of gap as `8.8.8.8`. A resolver you run yourself is the safer choice.
+
+#### Resolving names with no DNS server
+
+Allowed domains keep working with `dnsServers: []` / `dns_servers=[]`. E2B matches HTTP and HTTPS traffic by the `Host` header or TLS SNI and connects to the domain for you, so the sandbox only needs an address to send the request to. Programs in the sandbox still have to look the name up, so pin the names you need in `/etc/hosts`. Any public IP address works, because E2B routes the request by name. Don't use loopback or private addresses.
+
+For example, to pin `api.example.com` and make all other lookups fail right away:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+// Any public IP works here, E2B routes the request by name
+await sandbox.commands.run(
+  "echo '1.1.1.1 api.example.com' >> /etc/hosts && : > /etc/resolv.conf",
+  { user: 'root' }
+)
+```
+```python Python
+# Any public IP works here, E2B routes the request by name
+sandbox.commands.run(
+    "echo '1.1.1.1 api.example.com' >> /etc/hosts && : > /etc/resolv.conf",
+    user="root",
+)
+```
+</CodeGroup>
+
+<Note>
+When no DNS server in `/etc/resolv.conf` is reachable, clear the file as above. Otherwise lookups wait on the blocked `8.8.8.8` and take 20 to 40 seconds to fail.
+</Note>
+
+SDK features such as running commands and working with files don't use DNS inside the sandbox, so they keep working with no DNS server allowed.
 
 ### Behavior of blocked TCP connections
 
@@ -492,7 +597,7 @@ sandbox.update_network({"allow_internet_access": False})
 </CodeGroup>
 
 <Note>
-`updateNetwork` / `update_network` **replaces** the current egress configuration — it does not merge with the existing rules. Calling it with an empty object (`updateNetwork({})` / `update_network({})`) clears all allow and deny rules set at create time.
+`updateNetwork` / `update_network` **replaces** the current egress configuration — it does not merge with the existing rules. Calling it with an empty object (`updateNetwork({})` / `update_network({})`) clears all allow and deny rules set at create time. The same goes for `dnsServers` / `dns_servers`: leave it out and it goes back to the default, `8.8.8.8`.
 </Note>
 
 Per-host rules in `network.rules` can be changed on a running sandbox, and are replaced rather than merged like the rest of the egress configuration. An update that omits `rules` therefore clears every rule.
