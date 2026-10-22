@@ -1,0 +1,142 @@
+---
+title: "Schedule storage cleanup"
+description: "Schedule recurring cleanup of paused sandboxes and unused snapshots."
+hidden: true
+noindex: true
+---
+
+Use [storage-tools](https://github.com/e2b-dev/storage-tools) to run recurring cleanup against live API listings. For bulk cleanup from the console's inventory CSV, see [Clean up storage with the inventory CSV](/sandbox/cleanup-storage-inventory).
+
+| Command | Use |
+| --- | --- |
+| `cleanup-unused-snapshots` | Delete snapshots by their own recorded last use. |
+| `cleanup-paused-sandboxes` | Delete old paused sandboxes from a live listing. Supports scheduled runs. |
+| `analyze-sandbox-reuse` | Inspect pause/resume history before choosing a retention period. Read-only. |
+
+## Resource types and age
+
+| Resource | Age starts at | Command |
+| --- | --- | --- |
+| Paused sandbox | Its most recent pause | `cleanup-paused-sandboxes` |
+| Snapshot | Last recorded start using it (`lastSpawnedAt`), including resumes of derived sandboxes | `cleanup-unused-snapshots` |
+
+Snapshots do not resume. Their last use is independent of when the parent sandbox was paused.
+
+## Setup
+
+Requires Python 3.11 or newer and [uv](https://docs.astral.sh/uv/getting-started/installation/). Scheduled cleanup runs on Linux or macOS.
+
+```bash
+git clone https://github.com/e2b-dev/storage-tools.git
+cd storage-tools
+uv sync --locked
+export E2B_API_KEY=your_team_key
+```
+
+Use your team's API key. Set `E2B_DOMAIN` for a nondefault region.
+
+## Clean up paused sandboxes
+
+Preview sandboxes that have been paused for more than three days:
+
+```bash
+uv run storage_tools.py cleanup-paused-sandboxes \
+  --unused-for-days 3 --metadata env=dev
+```
+
+Add `--apply` to delete them:
+
+```bash
+uv run storage_tools.py cleanup-paused-sandboxes \
+  --unused-for-days 3 --metadata env=dev --recheck --apply
+```
+
+`--metadata` requires every supplied pair to match. Omit it to select across the whole team. Each run fetches the current paused-sandbox listing; a dry run does not save a deletion plan.
+
+<Warning>
+Deletion is permanent. `--recheck` checks state, age, and metadata before deletion and again before retries, but a sandbox can still resume between that check and deletion. If it does, the running sandbox is killed. Block and drain application resumes for the selected sandboxes if this race is unacceptable.
+</Warning>
+
+### Cleanup flags
+
+Both live cleanup commands accept:
+
+| Flag | Meaning |
+| --- | --- |
+| `--unused-for-days N` | Last used more than N days ago. N must be a whole number. |
+| `--unused-for-hours N` | Last used more than N hours ago. Use either hours or days. |
+| `--apply` | Delete permanently. Without it, preview only. |
+| `--rate N` | API requests per second. Default: 20. |
+| `--concurrency N` | Resources in progress at once. Default: 10. |
+| `--limit N` | Maximum selected resources per run. No cap by default. |
+
+Both live cleanup commands require either `--unused-for-days` or `--unused-for-hours`. There is no default retention period. Their `--limit` counts matching candidates, including skipped and failed candidates. Paused-sandbox cleanup uses the latest pause and preserves separately created snapshots. Inventory cleanup uses CSV `last_used_at` and has no age filter by default.
+
+For a six-hour cutoff, use `--unused-for-hours 6`. Paused-sandbox cleanup also accepts `--days` as an alias for `--unused-for-days`. Its `--age-from started` option measures from the latest start/resume; this includes time spent running and can select a recently paused sandbox.
+
+## Schedule cleanup
+
+Install the repository at `/opt/storage-tools`, or adjust the paths below. Save `E2B_API_KEY=your_team_key` and any `E2B_DOMAIN` setting in `/opt/storage-tools/cleanup.env`, then restrict access:
+
+```bash
+chmod 600 /opt/storage-tools/cleanup.env
+```
+
+Save this as `/opt/storage-tools/cleanup-cron.sh`, replacing the placeholders with your retention period and request rate:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+set -a
+source /opt/storage-tools/cleanup.env
+set +a
+exec /opt/storage-tools/.venv/bin/python \
+  /opt/storage-tools/storage_tools.py cleanup-paused-sandboxes \
+  --unused-for-days "<RETENTION_DAYS>" --apply --recheck \
+  --rate "<REQUESTS_PER_SECOND>"
+```
+
+Without `--metadata`, the job selects across the whole team. To narrow it, add `--metadata "<KEY>=<VALUE>"` with your workload's metadata.
+
+Preview the same selection without `--apply`, then test the wrapper manually. Add this entry with `crontab -e` to run hourly:
+
+```cron
+0 * * * * /bin/bash /opt/storage-tools/cleanup-cron.sh >> /opt/storage-tools/cleanup.log 2>&1
+```
+
+The job processes all matching sandboxes. GETs, DELETEs, and retries share the request budget; lower `--rate` when sharing the account with other jobs.
+
+Apply runs take a local lock for the credentials and endpoint. An overlapping run exits nonzero. Use a shared `--lock-file` path for multiple installations on one host; coordinate jobs on separate hosts externally. Stop an old scheduled job before enabling its replacement.
+
+Monitor nonzero exits and rotate `cleanup.log`: `0` means no failures, `1` means a request or local operation failed, `2` means invalid arguments, and `130` means interrupted. Reruns discover remaining resources; completed deletions stand. See the [cleanup reference](https://github.com/e2b-dev/storage-tools/tree/main/scheduled-cleanup) for retry limits and advanced flags.
+
+## Clean up unused snapshots
+
+Preview a snapshot last used more than 30 days ago:
+
+```bash
+uv run storage_tools.py cleanup-unused-snapshots \
+  --name my-snapshot --unused-for-days 30
+```
+
+Add `--apply` to delete, or omit `--name` to scan the team's snapshots. Deletion removes all names, tags, and builds of a selected snapshot. It does not delete sandboxes; snapshots with running or paused dependents are preserved.
+
+Age uses `lastSpawnedAt`: the last recorded sandbox creation or derived-sandbox resume, independent of the source sandbox's pause time. Unknown last use is skipped, and usage and build state are rechecked before deletion. Usage normally flushes once a minute, so cleanup adds two minutes to the requested retention period; this buffer does not cover lost updates.
+
+Snapshots support the same retention and pacing flags as paused sandboxes. Use `--name` to narrow selection; snapshot metadata filtering is unavailable. Exclude snapshots used as template bases, which this usage counter does not track.
+
+For cron, use the wrapper above with `cleanup-unused-snapshots` and your chosen retention period. Stagger sandbox and snapshot jobs because they share an account lock on the same host. See the [snapshot reference](https://github.com/e2b-dev/storage-tools/blob/main/scheduled-cleanup/SNAPSHOTS.md) for detailed checks and failure handling.
+
+## Check sandbox reuse
+
+Inspect observed resumes before shortening retention:
+
+```bash
+uv run storage_tools.py analyze-sandbox-reuse \
+  --since-days 30 --max-events 0 --windows 1,2,3,7 \
+  --metadata env=dev --save-events events.json --csv sandboxes.csv
+```
+
+`--windows` sets the idle periods to compare, in days; durations such as `12h` also work. `--since-days` sets the event-history lookback. The report is limited to retained [lifecycle events](/sandbox/lifecycle-events-api#retention), even when requesting a longer period. Missing events and existing deletion policies can hide returns.
+
+Exports contain sandbox IDs and metadata. They have owner-only permissions; review them before sharing. See [Lifecycle insights](https://github.com/e2b-dev/storage-tools/tree/main/lifecycle_insights) for report definitions and offline replay.
