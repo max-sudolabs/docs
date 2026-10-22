@@ -1,0 +1,103 @@
+---
+title: "Clean up storage with the inventory CSV"
+description: "Delete the paused sandboxes and snapshots listed in your team's storage inventory CSV."
+hidden: true
+noindex: true
+---
+
+The storage inventory is a CSV you download from the E2B dashboard. It lists the paused sandboxes and snapshots your team stores. The [cleanup script](https://github.com/e2b-dev/storage-tools/tree/main/cleanup-storage-inventory) reads that file and deletes the resources it lists.
+
+<Card title="e2b-dev/storage-tools" icon="github" href="https://github.com/e2b-dev/storage-tools/tree/main/cleanup-storage-inventory">
+  Source of the cleanup script, with its tests and pinned dependencies.
+</Card>
+
+<Warning>
+Deletion is permanent. There is no undo.
+</Warning>
+
+## The inventory file
+
+```csv
+as_of_date,resource_type,resource_id,size_gib,last_used_at
+2026-10-04,paused_sandbox,i8x2k9q1mz3t7v0p,1.250000,2026-06-01T09:12:44.000000Z
+2026-10-04,snapshot,a1b2c3d4e5f6g7h8,3.500000,2026-05-17T15:03:10.000000Z
+```
+
+- `as_of_date`: the day the inventory was built.
+- `resource_type`: `paused_sandbox` or `snapshot`.
+- `resource_id`: the sandbox ID or snapshot ID.
+- `size_gib`: the stored size in GiB.
+- `last_used_at`: for a paused sandbox, when it was last paused; for a snapshot, when a sandbox was last started from it. Resuming a paused sandbox doesn't update its `last_used_at`; the script checks the sandbox's state before deleting it.
+
+The inventory is rebuilt once a day, so it can be up to a day old. Download a fresh one before a large cleanup.
+
+## Run the script
+
+Narrow the file to the rows you want to delete, by removing rows or with the flags below. By default the script only prints what it would delete.
+
+```bash
+git clone https://github.com/e2b-dev/storage-tools.git
+cd storage-tools/cleanup-storage-inventory
+export E2B_API_KEY=e2b_***
+
+uv run cleanup_storage_inventory.py inventory.csv                       # dry run
+uv run cleanup_storage_inventory.py inventory.csv --unused-for-days 90  # dry run, filtered
+uv run cleanup_storage_inventory.py inventory.csv --unused-for-days 90 --apply
+uv run cleanup_storage_inventory.py inventory.csv --interactive            # choose filters, dry run
+uv run cleanup_storage_inventory.py inventory.csv --apply --interactive --limit 20  # confirm each row, at most 20
+```
+
+Use the API key of the team the inventory belongs to. For a team outside the default region, also set `E2B_DOMAIN`. You can also put both in a `.env` file next to the script; copy `.env.template` to start.
+
+- `--type paused_sandbox|snapshot`: only this type (repeatable).
+- `--unused-for-days N`: only rows unused for N days or more, i.e. whose `last_used_at` is at least N days ago. It doesn't look at when the resource was created.
+- `--limit N`: delete at most N rows in this run; a re-run takes the next N.
+- `--apply`: delete permanently. Without `--interactive` it doesn't ask again, so run the dry run first.
+- `--interactive`: asks for the filters you didn't pass; Enter means no filter. Without `--apply` it then shows what would be deleted; with `--apply` it asks before each deletion. Rows run one at a time, and sandboxes that are running or changed are skipped without asking.
+  - `y`: delete it.
+  - `n`: skip it; a re-run asks again.
+  - `a`: delete it and all remaining rows without asking.
+  - `q`: stop here; nothing more is deleted.
+- `--concurrency N`: rows in progress at once, default 10.
+- `--rate N`: API requests per second, default 100. A paused sandbox takes two requests, a snapshot one.
+
+Keep the header and the values as exported. The whole file is checked before anything is deleted; the first invalid row stops the script with its line number.
+
+## What happens to each row
+
+Paused sandboxes are deleted first, so that snapshots they were based on can be deleted in the same run. Each row ends with one outcome:
+
+- `deleted`
+- `not_found`: already gone, e.g. deleted after the inventory was built.
+- `skipped_running`: the sandbox is running.
+- `skipped_changed`: the sandbox was resumed after the inventory was built.
+- `skipped_in_use`: a running or paused sandbox is still based on the snapshot.
+- `skipped_by_user`: you answered `n` in interactive mode.
+- `failed`: the API returned another error. The detail column has it.
+
+A `401` or `403` means the key belongs to another team or `E2B_DOMAIN` points at the wrong region. The script stops. It also stops if every row of the first 1,000 fails, which usually means `E2B_DOMAIN` is wrong.
+
+Outcomes are written to `<inventory>.results.csv` next to the input. A re-run skips rows that ended `deleted` and re-checks the rest, including `not_found`, so it is safe to interrupt (Ctrl-C) and run again. Rows that were being deleted when the run stopped, on an interrupt or a `401`/`403`, up to `--concurrency` of them, may be deleted without being recorded and then report `not_found` on the re-run.
+
+A rate-limited request goes back in the queue until it succeeds; the progress line counts these as `requeued`. If you see many, lower `--rate`.
+
+The script exits `0` when every row is deleted or gone, `130` when interrupted with Ctrl-C, and `1` otherwise.
+
+## Before you run it
+
+- **A sandbox can resume between the check and the delete.** The script deletes a sandbox only if it is paused right before the delete. If it resumes in that moment, e.g. through [auto-resume](/sandbox/auto-resume), the running sandbox is killed. Don't include sandboxes you still use.
+- **Large inventories.** The file is read in chunks, so its size doesn't matter, but a re-run keeps the IDs of finished rows in memory, about 4 GB per 10 million. Each row costs one or two API calls: at the default `--rate` of 100, the script deletes about 50 paused sandboxes or 100 snapshots per second, about 5.5 hours per million paused sandboxes. For very large files (tens of millions of rows), consider splitting them, keeping the header in each part, and [contact support](/support).
+- **Snapshots used as a template base look unused.** Building a template `fromTemplate` a snapshot doesn't update its `last_used_at`, and deleting the snapshot is allowed. Remove snapshots you build templates from before you use `--unused-for-days`.
+- **Billing.** Deleted resources stop counting toward your storage usage from the next daily inventory.
+- **Some rows may report `not_found` without being deleted.** A few paused sandboxes can appear under an ID the API doesn't accept, and their storage stays. If such rows reappear in the next inventory, [contact support](/support).
+
+## Deleting a few resources by hand
+
+For a handful of IDs, the [E2B CLI](/cli) is enough:
+
+```bash
+e2b sandbox kill <sandboxID> [sandboxID...]
+e2b sandbox snapshot delete <snapshotID> [snapshotID...]
+```
+
+Unlike the script, `e2b sandbox kill` doesn't check that the sandbox is still paused.
