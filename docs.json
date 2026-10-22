@@ -7,26 +7,9 @@
     "light": "#e32a01",
     "dark": "#e32a01"
   },
-  "fonts": {
-    "heading": {
-      "family": "Neue Haas Grotesk Text Pro",
-      "source": "https://e2b.dev/fonts/v1/NHaasGroteskTXPro-Medium.woff2",
-      "format": "woff2",
-      "weight": 500
-    },
-    "body": {
-      "family": "Neue Haas Grotesk Text Pro",
-      "source": "https://e2b.dev/fonts/v1/NHaasGroteskTXPro-Roman.woff2",
-      "format": "woff2",
-      "weight": 400
-    }
-  },
   "styling": {
     "codeblocks": {
-      "theme": {
-        "light": "github-light",
-        "dark": "github-dark-default"
-      }
+      "theme": "css-variables"
     }
   },
   "interaction": {
@@ -5982,7 +5965,8 @@
     "dark": "/logo/dark.svg"
   },
   "appearance": {
-    "default": "system"
+    "default": "dark",
+    "strict": false
   },
   "background": {
     "color": {

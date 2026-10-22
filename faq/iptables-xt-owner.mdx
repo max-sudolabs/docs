@@ -16,3 +16,4 @@ The command exits with code 4, which aborts any script running under `set -e`.
 ## Workaround: use nftables
 
 [nftables](https://wiki.nftables.org/wiki-nftables/index.php/Main_Page) is the modern replacement for iptables and does not depend on the `xt_owner` module for owner-based matching. If you're setting up a transparent proxy or any rule that matches on user/group ownership, use nftables instead.
+

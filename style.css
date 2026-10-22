@@ -1,21 +1,42 @@
+/* Inter 4 variable (OFL), self-hosted by e2b-dev/web under /fonts/v2/. Named InterVariable so it never
+   mixes with the Inter subsets Mintlify bundles. */
 @font-face {
-    font-family: "Neue Haas Grotesk Text Pro Fallback";
-    src: local("Arial");
-    font-weight: 400;
-    size-adjust: 104%;
-    ascent-override: 79.9%;
-    descent-override: 20.1%;
-    line-gap-override: 22.3%;
+    font-family: "InterVariable";
+    src: url("https://e2b.dev/fonts/v2/InterVariable.woff2") format("woff2");
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
 }
 
 @font-face {
-    font-family: "Neue Haas Grotesk Text Pro Fallback";
-    src: local("Arial");
-    font-weight: 500;
-    size-adjust: 107%;
-    ascent-override: 79.9%;
-    descent-override: 20.1%;
-    line-gap-override: 22.3%;
+    font-family: "InterVariable";
+    src: url("https://e2b.dev/fonts/v2/InterVariable-Italic.woff2") format("woff2");
+    font-weight: 100 900;
+    font-style: italic;
+    font-display: swap;
+}
+
+/* Arial matched to Inter's metrics (UPM 2048, ascent 1984, descent 494; avg width 978 at 400 vs Arial 913,
+   998 at 600 vs Arial Bold 983). The semibold face must name Arial Bold: font-synthesis is off, so a
+   regular Arial file would render headings at regular weight. */
+@font-face {
+    font-family: "InterVariable Fallback";
+    src: local("Arial"), local("ArialMT");
+    font-weight: 400;
+    size-adjust: 107.12%;
+    ascent-override: 90.44%;
+    descent-override: 22.52%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: "InterVariable Fallback";
+    src: local("Arial Bold"), local("Arial-BoldMT");
+    font-weight: 600;
+    size-adjust: 101.53%;
+    ascent-override: 95.42%;
+    descent-override: 23.76%;
+    line-gap-override: 0%;
 }
 
 @font-face {
@@ -35,148 +56,1034 @@
 }
 
 :root {
-    --e2b-font-sans: "Neue Haas Grotesk Text Pro", "Neue Haas Grotesk Text Pro Fallback", sans-serif;
+    --e2b-font-sans: "InterVariable", "InterVariable Fallback", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --e2b-font-mono: "Commit Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    /* Inter features: alternate one, round quotes and commas (cv01 without cv05's l with tail). font-feature-settings
+       replaces rather than adds, so anything that sets it for Inter must repeat both. */
+    --e2b-font-sans-features: "cv01" 1, "ss03" 1;
+    --e2b-font-mono-features: normal;
+    /* Inter weights (E2B type system, variable axis); docs body text is 400. Commit Mono stays 400/700. */
+    --e2b-weight-body: 400;
+    --e2b-weight-regular: 440;
+    --e2b-weight-medium: 520;
+    --e2b-weight-semibold: 580;
+    /* Inter tracking per docs role, exact values from the spec's type.css. Commit Mono is never tracked. */
+    --e2b-tracking-h1: -0.022em; /* 32px */
+    --e2b-tracking-h2: -0.019em; /* 24px */
+    --e2b-tracking-h3: -0.017em; /* 20px */
+    --e2b-tracking-lead: -0.01em; /* 16px; one body letter spacing with web and blog body (type system v1.59, was -0.011em) */
+    --e2b-tracking-body: -0.01em; /* 15px; one body letter spacing with web and blog body (type system v1.59, was -0.009em) */
+    --e2b-tracking-chrome: -0.006em; /* 14px, Mintlify's interface text */
+    --e2b-tracking-ui: -0.003em; /* 13px */
+    --e2b-tracking-h2-sm: -0.017em; /* 20px, h2 below 768px */
+    --e2b-tracking-h3-sm: -0.014em; /* 18px, h3 below 768px */
+    --e2b-tracking-mono: 0;
+    /* Inter optical size per role: "opsz" is the role's px size clamped to 14-32 (spec v1.10). Unclassed
+       interface text keeps font-optical-sizing: auto on body. Commit Mono has no opsz axis. */
+    --e2b-opsz-h1: 32;
+    --e2b-opsz-h2: 24;
+    --e2b-opsz-h3: 20;
+    --e2b-opsz-h2-sm: 20;
+    --e2b-opsz-h3-sm: 18;
+    --e2b-opsz-lead: 16;
+    --e2b-opsz-body: 15;
+    --e2b-opsz-ui: 14;
+    /* Colours are E2B colour system roles (colors/color.css), themed through Mintlify's html.dark / html.light. */
+    --e2b-link: var(--color-link);
+    --e2b-link-underline: currentColor; /* in the link's own colour, as on the blog (was Interface Orange) */
+    --e2b-hairline: 1px; /* one device pixel: 1 px on 1x screens, 0.5 px on retina (below) */
+    --e2b-text-secondary: var(--color-description); /* a step quieter than the reading body in both themes */
     --font-family-headings-custom: var(--e2b-font-sans);
-    --font-weight-headings-custom: 500;
+    --font-weight-headings-custom: var(--e2b-weight-semibold);
     --font-family-body-custom: var(--e2b-font-sans);
-    --font-weight-body-custom: 400;
     --e2b-content-radius: 8px;
-    --e2b-code-surface: #ffffff;
-    --e2b-code-label-surface: #f4f4f4;
-    --e2b-code-blue: #003ee9;
-    --e2b-code-blue-bg: rgb(0 62 233 / 0.12);
-    --e2b-code-purple: #9a0fa4;
-    --e2b-code-purple-bg: rgb(154 15 164 / 0.12);
-    --e2b-code-green: #4d6000;
-    --e2b-code-green-bg: rgb(77 96 0 / 0.12);
-    --e2b-code-orange: #ad2000;
-    --e2b-code-orange-bg: rgb(173 32 0 / 0.12);
-    --e2b-api-method-get: var(--e2b-code-green);
-    --e2b-api-method-get-bg: var(--e2b-code-green-bg);
-    --e2b-api-method-post: var(--e2b-code-blue);
-    --e2b-api-method-post-bg: var(--e2b-code-blue-bg);
-    --e2b-api-method-patch: var(--e2b-code-purple);
-    --e2b-api-method-patch-bg: var(--e2b-code-purple-bg);
-    --e2b-api-method-put: var(--e2b-code-orange);
-    --e2b-api-method-put-bg: var(--e2b-code-orange-bg);
-    --e2b-api-method-delete: var(--e2b-code-orange);
-    --e2b-api-method-delete-bg: var(--e2b-code-orange-bg);
+    --e2b-code-surface: var(--color-code-surface); /* code blocks draw no background of their own: the page */
+    --e2b-code-label-surface: var(--color-chip);
+    --e2b-code-line: var(--color-line-subtle);
 }
 
-.dark {
-    --e2b-code-surface: #121212;
-    --e2b-code-label-surface: #2c2c2c;
-    --e2b-code-blue: #5696fd;
-    --e2b-code-blue-bg: rgb(86 150 253 / 0.18);
-    --e2b-code-purple: #b57cff;
-    --e2b-code-purple-bg: rgb(181 124 255 / 0.18);
-    --e2b-code-green: #9dc20c;
-    --e2b-code-green-bg: rgb(157 194 12 / 0.18);
-    --e2b-code-orange: #ff795b;
-    --e2b-code-orange-bg: rgb(255 121 91 / 0.18);
+/* :root outranks Mintlify's html rule, which turns on Inter's cv02/cv03/cv04/cv11. */
+:root {
+    font-feature-settings: var(--e2b-font-sans-features);
 }
 
+/* Antialiased text everywhere; dark is the default theme. */
+html,
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mintlify's chrome is mostly 14px, so the base tracking follows the 14px step. */
 body {
     font-family: var(--e2b-font-sans);
-    font-weight: 400;
-    letter-spacing: -0.01em;
+    font-weight: var(--e2b-weight-regular);
+    letter-spacing: var(--e2b-tracking-chrome);
+    font-optical-sizing: auto;
+    font-kerning: normal;
+    font-synthesis: none;
 }
 
-/* Reference-page typography from the new E2B brand scale. */
+/* Map Mintlify's weight utilities onto the type system's set. */
+.font-normal {
+    font-weight: var(--e2b-weight-regular);
+}
+
+.font-medium {
+    font-weight: var(--e2b-weight-medium);
+}
+
+.font-semibold {
+    font-weight: var(--e2b-weight-semibold);
+}
+
+/* Commit Mono has only 400 and 700; keep its medium and semibold utilities on 400 as before. */
+:is(code, pre, kbd, #page-context-menu) :is(.font-medium, .font-semibold),
+:is(code, pre, kbd):is(.font-medium, .font-semibold) {
+    font-weight: 400;
+}
+
+/* E2B type system, docs scale. Headings are Inter semibold; Supply Sans is never used in docs. */
 #page-title,
 main :is(h1, h2, h3, h4, h5, h6) {
     font-family: var(--e2b-font-sans);
-    font-weight: 500;
-    letter-spacing: -0.01em;
+    font-weight: var(--e2b-weight-semibold);
 }
 
-#page-title {
-    font-size: 2.5rem;
-    line-height: 1.1;
+/* Headlines balance (h1-h4, as in the spec's base rules); running text uses pretty below. */
+#page-title,
+main :is(h1, h2, h3, h4) {
+    text-wrap: balance;
 }
 
-.mdx-content {
-    font-size: 1rem;
-    line-height: 1.6;
-    letter-spacing: -0.01em;
-}
-
+/* docs-h1 */
+#page-title,
 .mdx-content h1 {
     font-size: 2rem;
-    line-height: 1.1;
+    line-height: 2.5rem;
+    letter-spacing: var(--e2b-tracking-h1);
+    font-variation-settings: "opsz" var(--e2b-opsz-h1);
 }
 
+/* docs-body */
+.mdx-content {
+    font-size: 0.9375rem;
+    font-weight: var(--e2b-weight-body);
+    line-height: 1.5rem;
+    letter-spacing: var(--e2b-tracking-body);
+    font-variation-settings: "opsz" var(--e2b-opsz-body);
+}
+
+.mdx-content :is(p, li) {
+    line-height: 1.5rem;
+}
+
+/* Running text breaks with text-wrap: pretty; headings balance. */
+.mdx-content :is(p, [data-as="p"], li, blockquote, figcaption),
+#header .prose {
+    text-wrap: pretty;
+}
+
+/* Steps, tabs, accordions and callouts nest their own .prose, which resets to 16/28; keep them on docs-body. */
+.mdx-content .prose {
+    font-size: 0.9375rem;
+    line-height: 1.5rem;
+}
+
+/* 16px between paragraphs and around lists, 8px between list items. The paragraph selector
+   matches Mintlify's own 1.25em rule; its first-child and after-heading resets still apply. */
+.mdx-content > :is(p, ul, ol),
+#content-area div.mdx-content.prose > span[data-as="p"],
+#content-area div.mdx-content .prose > span[data-as="p"] {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.mdx-content li {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* A 4px dot with equal 12px space before it and before the text. Mintlify's
+   list padding is layered !important, so override it in the same base layer. */
+@layer base {
+    .mdx-content ul > li {
+        padding-left: 28px !important;
+    }
+
+    html[data-current-path^="/sdk-reference/"] .mdx-content > h4 + ul > li {
+        padding-left: 0 !important;
+    }
+}
+
+.mdx-content ul > li::before {
+    width: 4px;
+    height: 4px;
+    left: 12px;
+    top: calc(0.75rem - 2px);
+}
+
+/* Numbered lists share the bullets' 28 px text edge (as the blog, type v1.81): the number is drawn right-aligned 12 px
+   before the text in tabular figures and the text colour, instead of the browser marker, which put numbered text at
+   30 px. Nested lists count in numbers too. */
+.mdx-content ol {
+    padding-left: 28px;
+    list-style: none;
+}
+
+.mdx-content ol > li {
+    position: relative;
+    padding-left: 0;
+}
+
+.mdx-content ol > li::before {
+    content: counter(list-item) ".";
+    position: absolute;
+    top: 0;
+    right: calc(100% + 12px);
+    font-variant-numeric: tabular-nums;
+}
+
+/* A list belongs to the line that introduces it: 12 px after its paragraph, 8 on phones (as the blog, type v1.81; was
+   16). Both margins drop, as adjoining margins take the larger; :root and the element names outrank Mintlify's paragraph rule
+   (#content-area div.mdx-content.prose > span[data-as="p"]). */
+:root #content-area div.mdx-content > :is(p, span[data-as="p"]):has(+ :is(ul, ol)) {
+    margin-bottom: 0.75rem;
+}
+
+:root #content-area div.mdx-content > :is(p, span[data-as="p"]) + :is(ul, ol) {
+    margin-top: 0.75rem;
+}
+
+@media (max-width: 767px) {
+    :root #content-area div.mdx-content > :is(p, span[data-as="p"]):has(+ :is(ul, ol)) {
+        margin-bottom: 0.5rem;
+    }
+
+    :root #content-area div.mdx-content > :is(p, span[data-as="p"]) + :is(ul, ol) {
+        margin-top: 0.5rem;
+    }
+}
+
+/* Code blocks sit 20 px from the text above and below at every width, as in Linear's developer docs (same 15/24 body):
+   Mintlify gives 20 above (8 under a heading) and 32 below, which left the text after a block detached. */
+.mdx-content > :is(.code-block, .code-group) {
+    margin-bottom: 1.25rem;
+}
+
+/* docs-h2: 56px above, 8px below (v1.37, was 16px). */
 .mdx-content h2 {
+    margin-top: 3.5rem;
+    margin-bottom: 0.5rem;
     font-size: 1.5rem;
-    line-height: 1.1;
+    line-height: 2rem;
+    letter-spacing: var(--e2b-tracking-h2);
+    font-variation-settings: "opsz" var(--e2b-opsz-h2);
+}
+
+.mdx-content h2 + * {
+    margin-top: 0.5rem;
+}
+
+/* docs-h3: 48px above, 8px below. */
+.mdx-content h3 {
+    margin-top: 3rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    letter-spacing: var(--e2b-tracking-h3);
+    font-variation-settings: "opsz" var(--e2b-opsz-h3);
+}
+
+.mdx-content h3 + * {
+    margin-top: 0.5rem;
+}
+
+.mdx-content :is(h4, h5, h6) + *,
+#content-area div.mdx-content.prose > :is(h4, h5, h6) + span[data-as="p"] {
+    margin-top: 0.5rem;
+}
+
+/* A heading that opens the article sits directly under the page header, as Mintlify's prose reset intends. */
+.mdx-content > :is(h2, h3):first-child {
+    margin-top: 0;
+}
+
+/* Below 768px h2 and h3 step down one size and their space above shrinks by 8px. */
+@media (max-width: 767px) {
+    .mdx-content h2 {
+        margin-top: 3rem;
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+        letter-spacing: var(--e2b-tracking-h2-sm);
+        font-variation-settings: "opsz" var(--e2b-opsz-h2-sm);
+    }
+
+    .mdx-content h3 {
+        margin-top: 2.5rem;
+        font-size: 1.125rem;
+        line-height: 1.5rem;
+        letter-spacing: var(--e2b-tracking-h3-sm);
+        font-variation-settings: "opsz" var(--e2b-opsz-h3-sm);
+    }
+
+    .mdx-content > :is(h2, h3):first-child {
+        margin-top: 0;
+    }
+}
+
+/* The docs scale stops at h3, so h4-h6 are body-sized headings. */
+/* h4-h6: 24 px above, 8 px below (Mintlify's em-based prose gave 24 / 9 and a 15 px gap to a following table). */
+.mdx-content :is(h4, h5, h6) {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.9375rem;
+    line-height: 1.5rem;
+    letter-spacing: var(--e2b-tracking-body);
+    font-variation-settings: "opsz" var(--e2b-opsz-body);
 }
 
 .mdx-content [data-component-part="card-title"] {
     font-size: 1.25rem;
-    line-height: 1.1;
+    line-height: 1.75rem;
+    letter-spacing: var(--e2b-tracking-h3);
+    font-variation-settings: "opsz" var(--e2b-opsz-h3);
 }
 
 .mdx-content [data-component-part="card-content"] {
     margin-top: 8px !important;
 }
 
-.mdx-content h3 {
-    font-size: 1.25rem;
-    line-height: 1.1;
+/* Diagram labels keep a compact line so Mermaid node boxes do not grow. */
+.mdx-content .mermaid :is(p, li) {
+    line-height: 1.5rem;
 }
 
-.mdx-content h4 {
-    font-size: 1.125rem;
-    line-height: 1.1;
+/* docs-ui: tables. */
+.mdx-content table {
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    font-weight: var(--e2b-weight-regular);
+    letter-spacing: var(--e2b-tracking-ui);
+    font-variation-settings: "opsz" var(--e2b-opsz-ui);
 }
 
-.mdx-content :is(h5, h6) {
-    font-size: 1rem;
-    line-height: 1.1;
+.mdx-content table :is(p, [data-as="p"], li, th, td) {
+    font-size: inherit;
+    line-height: inherit;
 }
 
-.mdx-content :is(p, li) {
-    line-height: 1.6;
+/* Table headers take the medium weight (Mintlify's prose sets 600, outside the type system's set). */
+/* Table header cells read as column labels, not another heading: regular weight, in description. */
+.mdx-content th {
+    font-weight: var(--e2b-weight-regular);
+}
+
+:root .mdx-content th {
+    color: var(--color-description);
+}
+
+/* Table cells: 8 px top and bottom, 12 px left and right, the same for header and body (Mintlify's em-based prose
+   gave 7.43 px, no top padding on headers and none on the first column); row lines line-subtle. */
+.mdx-content :is(th, td) {
+    padding: 0.5rem 0.75rem;
+}
+
+/* The outer columns sit on the text column's edges, so table text lines up with headings and paragraphs. */
+.mdx-content :is(th, td):first-child {
+    padding-left: 0;
+}
+
+.mdx-content :is(th, td):last-child {
+    padding-right: 0;
+}
+
+html:not(.dark) .mdx-content :is(thead, thead tr, tbody tr, th, td) {
+    border-color: var(--e2b-code-line);
+}
+
+.dark .mdx-content :is(thead, thead tr, tbody tr, th, td) {
+    border-color: var(--e2b-code-line);
+}
+
+/* API schema separators use the same quiet neutral line as SDK tables. */
+html:not(.dark)[data-current-path^="/api-reference/"] #content-area :is(
+    .primitive-param-field,
+    .object-param-field,
+    .border-b:has(> h4)
+) {
+    border-color: var(--e2b-code-line);
+}
+
+html.dark[data-current-path^="/api-reference/"] #content-area :is(
+    .primitive-param-field,
+    .object-param-field,
+    .border-b:has(> h4)
+) {
+    border-color: var(--e2b-code-line);
+}
+
+/* API fields: the description sits 8 px under the field name, as body text under an h4-h6 (Mintlify's mt-4 gave 16 px). */
+:is(.primitive-param-field, .object-param-field) .param-head + div {
+    margin-top: 0.5rem;
+}
+
+/* Section rules (the SDK reference puts one between classes): one line-subtle line with 32 px above and below, on the
+   grid (Mintlify's prose spaced them 3em = 45 px, and a heading after one added its own 48 px). */
+.mdx-content > hr {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+:root .mdx-content > hr {
+    border-color: var(--color-line-subtle);
+}
+
+.mdx-content > hr + :is(h2, h3) {
+    margin-top: 2rem;
+}
+
+/* SDK reference pages: no rule between classes; each class starts with its own heading and that heading's space
+   above (80 px for h3, see the hierarchy below; 56 px for h2), as on Linear's docs. */
+html[data-current-path^="/sdk-reference/"] .mdx-content > hr {
+    display: none;
+}
+
+html[data-current-path^="/sdk-reference/"] .mdx-content > hr + h3 {
+    margin-top: 5rem;
+}
+
+html[data-current-path^="/sdk-reference/"] .mdx-content > hr + h2 {
+    margin-top: 3.5rem;
+}
+
+/* SDK reference hierarchy, after the blog (v1.19 heavy h2 with 80 px above, v1.36 stacked headings): each class or
+   method (h3) is a clear break; groups (h4) and Parameters / Returns / Throws / Example (h6) stay small headings,
+   and an h6 sits tight on the table or block under it. */
+html[data-current-path^="/sdk-reference/"] .mdx-content > h3 {
+    margin-top: 5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 2rem;
+    letter-spacing: var(--e2b-tracking-h2);
+    font-variation-settings: "opsz" var(--e2b-opsz-h2);
+}
+
+html[data-current-path^="/sdk-reference/"] .mdx-content > :is(h3:first-child, hr:first-child + h3) {
+    margin-top: 0;
+}
+
+html[data-current-path^="/sdk-reference/"] .mdx-content > h4 {
+    margin-top: 1.5rem;
+}
+
+/* "Extended by" / "Implements" lists hold one or a few class names: a wrapping row of labels, no bullets or indent. */
+html[data-current-path^="/sdk-reference/"] .mdx-content > h4 + ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-left: 0;
+    list-style: none;
+}
+
+/* Reference relationship labels remain flush with the content edge. */
+html[data-current-path^="/sdk-reference/"] .mdx-content > h4 + ul > li {
+    margin: 0;
+}
+
+html[data-current-path^="/sdk-reference/"] .mdx-content > h4 + ul > li::before,
+html[data-current-path^="/sdk-reference/"] .mdx-content > h4 + ul > li::marker {
+    content: none;
+    display: none;
+}
+
+/* A method heading straight after its group heading (Methods → first method) is a stacked heading: 32 px, as the
+   blog's v1.36 rule, so the group label stays with its first item. */
+html[data-current-path^="/sdk-reference/"] .mdx-content > h4 + h3 {
+    margin-top: 2rem;
+}
+
+
+/* Mintlify wraps tables in a scroll container with 15 px of em-based top padding; tables follow the normal block
+   spacing instead. A table right after an h6 also starts without the header row's top padding. */
+.mdx-content > div:has(> div > div > div > table) {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* Deprecated label, one style everywhere it appears: SDK reference method headings, the Git integration page title,
+   API endpoint titles, API sidebar endpoints, API request fields and the docs sidebar. The compact docs size,
+   Commit Mono 10/12 caps at 400 with 2 4 px padding (18 px tall with its 1 px edge), in the console's warning badge
+   colours: square, no visible border or ring, warning text on the warning wash (step 11 on step 1). A docs exception
+   to the step 2 badge rule: the quietest fill, as the label repeats on every deprecated row, heading and field. */
+:root {
+    --e2b-warning-highlight: var(--color-warning-text);
+    --e2b-warning-bg: var(--color-warning-wash);
+}
+
+html[data-current-path="/sandbox/git-integration"] #page-title::after,
+html .mdx-content :is(h2, h3, h4) > span:has(> del)::after,
+html [class*="bg-[#FDEAD8]"],
+html [data-component-part="field-deprecated-pill"],
+html [data-component-part="field-required-pill"],
+html .nav-tag-pill-text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    height: auto;
+    padding: 0.125rem 0.25rem;
+    border: 1px solid transparent; /* keeps the 18 px footprint; the tint fills it */
+    border-radius: 0;
+    box-shadow: none;
+    background-color: var(--e2b-warning-bg);
+    color: var(--e2b-warning-highlight);
+    font-family: var(--e2b-font-mono);
+    font-size: 0.625rem;
+    font-weight: 400;
+    line-height: 0.75rem;
+    text-shadow: none; /* the active sidebar row's faux-bold shadow is inherited; the tag has no active state */
+    letter-spacing: 0;
+    text-decoration: none;
+    text-transform: uppercase;
+    white-space: nowrap;
+    font-feature-settings: var(--e2b-font-mono-features);
+    font-variation-settings: normal;
+}
+
+/* Required label on API fields: the Deprecated label's style, so the two read as one family, error text on the error
+   wash (the same pairing as the Deprecated label). */
+:root {
+    --e2b-required-text: var(--color-error-text);
+    --e2b-required-bg: var(--color-error-wash);
+}
+
+html [data-component-part="field-required-pill"] {
+    background-color: var(--e2b-required-bg);
+    color: var(--e2b-required-text);
+}
+
+/* Next to the type chip (13 px mono in a 20 px line) the 10/12 label's baseline sits it 1 px low; lift it so both
+   18 px boxes share a top and bottom. */
+[data-component-part="field-meta"] :is([data-component-part="field-required-pill"], [data-component-part="field-deprecated-pill"]) {
+    vertical-align: 1px;
+}
+
+/* API method pills (GET, POST …) have no active state either: they keep their weight in the selected sidebar row. */
+.method-nav-pill,
+.method-nav-pill * {
+    text-shadow: none;
+}
+
+/* Generated SDK headings encode deprecation with del; display normal heading
+   text and communicate the status through the label alone. */
+.mdx-content :is(h2, h3, h4) del {
+    text-decoration: none;
+    color: inherit;
+}
+
+html[data-current-path="/sandbox/git-integration"] #page-title::after,
+.mdx-content :is(h2, h3, h4) > span:has(> del)::after {
+    content: "Deprecated";
+    margin-left: 0.75rem;
+    vertical-align: middle;
+}
+
+html[data-current-path^="/sdk-reference/"] .mdx-content > h6 + * thead th {
+    padding-top: 0;
 }
 
 .mdx-content strong {
-    font-weight: 500;
+    font-weight: var(--e2b-weight-semibold);
 }
 
-.mdx-content a.link {
-    font-weight: 500;
+/* Body links: link ink with an underline in the same colour at 4 px offset, as on the blog, one hairline thick (--e2b-hairline: one device
+   pixel, so 0.5 px on retina, where the blog's 0.75 px snapped to a full 1 px, and 1 px on 1x screens). Covers Markdown links (a.link) and plain HTML links written in
+   MDX, which Mintlify leaves unclassed. */
+.mdx-content :is(a.link, a:not([class])) {
+    color: var(--e2b-link);
+    font-weight: inherit;
+    border-bottom: 0;
+    text-decoration-line: underline;
+    text-decoration-color: var(--e2b-link-underline);
+    text-decoration-thickness: var(--e2b-hairline);
+    text-underline-offset: 4px;
+    transition: opacity 150ms;
+}
+
+/* Links as on the blog (e2b-dev/web article links): 80% opacity on hover. */
+.mdx-content :is(a.link, a:not([class])):hover {
+    opacity: 0.8;
+}
+
+/* Bold text inside a link keeps the link colour instead of the white Mintlify gives strong on dark pages,
+   at the medium weight as on the blog. */
+.mdx-content :is(a.link, a:not([class])) :is(strong, b) {
+    color: inherit;
+    font-weight: var(--e2b-weight-medium);
+}
+
+/* docs-code: blocks 13/20 (the pre sets the line box), inline 0.9em. Commit Mono keeps its contextual
+   alternates (smart kerning) on (v1.34), so ligatures are never switched off. */
+code {
+    font-family: var(--e2b-font-mono);
+    font-weight: 400;
+    font-feature-settings: var(--e2b-font-mono-features);
+    letter-spacing: var(--e2b-tracking-mono);
+}
+
+/* Mintlify turns ligatures off on .font-mono, on the code block wrapper's inline style and on prose code;
+   setting them on the code elements themselves restores Commit Mono's smart kerning. */
+:is(code, pre, kbd, .font-mono) {
+    font-variant-ligatures: normal;
+}
+
+pre,
+pre code {
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+}
+
+.mdx-content :not(pre) > code {
+    font-size: 0.9em;
+}
+
+/* Inline code in running text and tables is one size, the docs code size 13 px (0.9em gave 11.7 px in tables and
+   13.5 px in text), as a small label like the website's pricing-card tags: 2 px 6 px with 2 px corners, a 1 px
+   inline-code-line ring on the chip fill (below).
+   The label's box, not its text, sits on the column edge. API field descriptions are Mintlify prose blocks outside
+   the paragraph rule (they gave 13.5 px with Mintlify's 6 px corners), so they are named too.
+   Inline code inside headings keeps 0.9em of the heading. */
+.mdx-content :is(p, [data-as="p"], li, td, th) code:not(pre code),
+#content-area :is(.primitive-param-field, .object-param-field) code:not(pre code) {
+    padding: 0.125rem 0.375rem;
+    border-radius: 2px;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+}
+
+/* In 15/24 text the chip sits 1 px up (the blog's value for that line, type v1.81): on the baseline it ran low beside
+   the words. Table cells are 13/20 like the chip and stay on the baseline; code inside a link stays in the link chip. */
+.mdx-content :is(p, [data-as="p"], li) code:not(pre code, a code),
+#content-area :is(.primitive-param-field, .object-param-field) code:not(pre code, a code) {
+    vertical-align: 1px;
+}
+
+/* Inline code is a small bordered label: an inline-code-line ring (inset, so the label size does not change) on the
+   chip fill, text one step above the reading body (colour v0.20.0). API field descriptions are Mintlify prose blocks
+   outside the paragraph rule, so they are named here too. */
+:root #content-area .mdx-content :is(p, [data-as="p"], li, td, th) code:not(pre code, .callout code),
+:root #content-area :is(.primitive-param-field, .object-param-field) code:not(pre code) {
+    background-color: var(--color-chip);
+    box-shadow: inset 0 0 0 1px var(--color-inline-code-line);
+    color: var(--color-inline-code);
+}
+
+/* A link that holds inline code is one chip: the link takes the inline code fill and border plus a hairline bottom edge
+   in the link colour (its underline), and the code inside drops its own chip, so "`mode` option" reads as one linked
+   label (mono name, sans text) and a code-only link is a chip with an underlined edge. No vertical padding: the link's own line box
+   (19 px for 16 px Inter) is already the height of a code chip. Each line of a wrapped link is its own chip. */
+.mdx-content :is(a.link, a:not([class])):has(code) {
+    padding: 0 0.375rem;
+    border-radius: 2px;
+    text-decoration-line: none;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+}
+
+:root .mdx-content :is(a.link, a:not([class])):has(code) {
+    background-color: var(--color-chip);
+    box-shadow: inset 0 calc(var(--e2b-hairline) * -1) 0 var(--e2b-link-underline), inset 0 0 0 1px var(--color-inline-code-line);
+}
+
+/* Mintlify lifts links (position: relative, z-index 10) and sinks prose code (z-index -1), which would put the code's
+   text under the link chip's fill; inside a link the code stays in normal flow. */
+html #content-area .mdx-content :is(p, [data-as="p"], li, td, th) :is(a.link, a:not([class])) code:not(pre code, .callout code) {
+    position: static;
+    z-index: auto;
+    padding: 0;
+    background-color: transparent;
+    box-shadow: none;
+    color: inherit; /* the link's ink */
 }
 
 .pagination-prev,
 .pagination-next {
-    font-weight: 500;
+    font-weight: var(--e2b-weight-medium);
 }
 
+/* docs-lead: the page description in the secondary text colour of each theme. */
 #header .prose,
 #header .prose p {
-    font-size: 1.125rem;
-    line-height: 1.6;
-    letter-spacing: -0.01em;
+    color: var(--e2b-text-secondary);
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: var(--e2b-weight-regular);
+    letter-spacing: var(--e2b-tracking-lead);
+    font-variation-settings: "opsz" var(--e2b-opsz-lead);
 }
 
-.eyebrow {
-    font-family: var(--e2b-font-mono);
+/* 24px from the page title to the lead (Mintlify's mt-2 is 8px). */
+#header .prose:not(.prose .prose) {
+    margin-top: 1.5rem;
+}
+
+/* docs-ui: table of contents. */
+#table-of-contents a {
+    font-size: 0.8125rem;
+    letter-spacing: var(--e2b-tracking-ui);
+    font-variation-settings: "opsz" var(--e2b-opsz-ui);
+}
+
+/* Left sidebar (v1.37): one step up to 14px (as web ui since v1.13), rows stay 32px. */
+nav[aria-label="Pages"] li > :is(a, button) {
     font-size: 0.875rem;
-    font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: 0.01em;
+    letter-spacing: var(--e2b-tracking-chrome);
+    font-variation-settings: "opsz" var(--e2b-opsz-ui);
+}
+
+/* Inactive sidebar links and the collapsible section titles are description and brighten to heading on hover. */
+:root nav[aria-label="Pages"] li > a:not([aria-current="page"]) {
+    color: var(--color-description);
+}
+
+:root nav[aria-label="Pages"] li > a:not([aria-current="page"]):hover {
+    color: var(--color-heading);
+}
+
+#table-of-contents a {
+    line-height: 1.25rem;
+    font-weight: var(--e2b-weight-regular);
+}
+
+/* Table of contents (v1.37): the active section is medium weight, and heading instead of orange. */
+#table-of-contents a[aria-current="location"] {
+    font-weight: var(--e2b-weight-medium);
+}
+
+/* Mintlify marks the whole active path with data-active (parents too) but only the deepest entry gets
+   aria-current, so the colour follows data-active: no orange anywhere in the table of contents. */
+:root #table-of-contents li[data-active="true"] > a {
+    color: var(--color-heading);
+}
+
+nav[aria-label="Pages"] a[aria-current="page"] {
+    font-weight: var(--e2b-weight-medium);
+}
+
+
+/* docs-label: the page eyebrow is Commit Mono caps in the lead's secondary colour, 16px above the title. */
+.eyebrow {
+    height: auto !important;
+    margin-bottom: 1rem !important;
+    color: var(--e2b-text-secondary) !important;
+    font-family: var(--e2b-font-mono);
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1rem;
+    letter-spacing: var(--e2b-tracking-mono);
     text-transform: uppercase;
+    font-feature-settings: var(--e2b-font-mono-features);
 }
 
 #page-context-menu button {
     font-family: var(--e2b-font-mono);
-    letter-spacing: 0.01em;
+    letter-spacing: var(--e2b-tracking-mono);
+    font-feature-settings: var(--e2b-font-mono-features);
+}
+
+/* Copy page: the website's line button (e2b-dev/web components/ui/button, variant line), one size down for the
+   docs header: 32 px tall, 12 px side padding, 8 px icon gap, the docs label, Commit Mono 12/16 caps (the same as
+   the page eyebrow above the title; was 13/16); a 1 px chip-line border and a reading-body label. */
+#page-context-menu-button {
+    height: 2rem;
+    padding: 0 0.75rem 0 11px; /* 12 px from the outer edge to the icon, counting the 1 px left border */
+}
+
+#page-context-menu-button > div {
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1rem;
+    text-transform: uppercase;
+}
+
+/* The chevron (More actions) is matched by its role, not as the next sibling: when the menu opens, Mintlify inserts
+   a focus guard between the two buttons, the sibling rule stopped matching and the chevron grew to its own 34 px. */
+#page-context-menu button[aria-haspopup="menu"] {
+    width: 2rem;
+    height: 2rem;
+}
+
+/* Copy feedback, after jakub.kr "Animate icons contextually": an icon that appears in response to an action enters with
+   opacity, scale and blur together. Mintlify swaps the code block copy icon for a check and back (each is a new
+   element, so it animates as it is inserted). The check is muted, not the primary orange. */
+@keyframes e2b-icon-in {
+    from {
+        opacity: 0;
+        transform: scale(0.25);
+        filter: blur(4px);
+    }
+}
+
+:is(.code-block, .code-group) button[data-testid="copy-code-button"] svg {
+    animation: e2b-icon-in 300ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+:is(.code-block, .code-group) button[data-testid="copy-code-button"] svg:has(> path[d^="M2.75 9.5"]) {
+    color: var(--color-muted);
+}
+
+/* Copy page goes from COPY PAGE straight to COPIED and back, the copy icon crossfading into a check and the two labels
+   crossfading in place (opacity, scale and blur, as transitions, so they run both ways, can be interrupted and do not
+   play on page load). Mintlify's three states are idle, copying (disabled, "Copying...") and copied (~2 s,
+   text-gray-600, not disabled). The label grid stacks Mintlify's reserved "Copy page" span (first, normally invisible)
+   and its live span (last). COPY PAGE is always drawn from the reserved span, which never changes text or position;
+   the live span is shown only as COPIED, 16 px after the check (8 px gap + 8 px), so no word ever moves.
+   The slot is sized to its label and its width transitions with the crossfade, so the button narrows to fit COPIED and
+   grows back for COPY PAGE (from the right, as the menu is right-aligned). The widths count characters in Commit Mono,
+   where every glyph is 1ch, and assume --e2b-tracking-mono stays 0; the button clips the outgoing COPY PAGE as it narrows.
+   Spacing from the outer edge: COPY PAGE 12 · icon · 8 · text · 12; COPIED 12 · check · 16 · text · 12. */
+#page-context-menu-button {
+    overflow: clip;
+}
+
+#page-context-menu-button .grid {
+    justify-items: start;
+    text-align: left;
+    white-space: nowrap;
+    width: 9ch; /* COPY PAGE */
+    transition: width 300ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Mintlify gives "Copy failed" the same class as COPIED, so the slot may not be narrower than the live label: the reserved
+   span leaves the layout and min-width lets a longer label widen the slot at once instead of being clipped. */
+#page-context-menu-button[class~="text-gray-600"]:not(:disabled) .grid {
+    position: relative;
+    width: calc(6ch + 0.5rem); /* COPIED, after its 8 px offset */
+    min-width: max-content;
+}
+
+#page-context-menu-button[class~="text-gray-600"]:not(:disabled) .grid > span:first-child {
+    position: absolute;
+}
+
+#page-context-menu-button .grid > span {
+    transition-property: opacity, filter;
+    transition-duration: 300ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+#page-context-menu-button .grid > span:first-child {
+    visibility: visible;
+}
+
+/* Back from COPIED, the live span disappears at once (it already reads "Copy page" by then), while COPY PAGE fades in. */
+#page-context-menu-button .grid > span:last-child {
+    opacity: 0;
+    filter: blur(4px);
+    margin-left: 0.5rem; /* the 8 px flex gap + 8 px = 16 px after the check */
+    transition-duration: 0s;
+}
+
+#page-context-menu-button[class~="text-gray-600"]:not(:disabled) .grid > span:first-child {
+    opacity: 0;
+    filter: blur(4px);
+}
+
+#page-context-menu-button[class~="text-gray-600"]:not(:disabled) .grid > span:last-child {
+    opacity: 1;
+    filter: none;
+    transition-duration: 300ms;
+}
+
+/* COPIED arrives from the copying state, where the live span is display: none (below), and an element coming back from
+   display: none has no previous style to transition from; @starting-style gives it one. */
+@starting-style {
+    #page-context-menu-button[class~="text-gray-600"]:not(:disabled) .grid > span:last-child {
+        opacity: 0;
+        filter: blur(4px);
+    }
+}
+
+/* "Copying..." is wider than "Copy page" and would widen the slot, so it leaves the layout entirely. */
+#page-context-menu-button:disabled .grid > span:last-child {
+    display: none;
+}
+
+#page-context-menu-button > div {
+    position: relative;
+}
+
+#page-context-menu-button svg,
+#page-context-menu-button > div::before {
+    transition-property: opacity, transform, filter;
+    transition-duration: 300ms;
+    transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+#page-context-menu-button > div::before {
+    content: "";
+    position: absolute;
+    top: calc(50% - 0.5rem);
+    left: 0;
+    width: 1rem;
+    height: 1rem;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.75 9.5L6.5 13.25L15.25 4.5'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.75 9.5L6.5 13.25L15.25 4.5'/%3E%3C/svg%3E") center / contain no-repeat;
+    opacity: 0;
+    transform: scale(0.25);
+    filter: blur(4px);
+    pointer-events: none;
+}
+
+#page-context-menu-button[class~="text-gray-600"]:not(:disabled) svg {
+    opacity: 0;
+    transform: scale(0.25);
+    filter: blur(4px);
+}
+
+#page-context-menu-button[class~="text-gray-600"]:not(:disabled) > div::before {
+    opacity: 1;
+    transform: none;
+    filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :is(.code-block, .code-group) button[data-testid="copy-code-button"] svg {
+        animation: none;
+    }
+
+    #page-context-menu-button svg,
+    #page-context-menu-button > div::before,
+    #page-context-menu-button .grid,
+    #page-context-menu-button .grid > span {
+        transition: none;
+    }
+}
+
+:root #page-context-menu button {
+    border-color: var(--color-chip-line);
+    color: var(--color-body-reading);
+}
+
+/* Keep the SDK picker and its icon tile square in both themes. */
+#sidebar button[aria-haspopup="menu"],
+#sidebar .nav-dropdown-item-icon {
+    border-radius: 0;
+}
+
+/* The icon needs no enclosing tile; keep the picker at the sidebar row height. */
+#sidebar .nav-dropdown-trigger {
+    min-height: 2rem;
+    padding-block: 0.3125rem;
+}
+
+/* Match the sidebar's first row to the article header's content start.
+   The compact SDK picker gets 4 px more to center on the 40 px title row. */
+@media (min-width: 1024px) {
+    #sidebar-content > [class*="pr-8"] {
+        padding-top: 0.625rem;
+    }
+
+    #sidebar #navigation-items:has(> .nav-dropdown-trigger) {
+        display: flow-root;
+        padding-top: 0.25rem;
+    }
+
+    #sidebar .nav-dropdown-trigger {
+        margin-top: 0;
+        margin-bottom: 1rem;
+    }
+
+    /* Use the same text row across the three columns, not just matching box tops. */
+    #sidebar .sidebar-title,
+    #header .eyebrow,
+    #table-of-contents h2 > button {
+        line-height: 1.25rem;
+    }
+
+    #table-of-contents > [data-component-part="scroll-area-viewport"] {
+        padding-top: 2.625rem;
+    }
+}
+
+/* The SDK name stays on one line and truncates (Code Interpreter SDK (JavaScript) wrapped to two), so the picker
+   keeps the row height. */
+:is(#sidebar, #mobile-nav) .nav-dropdown-trigger .nav-dropdown-item-text-container {
+    min-width: 0;
+}
+
+:is(#sidebar, #mobile-nav) .nav-dropdown-trigger .nav-dropdown-item-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#sidebar .nav-dropdown-trigger .nav-dropdown-item-icon,
+#mobile-nav .nav-dropdown-trigger .nav-dropdown-item-icon {
+    border: 0;
+    border-radius: 0;
+    width: 1rem;
+    height: 1rem;
+    padding: 0;
+}
+
+/* SDK Reference, desktop: the version picker leaves the top bar and stacks 8 px under the SDK picker, same width and
+   box, so the two read as one control. Anchor positioning keeps it on the SDK picker as the sidebar scrolls and hides
+   it when the picker scrolls away; without anchor support the version stays in the top bar. */
+@supports (anchor-name: --e2b-sdk-picker) {
+    @media (min-width: 1024px) {
+        html[data-current-path^="/sdk-reference/"] #sidebar .nav-dropdown-trigger {
+            anchor-name: --e2b-sdk-picker;
+            margin-bottom: 3.5rem; /* 8 px gap + the 32 px version picker + the 16 px the SDK picker had before the list */
+        }
+
+        html[data-current-path^="/sdk-reference/"] #navbar [class~="lg:flex"][class~="gap-x-2"] > button[aria-haspopup="menu"] {
+            position: fixed;
+            position-anchor: --e2b-sdk-picker;
+            position-visibility: anchors-visible;
+            top: calc(anchor(bottom) + 0.5rem);
+            left: anchor(left);
+            width: anchor-size(width);
+            min-height: 2rem;
+            margin: 0;
+            padding: 0.3125rem 0.875rem 0.3125rem 0.5rem; /* the SDK picker's box, so the chevrons line up */
+            justify-content: space-between;
+            border-width: 1px;
+            border-style: solid;
+            border-radius: 0;
+        }
+    }
+}
+
+/* Mobile menu: the version, tab and SDK pickers are one stack, 8 px apart and 40 px tall (Mintlify gave 8 px, then
+   24 px before a 46 px SDK picker with a 32 px icon tile). */
+#mobile-nav #navigation-items > [class~="gap-y-2"][class~="mb-6"] {
+    margin-bottom: 0.5rem;
+}
+
+#mobile-nav .nav-dropdown-trigger {
+    min-height: 2.5rem;
+    margin-top: 0;
+    padding: 0.375rem 0.875rem 0.375rem 1rem; /* the version picker's box */
+    border-radius: 0;
+}
+
+/* The SDK selector at the top of the SDK Reference sidebar (and its icon tile and open menu) takes the same
+   1 px chip-line border as Copy page (Mintlify draws 7% white). */
+:root #sidebar button[aria-haspopup="menu"],
+:root[data-current-path^="/sdk-reference/"] #navbar [class~="lg:flex"][class~="gap-x-2"] > button[aria-haspopup="menu"],
+:root #sidebar .nav-dropdown-item-icon,
+:root [role="menu"]:has(.nav-dropdown-item-icon),
+:root [role="menu"] .nav-dropdown-item-icon {
+    border-color: var(--color-chip-line);
 }
 
 #search-bar-entry {
     font-family: var(--e2b-font-sans);
-    letter-spacing: -0.01em;
+    letter-spacing: var(--e2b-tracking-chrome);
 }
 
 /* Tighten the space between the article and its table of contents. */
@@ -184,9 +1091,43 @@ div:has(> #content-side-layout) {
     gap: 1rem;
 }
 
-@media (max-width: 639px) {
-    #page-title {
-        font-size: 2rem;
+/* Column gaps: 48 px from the left column to the text (the sidebar, or the changelog's date column) and 64 px from the
+   text to the right column (the table of contents, or the API code panel), picked live from 40/48/55/64. Mintlify's
+   offsets gave 55 px on the left, 24 px after the changelog dates, 60 px to the table of contents text and 20 px to
+   the API code panel, which crowded the request and response examples against the parameters. */
+@media (min-width: 1024px) {
+    html:not([data-current-path="/changelog"]) #content-area {
+        padding-left: calc(5.7rem - 7px); /* Mintlify's 5.7rem gave 55 px */
+    }
+
+    html[data-current-path="/changelog"] .update-container {
+        column-gap: 3rem;
+    }
+}
+
+@media (min-width: 1280px) {
+    html:not([data-current-path^="/api-reference/"], [data-current-path="/changelog"]) div:has(> #content-side-layout) {
+        gap: 1.25rem; /* 20 px + the table of contents' own 40 px inset + the content's 4 px padding = 64 px */
+    }
+
+    /* API pages: a 384 px code panel (Mintlify: 448 px), the narrowest that keeps the common curl and response lines
+       whole; 60 px gap + the content's 4 px padding = 64 px. */
+    html[data-current-path^="/api-reference/"] div:has(> #content-side-layout) {
+        gap: 3.75rem;
+    }
+
+    html[data-current-path^="/api-reference/"] #content-area {
+        width: calc(100% - 24rem);
+    }
+
+    html[data-current-path^="/api-reference/"] #content-side-layout {
+        flex: none;
+        width: 24rem;
+        max-width: 24rem;
+    }
+
+    html[data-current-path^="/api-reference/"] #content-side-layout > div {
+        width: 100%;
     }
 }
 
@@ -236,7 +1177,7 @@ html {
 }
 
 .nav-tabs-item {
-    font-weight: 400;
+    font-weight: var(--e2b-weight-regular);
 }
 
 .nav-tabs-item > svg {
@@ -244,7 +1185,7 @@ html {
 }
 
 .nav-tabs-item[data-active] {
-    font-weight: 400;
+    font-weight: var(--e2b-weight-regular);
     text-shadow: -0.2px 0 currentColor, 0.2px 0 currentColor;
 }
 
@@ -277,6 +1218,17 @@ header .nav-logo {
     --rounded-2xl: 0;
 }
 
+/* The assistant's send button while the input is empty: the disabled fill with a muted icon, as the console's disabled
+   buttons, not Mintlify's primary orange at 30%, which read as dark red. */
+:root .chat-assistant-send-button:disabled {
+    background-color: var(--color-disabled);
+    color: var(--color-muted);
+}
+
+.chat-assistant-send-button:disabled svg {
+    color: inherit;
+}
+
 /* Keep floating menus, listboxes, and all of their interactive rows square. */
 :where(
     [role="menu"],
@@ -289,9 +1241,37 @@ header .nav-logo {
     border-radius: 0;
 }
 
+/* Dropdown menus (Copy page, the SDK and version pickers): item labels follow the sidebar links, description at rest
+   and heading on hover or keyboard highlight. Mintlify kept every label at one light grey and only tinted the hovered
+   row 5%, which barely showed. The current item keeps its orange. */
+:root [role="menu"] :is([class~="text-gray-800"], [class~="dark:text-gray-300"]) {
+    color: var(--color-description);
+    transition: color 150ms ease;
+}
+
+:root [role="menu"] :is([role^="menuitem"], a):is(:hover, [data-highlighted], :focus-visible) :is([class~="text-gray-800"], [class~="dark:text-gray-300"]) {
+    color: var(--color-heading);
+}
+
 /* Square the bordered icon tiles inside Copy Page action rows. */
 [role="menu"] > [role="menuitem"] > :first-child:has(> svg) {
     border-radius: 0;
+}
+
+/* Tooltips (Copy, Copied, the API playground's hints): inverted chrome, the inverted fill with the on-inverted label
+   (Mintlify fills them with the primary orange), Inter 12/16, 2 px 6 px
+   (Mintlify's own box), one step below the docs ui size. */
+[data-base-ui-portal] [data-side] > div[class*="bg-primary"] {
+    padding: 0.125rem 0.375rem;
+    border: 0;
+    background-color: var(--color-inverted);
+    color: var(--color-on-inverted);
+    font-family: var(--e2b-font-sans);
+    font-size: 0.75rem;
+    font-weight: var(--e2b-weight-regular);
+    line-height: 1rem;
+    letter-spacing: 0; /* the Inter tracking curve gives +0.0005 em at 12 px */
+    font-variation-settings: "opsz" var(--e2b-opsz-ui);
 }
 
 /* Keep tooltip surfaces square. */
@@ -364,6 +1344,28 @@ html[data-current-path^="/api-reference/"]
     background-color: var(--e2b-code-surface);
 }
 
+/* The fade behind a code block's floating buttons (copy, report, ask AI) blends into the code panel. Mintlify fills it
+   with its codeblocks theme background (#0D1117 on dark), which showed as a grey-blue band over the black panel. */
+[data-fade-overlay] {
+    --fade-color-light: var(--e2b-code-surface) !important;
+    --fade-color-dark: var(--e2b-code-surface) !important;
+}
+
+/* Mintlify draws the floating code buttons (report, copy, ask AI) white at 40% (60% on hover), for code panels that
+   are always dark; on light the panel is white (v1.35), so the icons take black at the same strengths. */
+/* Mintlify sets code panel titles (the API playground's endpoint name) in its near-white gray-50, for dark panels. */
+html:not(.dark) :is(.code-block, .code-group) .text-gray-50 {
+    color: var(--color-heading);
+}
+
+html:not(.dark) :is(.code-block, .code-group) button svg[class*="text-white/40"] {
+    color: rgb(0 0 0 / 0.4);
+}
+
+html:not(.dark) :is(.code-block, .code-group) button:hover svg[class*="text-white/40"] {
+    color: rgb(0 0 0 / 0.6);
+}
+
 :is(code-block, code-group, .code-block, .code-group) :is(
     [data-component-part="code-block-root"],
     .code-block-background
@@ -383,6 +1385,72 @@ html[data-current-path^="/api-reference/"]
     background-color: transparent !important;
 }
 
+/* Code group tabs (v1.35): the active underline spans the label text only, not the label's 6px hover padding. */
+.code-group [role="tab"] > .absolute {
+    left: 0.375rem;
+    right: 0.375rem;
+}
+
+/* The active tab, its underline and the hover state are heading instead of the primary orange. */
+:root .code-group [role="tab"][aria-selected="true"],
+:root .code-group [role="tab"]:hover > div:first-child {
+    color: var(--color-heading);
+}
+
+:root .code-group [role="tab"][aria-selected="true"] > .absolute {
+    background-color: var(--color-heading);
+}
+
+/* Code blocks (v1.35): match the website's article code block (e2b-dev/web components/article/code-block.tsx).
+   docs.json uses Shiki's css-variables theme; the token colours are the colour system's code roles, set in
+   colors/code-colors.css, and colors/docs-code-roles.js splits declarations and operators out of the keyword colour. */
+@media (min-resolution: 2dppx) {
+    :root {
+        --e2b-hairline: 0.5px;
+    }
+}
+
+.mdx-content :is(.code-group, .code-block) {
+    border-color: var(--e2b-code-line);
+}
+
+/* Line numbers, as on the website: right-aligned in a 2ch column, 16px either side, in the comment colour. */
+.mdx-content pre code {
+    counter-reset: line;
+}
+
+.mdx-content pre .line {
+    counter-increment: line;
+}
+
+.mdx-content pre .line::before {
+    content: counter(line);
+    display: inline-block;
+    box-sizing: content-box;
+    width: 2ch;
+    padding-right: 1rem;
+    color: var(--mint-token-comment);
+    text-align: right;
+    user-select: none;
+}
+
+/* Highlighted lines keep their number. Mintlify draws a highlighted line's left bar and gutter with ::before (in a rule
+   that outranks the one above), which replaced the number and pulled the code into its column; the bar and gutter
+   move to ::after, which Mintlify otherwise spends on the right gutter. */
+.mdx-content pre .line.line-highlight::before {
+    content: counter(line);
+    position: static;
+    width: 2ch;
+    border-left: 0;
+    background: none !important;
+}
+
+.mdx-content pre .line.line-highlight::after {
+    left: -1rem;
+    right: auto;
+    border-left: 1px solid rgb(var(--primary-light) / 1);
+}
+
 /* Keep numbered step markers aligned with the square content system. */
 [class~="group/step-indicator"] {
     border-radius: 0;
@@ -394,6 +1462,20 @@ html[data-current-path^="/api-reference/"]
     div:has(+ :is(tryit-button, .tryit-button))
 ) {
     border-radius: 0;
+}
+
+/* API playground action follows the E2B primary button treatment. */
+.tryit-button {
+    background-color: var(--color-accent-solid);
+    color: var(--color-on-accent);
+    border-radius: 0;
+    font-family: var(--e2b-font-mono);
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1rem;
+    letter-spacing: var(--e2b-tracking-mono);
+    font-feature-settings: var(--e2b-font-mono-features);
+    text-transform: uppercase;
 }
 
 /* Keep API method, navigation, and schema badges square. */
@@ -431,27 +1513,24 @@ nav[aria-label="Main"] a[href^="https://console.e2b.dev"] {
     height: 2.25rem;
     padding: 0 1rem;
     border-radius: 0;
-    background-color: rgb(var(--primary));
-    color: white !important;
+    background-color: var(--color-accent-solid);
+    color: var(--color-on-accent) !important;
     font-family: var(--e2b-font-mono);
     font-size: 0.875rem;
-    font-weight: 500;
-    letter-spacing: 0.01em;
+    font-weight: 400;
+    letter-spacing: var(--e2b-tracking-mono);
     text-transform: uppercase;
+    font-feature-settings: var(--e2b-font-mono-features);
     transition:
         background-color 250ms cubic-bezier(0.4, 0, 0, 1),
         color 250ms cubic-bezier(0.4, 0, 0, 1),
         transform 250ms cubic-bezier(0.4, 0, 0, 1);
 }
 
+/* Hover inverts: the inverted fill with the on-inverted label. */
 nav[aria-label="Main"] a[href^="https://console.e2b.dev"]:hover {
-    background-color: #000000;
-    color: #ffffff !important;
-}
-
-.dark nav[aria-label="Main"] a[href^="https://console.e2b.dev"]:hover {
-    background-color: #ffffff;
-    color: #000000 !important;
+    background-color: var(--color-inverted);
+    color: var(--color-on-inverted) !important;
 }
 
 nav[aria-label="Main"] a[href^="https://console.e2b.dev"]:active {
@@ -459,18 +1538,11 @@ nav[aria-label="Main"] a[href^="https://console.e2b.dev"]:active {
 }
 
 nav[aria-label="Main"] a[href^="https://console.e2b.dev"]:focus-visible {
-    outline: 2px solid #000000;
+    outline: 2px solid var(--color-heading);
     outline-offset: 2px;
     box-shadow:
-        0 0 0 4px #ffffff,
-        0 0 0 6px rgb(var(--primary));
-}
-
-.dark nav[aria-label="Main"] a[href^="https://console.e2b.dev"]:focus-visible {
-    outline-color: #ffffff;
-    box-shadow:
-        0 0 0 4px #000000,
-        0 0 0 6px rgb(var(--primary));
+        0 0 0 4px var(--color-page),
+        0 0 0 6px var(--color-accent-mark);
 }
 
 @media (forced-colors: active) {
@@ -539,127 +1611,93 @@ nav[aria-label="Main"] a[href^="https://console.e2b.dev"]:focus-visible {
 
 /* Add styles specifically for the Sign In link */
 a[href*="auth/sign-in"].whitespace-nowrap.font-medium {
-    background-color: black;
-    color: white !important;
+    background-color: var(--color-inverted);
+    color: var(--color-on-inverted) !important;
     padding: 0.5rem 1rem;
     border-radius: 0;
     transition: background-color 0.2s ease;
 }
 
 a[href*="auth/sign-in"].whitespace-nowrap.font-medium:hover {
-    background-color: #2c2c2c;
-    color: white !important;
+    background-color: var(--color-inverted-hover);
 }
 
-/* Dark mode styles */
-.dark a[href*="auth/sign-in"].whitespace-nowrap.font-medium {
-    background-color: white;
-    color: black !important;
+/* Match the E2B web reading palette without recoloring navigation or code syntax: the reading body, headings and
+   bold in heading, secondary prose in description. */
+:root .mdx-content {
+    --tw-prose-body: var(--color-body-reading);
+    --tw-prose-headings: var(--color-heading);
+    --tw-prose-lead: var(--color-description);
+    --tw-prose-captions: var(--color-description);
+    --tw-prose-counters: var(--color-description);
+    --tw-prose-invert-body: var(--color-body-reading);
+    --tw-prose-invert-headings: var(--color-heading);
+    --tw-prose-invert-lead: var(--color-description);
+    --tw-prose-invert-captions: var(--color-description);
+    --tw-prose-invert-counters: var(--color-description);
+    color: var(--color-body-reading);
 }
 
-.dark a[href*="auth/sign-in"].whitespace-nowrap.font-medium:hover {
-    background-color: #f4f4f4;
-    color: black !important;
+:root main h1,
+:root .mdx-content :is(h1, h2, h3, h4, h5, h6, strong) {
+    color: var(--color-heading);
 }
 
-code {
-    font-family: var(--e2b-font-mono);
-}
-
-/* Match the E2B web reading palette without recoloring navigation or code syntax. */
-.dark .mdx-content {
-    --tw-prose-body: #b8b8b8;
-    --tw-prose-headings: #ededed;
-    --tw-prose-lead: #b8b8b8;
-    --tw-prose-captions: #b8b8b8;
-    --tw-prose-counters: #b8b8b8;
-    --tw-prose-invert-body: #b8b8b8;
-    --tw-prose-invert-headings: #ededed;
-    --tw-prose-invert-lead: #b8b8b8;
-    --tw-prose-invert-captions: #b8b8b8;
-    --tw-prose-invert-counters: #b8b8b8;
-    color: #b8b8b8;
-}
-
-.dark main h1,
-.dark .mdx-content :is(h1, strong) {
-    color: #ffffff;
-}
-
-.dark .mdx-content :is(h2, h3, h4, h5, h6) {
-    color: #ededed;
-}
-
-.dark .mdx-content :is(h2, h3, h4, h5, h6) strong {
+:root .mdx-content :is(h2, h3, h4, h5, h6) strong {
     color: inherit;
 }
 
+/* List dots are drawn in the text colour, as on the blog (Mintlify drew them in its warm gray-600). */
+:root .mdx-content ul > li::before {
+    background-color: currentColor;
+}
+
 /* Tint inline code with its alert's foreground in both themes. */
+/* Layered important is required to override Mintlify's layered text-current utility. */
+@layer base {
+    #content-area .callout a.link {
+        color: var(--e2b-link) !important;
+    }
+}
+
+:root .callout :is(.code-group, .code-block) button[aria-label] {
+    color: var(--color-description);
+}
+
 :is(#content-area, #content-side-layout) .callout code:not(pre code) {
     background-color: color-mix(in oklab, var(--callout-foreground, currentColor) 10%, transparent);
 }
 
-/* Pin Mintlify's approved callout palette while preserving native anatomy. */
-.callout[data-callout-type="note"] {
-    --callout-foreground: #1e40af;
-    --callout-border: #bfdbfe;
-    --callout-surface: #eff6ff;
+/* Callouts keep Mintlify's anatomy in the colour system's status colours: label and body step 11, border step 4, fill
+   step 1 of the callout's colour. Note is info (blue); Mintlify's info type is neutral. */
+:root .callout[data-callout-type="note"] {
+    --callout-foreground: var(--color-info-text);
+    --callout-border: var(--color-info-line-subtle);
+    --callout-surface: var(--color-info-wash);
 }
 
-.callout[data-callout-type="info"] {
-    --callout-foreground: #262626;
-    --callout-border: #e5e5e5;
-    --callout-surface: #fafafa;
+:root .callout[data-callout-type="info"] {
+    --callout-foreground: var(--color-body-reading);
+    --callout-border: var(--color-line-subtle);
+    --callout-surface: var(--color-surface);
 }
 
-.callout[data-callout-type="tip"],
-.callout[data-callout-type="check"] {
-    --callout-foreground: #166534;
-    --callout-border: #bbf7d0;
-    --callout-surface: #f0fdf4;
+:root .callout:is([data-callout-type="tip"], [data-callout-type="check"]) {
+    --callout-foreground: var(--color-success-text);
+    --callout-border: var(--color-success-line-subtle);
+    --callout-surface: var(--color-success-wash);
 }
 
-.callout[data-callout-type="warning"] {
-    --callout-foreground: #854d0e;
-    --callout-border: #fef08a;
-    --callout-surface: #fefce8;
+:root .callout[data-callout-type="warning"] {
+    --callout-foreground: var(--color-warning-text);
+    --callout-border: var(--color-warning-line-subtle);
+    --callout-surface: var(--color-warning-wash);
 }
 
-.callout[data-callout-type="danger"] {
-    --callout-foreground: #991b1b;
-    --callout-border: #fecaca;
-    --callout-surface: #fef2f2;
-}
-
-.dark .callout[data-callout-type="note"] {
-    --callout-foreground: #93c5fd;
-    --callout-border: #1e3a8a;
-    --callout-surface: rgb(37 99 235 / 0.2);
-}
-
-.dark .callout[data-callout-type="info"] {
-    --callout-foreground: #d4d4d4;
-    --callout-border: #404040;
-    --callout-surface: rgb(255 255 255 / 0.1);
-}
-
-.dark .callout[data-callout-type="tip"],
-.dark .callout[data-callout-type="check"] {
-    --callout-foreground: #86efac;
-    --callout-border: #14532d;
-    --callout-surface: rgb(22 163 74 / 0.2);
-}
-
-.dark .callout[data-callout-type="warning"] {
-    --callout-foreground: #fde047;
-    --callout-border: #713f12;
-    --callout-surface: rgb(202 138 4 / 0.2);
-}
-
-.dark .callout[data-callout-type="danger"] {
-    --callout-foreground: #fca5a5;
-    --callout-border: #7f1d1d;
-    --callout-surface: rgb(220 38 38 / 0.2);
+:root .callout[data-callout-type="danger"] {
+    --callout-foreground: var(--color-error-text);
+    --callout-border: var(--color-error-line-subtle);
+    --callout-surface: var(--color-error-wash);
 }
 
 .callout:is(
@@ -689,14 +1727,6 @@ code {
     [data-callout-type="check"],
     [data-callout-type="warning"],
     [data-callout-type="danger"]
-) [data-component-part="callout-content"] *,
-.callout:is(
-    [data-callout-type="note"],
-    [data-callout-type="info"],
-    [data-callout-type="tip"],
-    [data-callout-type="check"],
-    [data-callout-type="warning"],
-    [data-callout-type="danger"]
 ) [data-component-part="callout-icon"],
 .callout:is(
     [data-callout-type="note"],
@@ -709,6 +1739,31 @@ code {
     color: var(--callout-foreground) !important;
 }
 
+/* Callouts: the type name as a Commit Mono caps label in place of the icon, over the body text,
+   on the existing tinted panel with a 1px border and 6px corners. */
+.callout[data-callout-type] {
+    --rounded-2xl: 6px;
+    flex-direction: column;
+    gap: 0.5rem;
+    border-radius: 6px;
+}
+
+.callout[data-callout-type] [data-component-part="callout-icon"] {
+    display: none;
+}
+
+.callout[data-callout-type]::before {
+    content: attr(data-callout-type);
+    color: var(--callout-foreground, currentColor);
+    font-family: var(--e2b-font-mono);
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1rem;
+    letter-spacing: var(--e2b-tracking-mono);
+    text-transform: uppercase;
+    font-feature-settings: var(--e2b-font-mono-features);
+}
+
 /* Hide scrollbar on sidebar API endpoint rows with deprecated badges */
 #sidebar a .overflow-x-hidden {
     scrollbar-width: none !important;
@@ -719,10 +1774,8 @@ code {
     display: none !important;
 }
 
-/* Keep sidebar rows compact and square, without Mintlify's one-pixel list gaps. */
+/* Keep sidebar rows square, without Mintlify's one-pixel list gaps (row padding is set with the sidebar rows below). */
 #sidebar-content li > :is(a, button) {
-    padding-top: 0.25rem !important;
-    padding-bottom: 0.25rem !important;
     border-radius: 0;
 }
 
@@ -730,54 +1783,153 @@ code {
     border-radius: 0;
 }
 
-/* Give the current page a quiet neutral state with Interface Orange text,
-   using the brand white ramp in light mode. */
+/* Nested navigation rail; each row paints its segment so wrapped labels and
+   expanded subgroups keep the current-page marker aligned with its own row. */
+:is(#sidebar-content, #mobile-nav) li > ul {
+    --e2b-nav-rail: var(--color-line-subtle);
+    --e2b-nav-rail-active: var(--color-heading);
+}
+
+:is(#sidebar-content, #mobile-nav) li > ul > li > :is(a, button) {
+    position: relative;
+}
+
+:is(#sidebar-content, #mobile-nav) li > ul > li > :is(a, button)::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: 1.5rem;
+    width: 1px;
+    background-color: var(--e2b-nav-rail);
+    pointer-events: none;
+}
+
+:is(#sidebar-content, #mobile-nav) li > ul > li[data-active-nav-item="true"] > :is(a, button)::before {
+    background-color: var(--e2b-nav-rail-active);
+}
+
+:is(#sidebar-content, #mobile-nav) li > ul > li > ul > li > :is(a, button)::before {
+    left: 2.5rem;
+}
+
+/* Inactive rows retain hover feedback; active rows use text and the nested rail. */
 html:not(.dark) :is(#sidebar-content, #mobile-nav)
     li:not([data-active-nav-item="true"]) > :is(a, button):hover {
-    background-color: #fafafa;
+    background-color: var(--color-hover);
 }
 
-:is(#sidebar-content, #mobile-nav)
+/* The active sidebar item is heading, icon included, as the active rail marker already is (was orange #E32A01).
+   Orange is kept for links. */
+:root :is(#sidebar-content, #mobile-nav)
     li[data-active-nav-item="true"] > :is(a, button) {
-    background-color: #f4f4f4;
-    color: #e32a01;
+    background-color: transparent;
+    color: var(--color-heading);
 }
 
-.dark :is(#sidebar-content, #mobile-nav)
-    li[data-active-nav-item="true"] > :is(a, button) {
-    background-color: rgb(255 255 255 / 0.1);
-    color: #e32a01;
+/* Sidebar icons are masked shapes filled with their own colour (orange active, warm grey inactive);
+   they follow the label instead, in both themes. */
+nav[aria-label="Pages"] li > :is(a, button) svg[class*="size-4"] {
+    background-color: currentColor;
 }
 
-/* Match the changelog date tag to the active sidebar state. */
+/* Changelog dates are plain metadata, not filled badges, set in the website's tiny mono tag (12/16, caps) like its
+   weekly-updates dates. The caps are CSS only: the label text is the anchor e2b.dev links to and parses. Dates are muted;
+   the entry being read (changelog-active-date.js marks it) has an accent-text date, and they swap as the next date docks. */
 button[data-component-part="update-label"] {
     border-radius: 0;
-    background-color: #f4f4f4;
-    color: #e32a01;
+    background-color: transparent;
+    color: var(--color-muted);
+    transition: color 150ms ease;
+    padding: 0;
+    min-height: 2rem;
+    font-family: var(--e2b-font-mono);
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1rem;
+    letter-spacing: var(--e2b-tracking-mono);
+    text-transform: uppercase;
 }
 
 .dark button[data-component-part="update-label"] {
-    background-color: rgb(255 255 255 / 0.1);
+    background-color: transparent;
+}
+
+.update-container[data-e2b-active] button[data-component-part="update-label"] {
+    color: var(--color-accent-text);
 }
 
 #mobile-nav [role="group"][aria-label="Theme preference"] {
     border-radius: 0;
 }
 
-/* Use an integer line box so WebKit and Blink align sidebar labels consistently. */
+/* Sidebar rows: 6 px above and below the label, 8 px on the right and 12 px on the left (the icon-to-label gap matches);
+   nested links are indented below (Mintlify sets its own indent as an inline padding-left). Integer line box so
+   WebKit and Blink align labels consistently. */
 nav[aria-label="Pages"] li > :is(a, button) {
     min-height: 2rem;
-    padding-top: 0.25rem !important;
-    padding-bottom: 0.25rem !important;
+    padding: 0.375rem 0.5rem 0.375rem 0.75rem !important;
+    column-gap: 0.75rem;
     align-items: center !important;
-    line-height: 16px !important;
+    line-height: 20px !important;
 }
 
-nav[aria-label="Pages"]
-    li
-    > :is(a, button)
-    > div[class~="h-[1lh]"] {
-    transform: translateY(-1px);
+/* Sidebar 256 px wide to give the nested rail and labels room; rows
+   span its full width. The sidebar is shifted left by the row's 12 px left padding so its icons and titles line up
+   with the top tabs and the active bar hangs 12 px outside that line (a transform, because the scroll area clips
+   negative margins). */
+:root {
+    --sidebar-width: 16rem;
+}
+
+#sidebar {
+    transform: translateX(-0.75rem);
+}
+
+#sidebar-content > [class*="pr-8"] {
+    padding-right: 0 !important;
+}
+
+/* Group titles start on the same 12 px as the row labels. */
+#sidebar .sidebar-group-header {
+    padding-left: 0.75rem;
+}
+
+/* The section that contains the current page is highlighted too: its title in heading. */
+:root nav[aria-label="Pages"]:has(li[data-title] > button) li[data-title]:has(a[aria-current="page"]) > button {
+    color: var(--color-heading) !important;
+}
+
+/* Sidebar chevrons take the label colour (Mintlify draws them in a dim gray-600) and sit on the label's centre;
+   the earlier 1 px nudge belonged to the old 16 px line box. */
+html:not(.dark) nav[aria-label="Pages"] li > :is(a, button) svg:not([class*="size-4"]) {
+    color: inherit;
+}
+
+.dark nav[aria-label="Pages"] li > :is(a, button) svg:not([class*="size-4"]) {
+    color: inherit;
+}
+
+/* External links (Cookbook ↗): the arrow follows its label 12 px after it, like the toggle chevrons, instead of sitting
+   at the row's far edge (Mintlify stretches the label box to the full row). */
+nav[aria-label="Pages"] li > a > .flex-1:has(svg[class*="size-2.5"]) {
+    flex: 0 1 auto;
+    justify-content: flex-start;
+    column-gap: 0.75rem;
+}
+
+nav[aria-label="Pages"] li > a > .flex-1:has(svg[class*="size-2.5"]) > * {
+    flex: 0 1 auto;
+}
+
+
+/* Leave 24 px before the nested rail and 16 px from the rail to the label.
+   Deeper groups advance both the rail and label by another 16 px. */
+nav[aria-label="Pages"] li li > :is(a, button) {
+    padding-left: 2.5rem !important;
+}
+
+nav[aria-label="Pages"] li li li > :is(a, button) {
+    padding-left: 3.5rem !important;
 }
 
 nav[aria-label="Pages"] .space-y-px > :not([hidden]) {
@@ -790,7 +1942,7 @@ html[data-current-path^="/api-reference/"] :is(
     .method-pill.method-pill,
     .method-nav-pill.method-nav-pill > span
 ) {
-    font-weight: 500;
+    font-weight: var(--e2b-weight-medium);
 }
 
 html[data-current-path^="/api-reference/"] :is(
@@ -801,24 +1953,24 @@ html[data-current-path^="/api-reference/"] :is(
     [class*="bg-[#2AB673]"],
     [class*="bg-[#F7F7F8]"]
 ) {
-    background-color: var(--e2b-api-method-get-bg);
-    color: var(--e2b-api-method-get);
+    background-color: var(--color-success-tint);
+    color: var(--color-success-text);
 }
 
 html[data-current-path^="/api-reference/"] :is(
     .method-pill.method-pill,
     .method-nav-pill.method-nav-pill > span
 ):is([class*="bg-blue-400"], [class*="bg-[#3064E3]"]) {
-    background-color: var(--e2b-api-method-post-bg);
-    color: var(--e2b-api-method-post);
+    background-color: var(--color-info-tint);
+    color: var(--color-info-text);
 }
 
 html[data-current-path^="/api-reference/"] :is(
     .method-pill.method-pill,
     .method-nav-pill.method-nav-pill > span
 ):is([class*="bg-orange-400"], [class*="bg-[#DA622B]"]) {
-    background-color: var(--e2b-api-method-patch-bg);
-    color: var(--e2b-api-method-patch);
+    background-color: var(--color-beta-tint);
+    color: var(--color-beta-text);
 }
 
 html[data-current-path^="/api-reference/"] :is(
@@ -828,8 +1980,8 @@ html[data-current-path^="/api-reference/"] :is(
     [class*="bg-yellow-400"],
     [class*="bg-[#C28C30]"]
 ) {
-    background-color: var(--e2b-api-method-put-bg);
-    color: var(--e2b-api-method-put);
+    background-color: var(--color-accent-tint);
+    color: var(--color-accent-text-panel);
 }
 
 html[data-current-path^="/api-reference/"] :is(
@@ -839,8 +1991,8 @@ html[data-current-path^="/api-reference/"] :is(
     [class*="bg-red-400"],
     [class*="bg-[#CB3A32]"]
 ) {
-    background-color: var(--e2b-api-method-delete-bg);
-    color: var(--e2b-api-method-delete);
+    background-color: var(--color-error-tint);
+    color: var(--color-error-text);
 }
 
 nav[aria-label="Pages"]:has(li[data-title="Sandbox"] > button) li[data-title="Sandbox"] {
@@ -852,16 +2004,127 @@ body:has(#changelog-filters) #sidebar {
     display: none !important;
 }
 
-/* Use the approved blog body scale for changelog articles. */
+/* Changelog articles use the docs body. */
 body:has(#changelog-filters) #content .update .prose-sm {
-    font-size: 1rem;
-    line-height: 1.4;
-    letter-spacing: -0.01em;
+    font-size: 0.9375rem;
+    font-weight: var(--e2b-weight-body);
+    line-height: 1.5rem;
+    letter-spacing: var(--e2b-tracking-body);
+    font-variation-settings: "opsz" var(--e2b-opsz-body);
 }
 
 body:has(#changelog-filters) #content .update .prose-sm :not(pre) > code {
-    font-size: 0.875em;
-    line-height: 1.5;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+}
+
+/* Entry headings open their own article; they must not inherit section spacing. */
+#content .update [data-component-part="update-content"] > :is(h2, h3):first-child {
+    margin-top: 0;
+}
+
+#content .update [data-component-part="update-content"] > :is(p, [data-as="p"]) {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.9375rem;
+    line-height: 1.5rem;
+}
+
+#content .update [data-component-part="update-content"] > :is(h2, h3, h4) + :is(p, [data-as="p"]) {
+    margin-top: 0.5rem;
+}
+
+/* Changelog entry titles (##) take the page-title size, 32/40 (docs h1), so each entry leads above its 24 px sections;
+   the date beside it takes the title's 40 px first line, so the two share a centre. On phones titles are 24/32 above
+   20 px sections: entry titles repeat every week, and at 32 px most would run three or four lines. */
+#content .update [data-component-part="update-content"] > h2,
+#content .update [data-component-part="update-content"] > h2 * {
+    font-size: 2rem;
+    line-height: 2.5rem;
+    letter-spacing: var(--e2b-tracking-h1);
+    font-variation-settings: "opsz" var(--e2b-opsz-h1);
+}
+
+#content .update button[data-component-part="update-label"] {
+    min-height: 2.5rem;
+}
+
+@media (max-width: 767px) {
+    #content .update [data-component-part="update-content"] > h2,
+    #content .update [data-component-part="update-content"] > h2 * {
+        font-size: 1.5rem;
+        line-height: 2rem;
+        letter-spacing: var(--e2b-tracking-h2);
+        font-variation-settings: "opsz" var(--e2b-opsz-h2);
+    }
+
+    #content .update button[data-component-part="update-label"] {
+        min-height: 2rem;
+    }
+}
+
+/* Changelog section headings (###) take the section heading size, 24/32 (20/28 on phones), as the blog's sections, so
+   an entry scans by its sections; they keep the h3 spacing (48 px above, 40 on phones, 8 to the text). */
+#content .update [data-component-part="update-content"] > h3,
+#content .update [data-component-part="update-content"] > h3 * {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    letter-spacing: var(--e2b-tracking-h2);
+    font-variation-settings: "opsz" var(--e2b-opsz-h2);
+}
+
+@media (max-width: 767px) {
+    #content .update [data-component-part="update-content"] > h3,
+    #content .update [data-component-part="update-content"] > h3 * {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+        letter-spacing: var(--e2b-tracking-h2-sm);
+        font-variation-settings: "opsz" var(--e2b-opsz-h2-sm);
+    }
+}
+
+/* Changelog entries take the blog's article weights (type v1.72-v1.79): titles and section headings 650, bold 600.
+   Bold typed inside a heading keeps the heading's weight; bold inside a link keeps the link's. */
+#content .update [data-component-part="update-content"] {
+    --e2b-weight-article-heading: 650;
+    --e2b-weight-article-bold: 600;
+}
+
+#content .update [data-component-part="update-content"] > :is(h2, h3),
+#content .update [data-component-part="update-content"] > :is(h2, h3) * {
+    font-weight: var(--e2b-weight-article-heading);
+}
+
+#content .update [data-component-part="update-content"] strong:not(:is(h2, h3, h4, h5, h6, a) strong) {
+    font-weight: var(--e2b-weight-article-bold);
+}
+
+#content .update :is([data-component-part="update-tag-list"], [data-component-part="update-description"]) {
+    padding-inline: 0;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+}
+
+/* Tags take the same tiny mono tag as the date, as on the website. */
+#content .update [data-component-part="update-tag-list"] {
+    gap: 0.25rem 0.75rem;
+    font-family: var(--e2b-font-mono);
+    font-size: 0.75rem;
+    line-height: 1rem;
+    letter-spacing: var(--e2b-tracking-mono);
+    text-transform: uppercase;
+}
+
+#content .update [data-component-part="update-tag"] {
+    font-size: inherit;
+    font-weight: 400;
+    line-height: inherit;
+}
+
+/* A rule between entries, as between the website's weekly-update rows; the first entry sits under the page header
+   without one. Filtering removes entries from the DOM, so the first entry shown never gets a rule. */
+#content .update-container + .update-container {
+    border-top: 1px solid var(--color-line-subtle);
 }
 
 /* Keep Code interpreting visually grouped with the primary guides. */
@@ -879,16 +2142,17 @@ nav[aria-label="Pages"]:has(li[data-title="Sandbox"] > button) li:is(
     [data-title="Commands"],
     [data-title="CLI"]
 ) > button {
-    color: rgb(44 44 44) !important;
+    color: var(--color-description) !important;
     font-family: var(--e2b-font-sans);
     font-size: 0.875rem;
-    font-weight: 500;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
+    font-weight: var(--e2b-weight-medium);
+    line-height: 1.25rem;
+    letter-spacing: var(--e2b-tracking-chrome);
+    font-variation-settings: "opsz" var(--e2b-opsz-ui);
     text-shadow: none !important;
 }
 
-.dark nav[aria-label="Pages"]:has(li[data-title="Sandbox"] > button) li:is(
+:root nav[aria-label="Pages"]:has(li[data-title="Sandbox"] > button) li:is(
     [data-title="Sandbox"],
     [data-title="Templates"],
     [data-title="Storage"],
@@ -896,8 +2160,8 @@ nav[aria-label="Pages"]:has(li[data-title="Sandbox"] > button) li:is(
     [data-title="Secrets & Identity"],
     [data-title="Commands"],
     [data-title="CLI"]
-) > button {
-    color: rgb(237 237 237) !important;
+) > button:hover {
+    color: var(--color-heading) !important;
 }
 
 /* Force left-alignment on table first column cells and their contents */
@@ -923,19 +2187,20 @@ table td button {
 /*
  * Mermaid diagrams use the E2B "technical paper" treatment:
  * neutral surfaces and structural rules, with orange reserved for direction.
+ * The diagram picks its own neutral steps per theme (colour system v0.19.1), so each theme names the role on that step.
  */
 [data-component-name="mermaid-container"] {
-    --e2b-diagram-ground: #fafafa;
-    --e2b-diagram-surface: #ffffff;
-    --e2b-diagram-border: #7c7c7c;
-    --e2b-diagram-text: #2c2c2c;
-    --e2b-diagram-muted: #585858;
-    --e2b-diagram-line: #7c7c7c;
+    --e2b-diagram-ground: var(--color-surface); /* #FAFAFA */
+    --e2b-diagram-surface: var(--color-page); /* #FFFFFF */
+    --e2b-diagram-border: var(--color-dim); /* #8A8A8A */
+    --e2b-diagram-text: var(--color-body); /* #2C2C2C */
+    --e2b-diagram-muted: var(--color-muted); /* #585858 */
+    --e2b-diagram-line: var(--color-dim); /* #8A8A8A */
     --e2b-diagram-grid: rgb(166 166 166 / 0.35);
 
     margin-block: 1.5rem 2rem;
     padding: clamp(1.25rem, 4vw, 2.25rem);
-    border: 1px solid #e6e6e6;
+    border: 1px solid var(--color-line-subtle);
     border-radius: 8px;
     background-color: var(--e2b-diagram-ground);
     background-image: radial-gradient(circle, var(--e2b-diagram-grid) 1px, transparent 1px);
@@ -943,15 +2208,15 @@ table td button {
 }
 
 .dark [data-component-name="mermaid-container"] {
-    --e2b-diagram-ground: #000000;
-    --e2b-diagram-surface: #2c2c2c;
-    --e2b-diagram-border: #7c7c7c;
-    --e2b-diagram-text: #fafafa;
-    --e2b-diagram-muted: #e6e6e6;
-    --e2b-diagram-line: #a6a6a6;
+    --e2b-diagram-ground: var(--color-page); /* #000000 */
+    --e2b-diagram-surface: var(--color-line); /* #2C2C2C */
+    --e2b-diagram-border: var(--color-muted); /* #8A8A8A */
+    --e2b-diagram-text: var(--color-heading); /* #F4F4F4 */
+    --e2b-diagram-muted: var(--color-subheading); /* #E6E6E6 */
+    --e2b-diagram-line: var(--color-body); /* #A6A6A6 */
     --e2b-diagram-grid: rgb(44 44 44 / 0.85);
 
-    border-color: #2c2c2c;
+    border-color: var(--color-line);
 }
 
 [data-component-name="mermaid-container"] .mermaid svg {
@@ -976,8 +2241,8 @@ table td button {
 
 .mermaid .node circle,
 .mermaid .node ellipse {
-    fill: #e32a01 !important;
-    stroke: #e32a01 !important;
+    fill: var(--color-accent-mark) !important;
+    stroke: var(--color-accent-mark) !important;
     stroke-width: 1px !important;
 }
 
@@ -992,7 +2257,7 @@ table td button {
     font-family: var(--e2b-font-mono);
     font-size: 0.75rem;
     font-weight: 600;
-    letter-spacing: 0.02em;
+    letter-spacing: var(--e2b-tracking-mono);
     text-transform: uppercase;
 }
 
@@ -1017,6 +2282,143 @@ table td button {
 }
 
 .mermaid :is(.marker, marker path) {
-    fill: #e32a01 !important;
-    stroke: #e32a01 !important;
+    fill: var(--color-accent-mark) !important;
+    stroke: var(--color-accent-mark) !important;
+}
+
+/* API schema labels follow the SDK's original inline-code treatment. */
+html [data-component-part="field-info-pill"] {
+    font-family: var(--e2b-font-mono);
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.25rem;
+    font-feature-settings: var(--e2b-font-mono-features);
+    letter-spacing: 0;
+    padding: 0.125rem 0.375rem;
+    border: 0;
+    border-radius: 2px;
+    box-shadow: none;
+    background-color: var(--e2b-code-label-surface);
+    color: inherit;
+}
+
+/* API type labels follow the inline code label: chip fill, inline-code-line ring, inline-code ink (colour v0.20.0). */
+:root [data-component-part="field-info-pill"] {
+    background-color: var(--color-chip);
+    box-shadow: inset 0 0 0 1px var(--color-inline-code-line);
+    color: var(--color-inline-code);
+}
+
+/* API and SDK field names are parameters: code-variable, the blue of names in the code samples, so they stand apart
+   from the red Required label and the orange TRY IT (was Mintlify's primary orange). */
+:root [data-component-part="field-name"] {
+    color: var(--color-code-variable);
+}
+
+.tryit-button :is(svg, .icon, [data-component-part="icon-svg"]) {
+    display: none !important;
+}
+
+/* Expandable borders are line-subtle, as the code blocks and web resource and blog cards. */
+:root #content-area :is([data-component-part="expandable"], [data-component-part="expandable-content"]) {
+    border-color: var(--color-line-subtle);
+}
+
+/* Code surfaces use the same blog-card line, including Mintlify's ring-based blocks. */
+:is(#content-area, #content-side-layout) :is(.code-block, .code-group),
+html[data-current-path^="/api-reference/"] [role="dialog"] :is(.code-block, .code-group) {
+    border-color: var(--e2b-code-line);
+    --tw-ring-color: var(--e2b-code-line);
+}
+
+/* Changelog supporting metadata is muted, as the website's. */
+:root #content .update :is([data-component-part="update-tag-list"], [data-component-part="update-description"]) {
+    color: var(--color-muted);
+}
+
+/* Unselected filters are chips: the chip fill and the reading body, a line border, chip-line fill and a line-strong
+   border on hover. */
+:root #changelog-filters button.bg-gray-100 {
+    border-color: var(--color-line);
+    background-color: var(--color-chip);
+    color: var(--color-body-reading);
+}
+
+:root #changelog-filters button.bg-gray-100:hover {
+    border-color: var(--color-line-strong);
+    background-color: var(--color-chip-line);
+}
+
+/* Filters are the website's Filter chip: 32 px, small mono tag (14/16, caps), a line border; selected drops it. */
+#changelog-filters button:is(.bg-gray-100, .bg-primary) {
+    height: 2rem;
+    padding: 0 0.8125rem;
+    border: 1px solid transparent;
+    border-radius: 0;
+    font-family: var(--e2b-font-mono);
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1rem;
+    letter-spacing: var(--e2b-tracking-mono);
+    text-transform: uppercase;
+}
+
+/* FAQ's static groups share the expanded navigation rail and indentation. */
+:is(#sidebar-content, #mobile-nav):has(li[id="/faq"]) .sidebar-group-header + ul > li > a {
+    position: relative;
+    padding-left: 2.5rem !important;
+}
+:is(#sidebar-content, #mobile-nav):has(li[id="/faq"]) .sidebar-group-header + ul > li > a::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: 1.5rem;
+    width: 1px;
+    background-color: var(--color-line-subtle);
+    pointer-events: none;
+}
+:is(#sidebar-content, #mobile-nav):has(li[id="/faq"]) .sidebar-group-header + ul > li[data-active-nav-item="true"] > a::before {
+    background-color: var(--color-heading);
+}
+
+/* FAQ overview: retain the docs scale, with a tighter question-and-answer rhythm. */
+html[data-current-path="/faq"] .mdx-content > h2:not(:first-child) {
+    margin-top: 4.75rem;
+}
+html[data-current-path="/faq"] .mdx-content > h3 {
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+    text-wrap: pretty;
+}
+
+/* docs-faq-question (v1.55): 16/24 at 580 on all widths, the lead size in semibold, so the 24 px topic headings stay
+   the only large type and the questions stand clear of answers in full body ink. */
+html[data-current-path="/faq"] .mdx-content > h3,
+html[data-current-path="/faq"] .mdx-content > h3 * {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: var(--e2b-weight-semibold);
+    letter-spacing: var(--e2b-tracking-lead);
+    font-variation-settings: "opsz" var(--e2b-opsz-lead);
+}
+html[data-current-path="/faq"] .mdx-content > h2 + h3 {
+    margin-top: 1.5rem;
+}
+
+/* Separate question pairs within a topic; the first question needs no rule. */
+html[data-current-path="/faq"] .mdx-content > h3:not(h2 + h3) {
+    border-top: 1px solid var(--e2b-code-line);
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+}
+@media (max-width: 767px) {
+    html[data-current-path="/faq"] .mdx-content > h2:not(:first-child) {
+        margin-top: 3.75rem;
+    }
+    html[data-current-path="/faq"] .mdx-content > h3 {
+        margin-top: 1.5rem;
+    }
+    html[data-current-path="/faq"] .mdx-content > h2 + h3 {
+        margin-top: 1rem;
+    }
 }

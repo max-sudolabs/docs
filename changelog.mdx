@@ -5,7 +5,7 @@ rss: true
 "og:image": "/images/og/changelog.png"
 ---
 
-<Update label="October 19, 2026" description="Pause mode, SDK runtimes, project deletion" tags={["SDK", "API", "Dashboard", "Self-hosted"]} rss={{ title: "Pause Mode Reporting, SDK Runtime Requirements & Project Deletion", description: "This week improves sandboxes, the SDKs, and the dashboard with pause mode reporting, new minimum Node.js and Python versions, and project deletion." }}>
+<Update label="October 19, 2026" tags={["SDK", "API", "Dashboard", "Self-hosted"]} rss={{ title: "Pause Mode Reporting, SDK Runtime Requirements & Project Deletion", description: "This week improves sandboxes, the SDKs, and the dashboard with pause mode reporting, new minimum Node.js and Python versions, and project deletion." }}>
 
 ## Pause Mode Reporting, SDK Runtime Requirements & Project Deletion
 
@@ -13,15 +13,15 @@ This week improves sandboxes, the SDKs, and the dashboard with pause mode report
 
 ### Pause mode for paused sandboxes
 
-The `GET /sandboxes/{sandboxID}` endpoint now returns `pauseMode` (`full` or `filesystem`) for a paused sandbox, so you can tell whether it will resume with its memory or boot fresh from a [filesystem-only snapshot](/sandbox/filesystem-only-snapshots). The dashboard marks filesystem-only pauses with an "FS only" badge. ([`c45276c`](https://github.com/e2b-dev/runtime/commit/c45276c975c433f3fb16c8b6c4633c3b2b730139))
+The `GET /sandboxes/{sandboxID}` endpoint now returns `pauseMode` (`full` or `filesystem`) for a paused sandbox, so you can tell whether it will resume with its memory or boot fresh from a [filesystem-only snapshot](/sandbox/filesystem-only-snapshots). The dashboard marks filesystem-only pauses with an "FS only" badge. [`c45276c`](https://github.com/e2b-dev/runtime/commit/c45276c975c433f3fb16c8b6c4633c3b2b730139)
 
 ### Node.js 22.19 requirement in the JavaScript SDKs and CLI
 
-The JavaScript SDK 2.56.0 requires Node.js 22.19.0 or later and follows the server's HTTP/2 stream limit instead of its own in-flight caps, so `E2B_API_INFLIGHT_REQUESTS`, `E2B_ENVD_INFLIGHT_REQUESTS`, and `E2B_ENVD_RPC_INFLIGHT_REQUESTS` are removed. Code Interpreter 2.9.0, Desktop 2.5.0, and the CLI 2.22.0 require Node.js 22.19.0 or later too. ([#1733](https://github.com/e2b-dev/E2B/pull/1733), [#1979](https://github.com/e2b-dev/E2B/pull/1979))
+The JavaScript SDK 2.56.0 requires Node.js 22.19.0 or later and follows the server's HTTP/2 stream limit instead of its own in-flight caps, so `E2B_API_INFLIGHT_REQUESTS`, `E2B_ENVD_INFLIGHT_REQUESTS`, and `E2B_ENVD_RPC_INFLIGHT_REQUESTS` are removed. Code Interpreter 2.9.0, Desktop 2.5.0, and the CLI 2.22.0 require Node.js 22.19.0 or later too. [#1733](https://github.com/e2b-dev/E2B/pull/1733), [#1979](https://github.com/e2b-dev/E2B/pull/1979)
 
 ### Python 3.11 requirement in the Python SDKs
 
-The Python SDK 2.56.0 requires Python 3.11 or later and opens a new connection when existing ones reach the server's stream limit, up to `E2B_MAX_CONNECTIONS` per address (default 200). `E2B_STREAMS_PER_CONNECTION` is removed. Code Interpreter 2.11.0 and Desktop 2.7.0 require Python 3.11 or later too. ([#1931](https://github.com/e2b-dev/E2B/pull/1931), [#1974](https://github.com/e2b-dev/E2B/pull/1974))
+The Python SDK 2.56.0 requires Python 3.11 or later and opens a new connection when existing ones reach the server's stream limit, up to `E2B_MAX_CONNECTIONS` per address (default 200). `E2B_STREAMS_PER_CONNECTION` is removed. Code Interpreter 2.11.0 and Desktop 2.7.0 require Python 3.11 or later too. [#1931](https://github.com/e2b-dev/E2B/pull/1931), [#1974](https://github.com/e2b-dev/E2B/pull/1974)
 
 ### Project deletion in the dashboard
 
@@ -33,24 +33,24 @@ The API keys page shows who created each key, including CLI keys, and keeps a ne
 
 ### Self-hosted logging and version overrides
 
-For self-hosted deployments, `E2B_DISABLE_STACKTRACES=true` removes stack traces from service logs, and `DEFAULT_FIRECRACKER_VERSIONS` overrides the built-in sandbox VM version map when no feature flag service is configured. ([`16e86b6`](https://github.com/e2b-dev/runtime/commit/16e86b63a21db1d4a3ee27fe7631339742bcfe8e), [`1633454`](https://github.com/e2b-dev/runtime/commit/1633454416c6a03835f9022548301d172ed624db))
+For self-hosted deployments, `E2B_DISABLE_STACKTRACES=true` removes stack traces from service logs, and `DEFAULT_FIRECRACKER_VERSIONS` overrides the built-in sandbox VM version map when no feature flag service is configured. [`16e86b6`](https://github.com/e2b-dev/runtime/commit/16e86b63a21db1d4a3ee27fe7631339742bcfe8e), [`1633454`](https://github.com/e2b-dev/runtime/commit/1633454416c6a03835f9022548301d172ed624db)
 
 ### Fixes
 
-- Fixed a regression that slowed sandbox pause and resume. ([`568cfaa`](https://github.com/e2b-dev/runtime/commit/568cfaa93e4b62556bc3730ac343ce1cd8f36095))
-- Fixed sandbox creation succeeding when a requested volume could not be mounted. ([`ef1b99a`](https://github.com/e2b-dev/runtime/commit/ef1b99a7c7241ef4c0284b99951bc02ec6aa1cd8))
-- Fixed connecting to or signaling a process by tag failing when several processes had tags. ([`67b3182`](https://github.com/e2b-dev/runtime/commit/67b318240f4b6acc497411aa968b817b338f62e6))
-- Fixed HTTP/1.1 requests to a sandbox losing the rest of their request body once the sandbox started responding. ([`4f35ab0`](https://github.com/e2b-dev/runtime/commit/4f35ab01d346408b29b843eac98fdea61a21f8d1))
-- Fixed sandbox metrics omitting the newest data point. ([`1a46961`](https://github.com/e2b-dev/runtime/commit/1a469614915804263f4c1b434026e4202930d517))
-- Fixed an edge case where extending a sandbox timeout moved its expiry even though the request failed. ([`9ba6ef0`](https://github.com/e2b-dev/runtime/commit/9ba6ef0a32670e5895c1bcd6b5d204946e81792e))
-- Fixed listing sandboxes intermittently returning `500`. ([`d1682ae`](https://github.com/e2b-dev/runtime/commit/d1682aef3a406fc627092e101b87d5016d9686fa))
-- Fixed an auto-resume stopping when the client that triggered it disconnected. ([`90f3409`](https://github.com/e2b-dev/runtime/commit/90f340920192c944583f064b5fbcc494ebabe3e2))
-- Fixed timeout and network updates racing a sandbox's teardown. An update that arrives after teardown has started now returns `404`. ([`74558d3`](https://github.com/e2b-dev/runtime/commit/74558d3d21c34b8f2a4e2390f8191b8df8d5dbe0))
+- Fixed a regression that slowed sandbox pause and resume. [`568cfaa`](https://github.com/e2b-dev/runtime/commit/568cfaa93e4b62556bc3730ac343ce1cd8f36095)
+- Fixed sandbox creation succeeding when a requested volume could not be mounted. [`ef1b99a`](https://github.com/e2b-dev/runtime/commit/ef1b99a7c7241ef4c0284b99951bc02ec6aa1cd8)
+- Fixed connecting to or signaling a process by tag failing when several processes had tags. [`67b3182`](https://github.com/e2b-dev/runtime/commit/67b318240f4b6acc497411aa968b817b338f62e6)
+- Fixed HTTP/1.1 requests to a sandbox losing the rest of their request body once the sandbox started responding. [`4f35ab0`](https://github.com/e2b-dev/runtime/commit/4f35ab01d346408b29b843eac98fdea61a21f8d1)
+- Fixed sandbox metrics omitting the newest data point. [`1a46961`](https://github.com/e2b-dev/runtime/commit/1a469614915804263f4c1b434026e4202930d517)
+- Fixed an edge case where extending a sandbox timeout moved its expiry even though the request failed. [`9ba6ef0`](https://github.com/e2b-dev/runtime/commit/9ba6ef0a32670e5895c1bcd6b5d204946e81792e)
+- Fixed listing sandboxes intermittently returning `500`. [`d1682ae`](https://github.com/e2b-dev/runtime/commit/d1682aef3a406fc627092e101b87d5016d9686fa)
+- Fixed an auto-resume stopping when the client that triggered it disconnected. [`90f3409`](https://github.com/e2b-dev/runtime/commit/90f340920192c944583f064b5fbcc494ebabe3e2)
+- Fixed timeout and network updates racing a sandbox's teardown. An update that arrives after teardown has started now returns `404`. [`74558d3`](https://github.com/e2b-dev/runtime/commit/74558d3d21c34b8f2a4e2390f8191b8df8d5dbe0)
 - Reliability and security hardening across platform services, including dependency and base image CVE patches.
 
 </Update>
 
-<Update label="October 12, 2026" description="Filesystem snapshots, lifecycle event modes, Azure Embed" tags={["SDK", "API", "Dashboard", "Self-hosted"]} rss={{ title: "Filesystem-Only Snapshots & Lifecycle Pause Modes", description: "This week improves snapshots and lifecycle events with filesystem-only snapshots, pause and resume modes, and clearer errors for stopped sandboxes." }}>
+<Update label="October 12, 2026" tags={["SDK", "API", "Dashboard", "Self-hosted"]} rss={{ title: "Filesystem-Only Snapshots & Lifecycle Pause Modes", description: "This week improves snapshots and lifecycle events with filesystem-only snapshots, pause and resume modes, and clearer errors for stopped sandboxes." }}>
 
 ## Filesystem-Only Snapshots & Lifecycle Pause Modes
 
@@ -58,23 +58,23 @@ This week improves snapshots and lifecycle events with filesystem-only snapshots
 
 ### Filesystem-only snapshots
 
-Snapshots, pauses, and auto-pause now accept a [`mode` option](/sandbox/filesystem-only-snapshots). Pass `'filesystem'` for smaller, faster snapshots that save only the filesystem and boot fresh. The `keepMemory` option is deprecated. Shipped in the JavaScript and Python SDKs 2.55.0. ([#1925](https://github.com/e2b-dev/E2B/pull/1925))
+Snapshots, pauses, and auto-pause now accept a [`mode` option](/sandbox/filesystem-only-snapshots). Pass `'filesystem'` for smaller, faster snapshots that save only the filesystem and boot fresh. The `keepMemory` option is deprecated. Shipped in the JavaScript and Python SDKs 2.55.0. [#1925](https://github.com/e2b-dev/E2B/pull/1925)
 
 ### Pause and resume modes in lifecycle events
 
-Paused and resumed events in webhooks, the events API, and the dashboard now carry `event_data.pause_mode` (`full` or `filesystem`) and `event_data.resume_mode` (`restore` or `reboot`), so you can tell whether a sandbox kept its memory. ([`8ad50e8`](https://github.com/e2b-dev/runtime/commit/8ad50e85de5460261afc5783c1d99dd2fd039e27))
+Paused and resumed events in webhooks, the events API, and the dashboard now carry `event_data.pause_mode` (`full` or `filesystem`) and `event_data.resume_mode` (`restore` or `reboot`), so you can tell whether a sandbox kept its memory. [`8ad50e8`](https://github.com/e2b-dev/runtime/commit/8ad50e85de5460261afc5783c1d99dd2fd039e27)
 
 ### Secured access for API-created sandboxes
 
-The deprecated `POST /sandboxes` endpoint now always enables [secured access](/sandbox/secured-access) and ignores the `secure` field. Calls to the sandbox controller (envd) must send the returned `envdAccessToken` in the `X-Access-Token` header, or envd returns `401`. Current SDKs already do this. Templates too old for secured access return `400` and must be rebuilt. ([`315a94e`](https://github.com/e2b-dev/runtime/commit/315a94e737da604abb5ec54081d88198c400c8eb))
+The deprecated `POST /sandboxes` endpoint now always enables [secured access](/sandbox/secured-access) and ignores the `secure` field. Calls to the sandbox controller (envd) must send the returned `envdAccessToken` in the `X-Access-Token` header, or envd returns `401`. Current SDKs already do this. Templates too old for secured access return `400` and must be rebuilt. [`315a94e`](https://github.com/e2b-dev/runtime/commit/315a94e737da604abb5ec54081d88198c400c8eb)
 
 ### Errors for stopped and unreachable sandboxes
 
-The SDKs now raise a sandbox-not-running error when a sandbox has stopped, so you know a retry will not help, and a sandbox-unreachable error when it does not answer. In JavaScript, calls on a stopped sandbox throw `SandboxNotRunningError` instead of `SandboxNotFoundError`. Shipped in the SDKs 2.53.1. ([#1949](https://github.com/e2b-dev/E2B/pull/1949))
+The SDKs now raise a sandbox-not-running error when a sandbox has stopped, so you know a retry will not help, and a sandbox-unreachable error when it does not answer. In JavaScript, calls on a stopped sandbox throw `SandboxNotRunningError` instead of `SandboxNotFoundError`. Shipped in the SDKs 2.53.1. [#1949](https://github.com/e2b-dev/E2B/pull/1949)
 
 ### Dockerfile parsing that matches Docker
 
-Converting a Dockerfile with [`fromDockerfile()`](/template/base-image#parsing-existing-dockerfiles) now follows Docker's parsing rules for quoting, escapes, heredocs, and `COPY --chmod`. Shipped in the JavaScript and Python SDKs 2.55.0. ([#1936](https://github.com/e2b-dev/E2B/pull/1936))
+Converting a Dockerfile with [`fromDockerfile()`](/template/base-image#parsing-existing-dockerfiles) now follows Docker's parsing rules for quoting, escapes, heredocs, and `COPY --chmod`. Shipped in the JavaScript and Python SDKs 2.55.0. [#1936](https://github.com/e2b-dev/E2B/pull/1936)
 
 ### Dashboard secrets and billing
 
@@ -82,20 +82,20 @@ Every project now has a Secrets page in the dashboard. Billing collects your bil
 
 ### Azure deployment for E2B Embed
 
-Self-hosted E2B Embed now runs on a single Azure node with a new Terraform module, and refuses a pause the disk cannot hold so the sandbox keeps running. The `PAUSE_ADMISSION_DISK_HEADROOM_MIB` setting controls the required headroom. ([`a28962e`](https://github.com/e2b-dev/runtime/commit/a28962e2735487d468f34aa4262fe30df735e3d2), [`0059190`](https://github.com/e2b-dev/runtime/commit/005919063d42455098e33ca49110c5c32dce85c8), [`e3ef7c6`](https://github.com/e2b-dev/runtime/commit/e3ef7c64abfda0eacae13d589e2d0ab6c157992e))
+Self-hosted E2B Embed now runs on a single Azure node with a new Terraform module, and refuses a pause the disk cannot hold so the sandbox keeps running. The `PAUSE_ADMISSION_DISK_HEADROOM_MIB` setting controls the required headroom. [`a28962e`](https://github.com/e2b-dev/runtime/commit/a28962e2735487d468f34aa4262fe30df735e3d2), [`0059190`](https://github.com/e2b-dev/runtime/commit/005919063d42455098e33ca49110c5c32dce85c8), [`e3ef7c6`](https://github.com/e2b-dev/runtime/commit/e3ef7c64abfda0eacae13d589e2d0ab6c157992e)
 
 ### Fixes
 
-- Fixed the API returning `401` instead of a retryable `500` when an API key lookup failed. ([`296f183`](https://github.com/e2b-dev/runtime/commit/296f183480cc177a34e04c1229a5a21e5ed60323))
-- Fixed `git clone` into a volume failing with a stale file handle error. ([`5457911`](https://github.com/e2b-dev/runtime/commit/54579116c68676336586cfa56adb5114e6df2313))
-- Fixed lifecycle events reporting the wrong execution start time after a snapshot of a running sandbox. ([`0535e35`](https://github.com/e2b-dev/runtime/commit/0535e351319a9d8c1172a7a4632bfe8528192a37))
-- Fixed template builds failing on a transient status error while still running. ([`7ecd661`](https://github.com/e2b-dev/runtime/commit/7ecd661dedafb324010ee8e7816afc4c78d1bce1))
-- Fixed the JavaScript Code Interpreter SDK breaking Unicode characters split across response chunks. Shipped in `@e2b/code-interpreter` 2.8.2. ([#1946](https://github.com/e2b-dev/E2B/pull/1946))
+- Fixed the API returning `401` instead of a retryable `500` when an API key lookup failed. [`296f183`](https://github.com/e2b-dev/runtime/commit/296f183480cc177a34e04c1229a5a21e5ed60323)
+- Fixed `git clone` into a volume failing with a stale file handle error. [`5457911`](https://github.com/e2b-dev/runtime/commit/54579116c68676336586cfa56adb5114e6df2313)
+- Fixed lifecycle events reporting the wrong execution start time after a snapshot of a running sandbox. [`0535e35`](https://github.com/e2b-dev/runtime/commit/0535e351319a9d8c1172a7a4632bfe8528192a37)
+- Fixed template builds failing on a transient status error while still running. [`7ecd661`](https://github.com/e2b-dev/runtime/commit/7ecd661dedafb324010ee8e7816afc4c78d1bce1)
+- Fixed the JavaScript Code Interpreter SDK breaking Unicode characters split across response chunks. Shipped in `@e2b/code-interpreter` 2.8.2. [#1946](https://github.com/e2b-dev/E2B/pull/1946)
 - Reliability and security hardening across platform services, including dependency and base image CVE patches.
 
 </Update>
 
-<Update label="October 5, 2026" description="SDK retries, HTTP/1.1 option, dashboard hold banners" tags={["SDK", "CLI", "API", "Dashboard", "Self-hosted"]} rss={{ title: "Broader SDK Retries, HTTP/1.1 Option & Dashboard Hold Banners", description: "This week improves SDK reliability and the dashboard with 502 and 503 retries, an HTTP/1.1 option, Docker-style ignore patterns, and hold banners." }}>
+<Update label="October 5, 2026" tags={["SDK", "CLI", "API", "Dashboard", "Self-hosted"]} rss={{ title: "Broader SDK Retries, HTTP/1.1 Option & Dashboard Hold Banners", description: "This week improves SDK reliability and the dashboard with 502 and 503 retries, an HTTP/1.1 option, Docker-style ignore patterns, and hold banners." }}>
 
 ## Broader SDK Retries, HTTP/1.1 Option & Dashboard Hold Banners
 
@@ -103,19 +103,19 @@ This week improves SDK reliability and the dashboard with 502 and 503 retries, a
 
 ### Retries on gateway errors and failed connections
 
-The SDKs now retry API requests after 502 and 503 responses, in addition to 429 responses that carry `Retry-After`. The JavaScript SDK also retries failed connection attempts, as the Python SDK already did. Requests that cannot be safely replayed, such as sandbox creation, are not retried after other network errors. Retries after a 429, 502, or 503 response honor `Retry-After` and the `retries` option. Shipped in the JavaScript and Python SDKs 2.52.0. ([#1888](https://github.com/e2b-dev/E2B/pull/1888))
+The SDKs now retry API requests after 502 and 503 responses, in addition to 429 responses that carry `Retry-After`. The JavaScript SDK also retries failed connection attempts, as the Python SDK already did. Requests that cannot be safely replayed, such as sandbox creation, are not retried after other network errors. Retries after a 429, 502, or 503 response honor `Retry-After` and the `retries` option. Shipped in the JavaScript and Python SDKs 2.52.0. [#1888](https://github.com/e2b-dev/E2B/pull/1888)
 
 ### HTTP version and connection pool settings
 
-Set `httpVersion: '1.1'` in JavaScript, `http_version="1.1"` in Python, or `E2B_HTTP_VERSION` to pin API, sandbox, and volume requests to HTTP/1.1 instead of the default HTTP/2. In JavaScript, these settings apply on Node.js. The Python SDK also spreads sandbox traffic across connection pools sized by `E2B_STREAMS_PER_CONNECTION` and `E2B_MAX_CONNECTIONS`. Shipped in the JavaScript and Python SDKs 2.52.0. ([#1920](https://github.com/e2b-dev/E2B/pull/1920), [#1825](https://github.com/e2b-dev/E2B/pull/1825))
+Set `httpVersion: '1.1'` in JavaScript, `http_version="1.1"` in Python, or `E2B_HTTP_VERSION` to pin API, sandbox, and volume requests to HTTP/1.1 instead of the default HTTP/2. In JavaScript, these settings apply on Node.js. The Python SDK also spreads sandbox traffic across connection pools sized by `E2B_STREAMS_PER_CONNECTION` and `E2B_MAX_CONNECTIONS`. Shipped in the JavaScript and Python SDKs 2.52.0. [#1920](https://github.com/e2b-dev/E2B/pull/1920), [#1825](https://github.com/e2b-dev/E2B/pull/1825)
 
 ### Docker-style ignore patterns
 
-Template builds now apply [`.dockerignore` and file ignore patterns](/template/base-image) the way Docker does: directory patterns exclude their contents, `!` re-includes a path, and the last match takes precedence. Brace patterns such as `**/*.{env,pem}` now match literally in JavaScript, as they already did in Python, so list each pattern separately. Shipped in the JavaScript and Python SDKs 2.52.0. ([#1917](https://github.com/e2b-dev/E2B/pull/1917))
+Template builds now apply [`.dockerignore` and file ignore patterns](/template/base-image) the way Docker does: directory patterns exclude their contents, `!` re-includes a path, and the last match takes precedence. Brace patterns such as `**/*.{env,pem}` now match literally in JavaScript, as they already did in Python, so list each pattern separately. Shipped in the JavaScript and Python SDKs 2.52.0. [#1917](https://github.com/e2b-dev/E2B/pull/1917)
 
 ### Fork count limit
 
-The SDKs and the [`e2b sandbox fork`](/cli/fork-sandbox) command now reject a fork count outside 1 to 20 before calling the API. Shipped in the JavaScript and Python SDKs 2.52.0 and CLI 2.21.0. ([#1909](https://github.com/e2b-dev/E2B/pull/1909))
+The SDKs and the [`e2b sandbox fork`](/cli/fork-sandbox) command now reject a fork count outside 1 to 20 before calling the API. Shipped in the JavaScript and Python SDKs 2.52.0 and CLI 2.21.0. [#1909](https://github.com/e2b-dev/E2B/pull/1909)
 
 ### Dashboard hold and plan limit banners
 
@@ -123,22 +123,22 @@ When a project is blocked, the dashboard shows a banner explaining why. For a sp
 
 ### TLS for bring-your-own egress proxies
 
-The API's [egress proxy](/network/byop) configuration accepts an optional `tls` object with `enabled`, `serverName`, and `caCert`, so the SOCKS5 handshake, credentials, and traffic to your proxy are encrypted. The SDKs do not pass it through. Bring your own proxy is in private beta. ([`27992f3`](https://github.com/e2b-dev/runtime/commit/27992f392e0c012c17fc4f1366e2c5d024f75bcb), [`1599d6e`](https://github.com/e2b-dev/runtime/commit/1599d6e79e302449e9285dae33d5ce04e3182254))
+The API's [egress proxy](/network/byop) configuration accepts an optional `tls` object with `enabled`, `serverName`, and `caCert`, so the SOCKS5 handshake, credentials, and traffic to your proxy are encrypted. The SDKs do not pass it through. Bring your own proxy is in private beta. [`27992f3`](https://github.com/e2b-dev/runtime/commit/27992f392e0c012c17fc4f1366e2c5d024f75bcb), [`1599d6e`](https://github.com/e2b-dev/runtime/commit/1599d6e79e302449e9285dae33d5ce04e3182254)
 
 ### Server-side encryption for self-hosted S3 storage
 
-Self-hosted deployments can opt in to S3 server-side encryption with `ssetype` and `kmskeyid` on the storage URL, or `S3_SSE_TYPE` and `S3_SSE_KMS_KEY_ID` when storage is configured with bucket environment variables. ([`f3e1873`](https://github.com/e2b-dev/runtime/commit/f3e1873ce4e436890469d2f77f750ae4cb042bf9))
+Self-hosted deployments can opt in to S3 server-side encryption with `ssetype` and `kmskeyid` on the storage URL, or `S3_SSE_TYPE` and `S3_SSE_KMS_KEY_ID` when storage is configured with bucket environment variables. [`f3e1873`](https://github.com/e2b-dev/runtime/commit/f3e1873ce4e436890469d2f77f750ae4cb042bf9)
 
 ### Fixes
 
-- Fixed `POST /secrets` returning the same `409` response for a project secret limit as for a name collision. A limit response now carries the `secret_limit_reached` error code. ([`5f520e6`](https://github.com/e2b-dev/runtime/commit/5f520e69a86463a8fa3ed071c73bf136e0650547))
+- Fixed `POST /secrets` returning the same `409` response for a project secret limit as for a name collision. A limit response now carries the `secret_limit_reached` error code. [`5f520e6`](https://github.com/e2b-dev/runtime/commit/5f520e69a86463a8fa3ed071c73bf136e0650547)
 - Fixed the dashboard blocking project-only members from opening their workspace's Projects page.
 - Fixed the dashboard looping on redirects for unknown paths instead of showing a 404 page.
 - Reliability fixes and dependency updates across platform services.
 
 </Update>
 
-<Update label="September 28, 2026" description="Public project IDs, one Console for every region, Embed telemetry" tags={["Dashboard", "API", "Self-hosted"]} rss={{ title: "Public Project IDs & Embed OpenTelemetry Export", description: "This week improves projects and self-hosting with public project IDs in the dashboard and API, one E2B Console for every region, a dashboard-wide support dialog, and OpenTelemetry export for E2B Embed." }}>
+<Update label="September 28, 2026" tags={["Dashboard", "API", "Self-hosted"]} rss={{ title: "Public Project IDs & Embed OpenTelemetry Export", description: "This week improves projects and self-hosting with public project IDs in the dashboard and API, one E2B Console for every region, a dashboard-wide support dialog, and OpenTelemetry export for E2B Embed." }}>
 
 ## Public Project IDs & Embed OpenTelemetry Export
 
@@ -146,7 +146,7 @@ This week improves projects and self-hosting with public project IDs in the dash
 
 ### Public project and workspace IDs
 
-Project settings in the dashboard now show the public project ID in the `prj_` format, with the UUID kept as the legacy project ID, and the project's region. Workspace settings show the workspace ID in the `wrk_` format. The API accepts a `prj_` ID wherever it accepts a team ID, including the `teamID` parameter of `GET /templates`, team metrics, and the `X-Team-ID` header. ([`03a400e`](https://github.com/e2b-dev/runtime/commit/03a400ee2a0688e9bef5e4c28ac52431a96748cf))
+Project settings in the dashboard now show the public project ID in the `prj_` format, with the UUID kept as the legacy project ID, and the project's region. Workspace settings show the workspace ID in the `wrk_` format. The API accepts a `prj_` ID wherever it accepts a team ID, including the `teamID` parameter of `GET /templates`, team metrics, and the `X-Team-ID` header. [`03a400e`](https://github.com/e2b-dev/runtime/commit/03a400ee2a0688e9bef5e4c28ac52431a96748cf)
 
 ### One Console for every region
 
@@ -158,18 +158,18 @@ The Help and resources menu now opens a support form from any page in the dashbo
 
 ### OpenTelemetry export for E2B Embed
 
-Self-hosted E2B Embed deployments can now export telemetry from every service Embed runs to an OpenTelemetry collector with one setting: `E2B_OTEL_COLLECTOR_GRPC_ENDPOINT` in Docker Compose, the `e2b-settings` ConfigMap on Kubernetes, or `otel_collector_grpc_endpoint` in Terraform. Leaving it empty keeps the current behavior. ([`f455fd5`](https://github.com/e2b-dev/runtime/commit/f455fd58fa3f289e78ce1de690c35968d8d29322))
+Self-hosted E2B Embed deployments can now export telemetry from every service Embed runs to an OpenTelemetry collector with one setting: `E2B_OTEL_COLLECTOR_GRPC_ENDPOINT` in Docker Compose, the `e2b-settings` ConfigMap on Kubernetes, or `otel_collector_grpc_endpoint` in Terraform. Leaving it empty keeps the current behavior. [`f455fd5`](https://github.com/e2b-dev/runtime/commit/f455fd58fa3f289e78ce1de690c35968d8d29322)
 
 ### Fixes
 
-- Fixed `e2b auth login` failing with "No default project found" for users who belong only to shared workspaces, because the API now marks the oldest accessible project as the default when none is set. ([`a065a4d`](https://github.com/e2b-dev/runtime/commit/a065a4ddb3f2c6a4149634d9acb14b62f65839ac))
+- Fixed `e2b auth login` failing with "No default project found" for users who belong only to shared workspaces, because the API now marks the oldest accessible project as the default when none is set. [`a065a4d`](https://github.com/e2b-dev/runtime/commit/a065a4ddb3f2c6a4149634d9acb14b62f65839ac)
 - Fixed [workload identity](/iam/workload-identity) tokens disappearing from egress request headers during the final minute of a running sandbox's lifetime.
-- Fixed self-hosted deployments on local filesystem storage keeping stale trailing data when an existing file was overwritten with shorter content. ([`a334b20`](https://github.com/e2b-dev/runtime/commit/a334b20e1e4dcae2c7d4f26da839acc1dfbefe5d))
+- Fixed self-hosted deployments on local filesystem storage keeping stale trailing data when an existing file was overwritten with shorter content. [`a334b20`](https://github.com/e2b-dev/runtime/commit/a334b20e1e4dcae2c7d4f26da839acc1dfbefe5d)
 - Reliability and security hardening across platform services, including dependency and base image CVE patches.
 
 </Update>
 
-<Update label="September 21, 2026" description="V2 sandbox endpoints and CLI sandbox fork" tags={["SDK", "CLI", "API", "Self-hosted"]} rss={{ title: "V2 Sandbox Endpoints & CLI Sandbox Fork", description: "This week adds v2 sandbox create and connect endpoints in the SDKs and a CLI command to fork sandboxes." }}>
+<Update label="September 21, 2026" tags={["SDK", "CLI", "API", "Self-hosted"]} rss={{ title: "V2 Sandbox Endpoints & CLI Sandbox Fork", description: "This week adds v2 sandbox create and connect endpoints in the SDKs and a CLI command to fork sandboxes." }}>
 
 ## V2 Sandbox Endpoints & CLI Sandbox Fork
 
@@ -177,27 +177,27 @@ This week adds v2 sandbox create and connect endpoints in the SDKs and a CLI com
 
 ### V2 sandbox create and connect endpoints
 
-`Sandbox.create` and `Sandbox.connect` now call `POST /v2/sandboxes` and `POST /v2/sandboxes/{id}/connect`, and the SDKs stop presetting `timeout`, `allow_internet_access`, `count`, `memory`, `cpuCount`, and `memoryMB` when you omit them, so the API defaults apply. Every sandbox is secured, and the `secure` option is accepted but ignored. Shipped in the JavaScript and Python SDKs 2.51.0 and desktop-python 2.6.0. ([#1749](https://github.com/e2b-dev/E2B/pull/1749), [`f5dc642`](https://github.com/e2b-dev/runtime/commit/f5dc6426ef45b6b286ff60c11fc6bba7e00db95e))
+`Sandbox.create` and `Sandbox.connect` now call `POST /v2/sandboxes` and `POST /v2/sandboxes/{id}/connect`, and the SDKs stop presetting `timeout`, `allow_internet_access`, `count`, `memory`, `cpuCount`, and `memoryMB` when you omit them, so the API defaults apply. Every sandbox is secured, and the `secure` option is accepted but ignored. Shipped in the JavaScript and Python SDKs 2.51.0 and desktop-python 2.6.0. [#1749](https://github.com/e2b-dev/E2B/pull/1749), [`f5dc642`](https://github.com/e2b-dev/runtime/commit/f5dc6426ef45b6b286ff60c11fc6bba7e00db95e)
 
 ### Fork sandboxes from the CLI
 
-The [`e2b sandbox fork`](/cli/fork-sandbox) command, aliased `sbx fk`, forks a running sandbox into one or more new sandboxes and prints each new ID on its own line. Configure the count with `-n` or `--count` and the fork timeout with `--timeout`. Shipped in the CLI 2.20.0. ([#1879](https://github.com/e2b-dev/E2B/pull/1879))
+The [`e2b sandbox fork`](/cli/fork-sandbox) command, aliased `sbx fk`, forks a running sandbox into one or more new sandboxes and prints each new ID on its own line. Configure the count with `-n` or `--count` and the fork timeout with `--timeout`. Shipped in the CLI 2.20.0. [#1879](https://github.com/e2b-dev/E2B/pull/1879)
 
 ### V1 template build removed
 
-The SDKs and CLI drop the V1 template build endpoints from generated clients and remove the hidden `e2b template build` command stub. Build templates with `e2b template create` or the [Template SDK](/template/build). Shipped in the JavaScript and Python SDKs 2.50.0 and CLI 2.19.1. ([#1875](https://github.com/e2b-dev/E2B/pull/1875))
+The SDKs and CLI drop the V1 template build endpoints from generated clients and remove the hidden `e2b template build` command stub. Build templates with `e2b template create` or the [Template SDK](/template/build). Shipped in the JavaScript and Python SDKs 2.50.0 and CLI 2.19.1. [#1875](https://github.com/e2b-dev/E2B/pull/1875)
 
 ### Fixes
 
-- Fixed browser uploads of non-native `ReadableStream` objects writing the literal text `[object ReadableStream]` instead of the file contents. Shipped in the JavaScript SDK 2.50.0. ([#1609](https://github.com/e2b-dev/E2B/pull/1609))
-- Browser requests interrupted by sandbox termination now report `TimeoutError` when the SDK confirms the sandbox has stopped, instead of a generic network error. Shipped in the JavaScript SDK 2.50.0. ([#1609](https://github.com/e2b-dev/E2B/pull/1609))
-- Fixed an issue where cancelling a pause request could leave its snapshot unavailable for resume. Server shutdown now waits for in-progress pauses before closing the connections they need to save their snapshots. ([`ace695a`](https://github.com/e2b-dev/runtime/commit/ace695a10d3ca731b444c197e9d4fe4237515868), [`0a55a0e`](https://github.com/e2b-dev/runtime/commit/0a55a0ec3141e4c57b8c8d0d45f2c2213b72356a))
-- Fixed the sandbox proxy dropping in-flight connections during shutdown. ([`2b619db`](https://github.com/e2b-dev/runtime/commit/2b619db20ef555514fdadf63edeed72a22db6009))
+- Fixed browser uploads of non-native `ReadableStream` objects writing the literal text `[object ReadableStream]` instead of the file contents. Shipped in the JavaScript SDK 2.50.0. [#1609](https://github.com/e2b-dev/E2B/pull/1609)
+- Browser requests interrupted by sandbox termination now report `TimeoutError` when the SDK confirms the sandbox has stopped, instead of a generic network error. Shipped in the JavaScript SDK 2.50.0. [#1609](https://github.com/e2b-dev/E2B/pull/1609)
+- Fixed an issue where cancelling a pause request could leave its snapshot unavailable for resume. Server shutdown now waits for in-progress pauses before closing the connections they need to save their snapshots. [`ace695a`](https://github.com/e2b-dev/runtime/commit/ace695a10d3ca731b444c197e9d4fe4237515868), [`0a55a0e`](https://github.com/e2b-dev/runtime/commit/0a55a0ec3141e4c57b8c8d0d45f2c2213b72356a)
+- Fixed the sandbox proxy dropping in-flight connections during shutdown. [`2b619db`](https://github.com/e2b-dev/runtime/commit/2b619db20ef555514fdadf63edeed72a22db6009)
 - Reliability and security hardening across platform services, including dependency and base image CVE patches.
 
 </Update>
 
-<Update label="September 14, 2026" description="E2B Embed, automatic 429 retries, and OpenAI Agents API examples" tags={["SDK", "CLI", "API", "Self-hosted", "Integrations", "Docs"]} rss={{ title: "E2B Embed & Automatic 429 Retries", description: "This week adds E2B Embed, automatic SDK retries, and an OpenAI Agents API guide with public examples." }}>
+<Update label="September 14, 2026" tags={["SDK", "CLI", "API", "Self-hosted", "Integrations", "Docs"]} rss={{ title: "E2B Embed & Automatic 429 Retries", description: "This week adds E2B Embed, automatic SDK retries, and an OpenAI Agents API guide with public examples." }}>
 
 ## E2B Embed & Automatic 429 Retries
 
@@ -205,23 +205,23 @@ This week adds E2B Embed, automatic SDK retries, and an OpenAI Agents API guide 
 
 ### E2B Embed for self-hosted deployments
 
-Run E2B on your infrastructure with Docker Compose, Terraform, or Kubernetes deployments and pinned service images. ([`c20cb30`](https://github.com/e2b-dev/infra/commit/c20cb3049f34011eb9704445fa08c09baf24a480), [`7278c2a`](https://github.com/e2b-dev/infra/commit/7278c2a380767c9989da73cf4c04b1af1b32da18))
+Run E2B on your infrastructure with Docker Compose, Terraform, or Kubernetes deployments and pinned service images. [`c20cb30`](https://github.com/e2b-dev/infra/commit/c20cb3049f34011eb9704445fa08c09baf24a480), [`7278c2a`](https://github.com/e2b-dev/infra/commit/7278c2a380767c9989da73cf4c04b1af1b32da18)
 
 ### Automatic 429 retries in the SDKs
 
-Control plane HTTP requests retry up to three times on 429, honoring delta-seconds `Retry-After`. Configure or disable with `retries`. Sandbox command, filesystem, and volume content requests are not retried. Shipped in the JavaScript and Python SDKs 2.49.1. ([#1848](https://github.com/e2b-dev/E2B/pull/1848), [#1862](https://github.com/e2b-dev/E2B/pull/1862))
+Control plane HTTP requests retry up to three times on 429, honoring delta-seconds `Retry-After`. Configure or disable with `retries`. Sandbox command, filesystem, and volume content requests are not retried. Shipped in the JavaScript and Python SDKs 2.49.1. [#1848](https://github.com/e2b-dev/E2B/pull/1848), [#1862](https://github.com/e2b-dev/E2B/pull/1862)
 
 ### Configurable minimum free disk on template create
 
-Set a [template build](/template/build) free-disk target with `minFreeDiskMb` (JavaScript), `min_free_disk_mb` (Python), or `--min-free-disk-mb` (CLI). Omission uses the project default. Zero requests no minimum growth. Shipped in the JavaScript and Python SDKs 2.49.0 and CLI 2.19.0. ([#1845](https://github.com/e2b-dev/E2B/pull/1845))
+Set a [template build](/template/build) free-disk target with `minFreeDiskMb` (JavaScript), `min_free_disk_mb` (Python), or `--min-free-disk-mb` (CLI). Omission uses the project default. Zero requests no minimum growth. Shipped in the JavaScript and Python SDKs 2.49.0 and CLI 2.19.0. [#1845](https://github.com/e2b-dev/E2B/pull/1845)
 
 ### Dedicated E2B client on Desktop and Code Interpreter
 
-The Desktop and Code Interpreter `E2B` clients bind API keys and domains explicitly. Per-call options take precedence, and clients stay isolated. Shipped in Desktop 2.4.0, desktop-python 2.5.0, code-interpreter 2.8.0, and code-interpreter-python 2.10.0. ([#1783](https://github.com/e2b-dev/E2B/pull/1783), [#1784](https://github.com/e2b-dev/E2B/pull/1784))
+The Desktop and Code Interpreter `E2B` clients bind API keys and domains explicitly. Per-call options take precedence, and clients stay isolated. Shipped in Desktop 2.4.0, desktop-python 2.5.0, code-interpreter 2.8.0, and code-interpreter-python 2.10.0. [#1783](https://github.com/e2b-dev/E2B/pull/1783), [#1784](https://github.com/e2b-dev/E2B/pull/1784)
 
 ### Sharper SDK error surface
 
-HTTP 503 raises `ServiceBusyError` or `ServiceBusyException`. API errors expose `statusCode` or `status_code`. `Sandbox.create` and `Sandbox.connect` reject invalid `onTimeout` and `onResume` values. Shipped in the JavaScript and Python SDKs 2.48.0 and 2.49.1. ([#1832](https://github.com/e2b-dev/E2B/pull/1832), [#1822](https://github.com/e2b-dev/E2B/pull/1822), [#1853](https://github.com/e2b-dev/E2B/pull/1853))
+HTTP 503 raises `ServiceBusyError` or `ServiceBusyException`. API errors expose `statusCode` or `status_code`. `Sandbox.create` and `Sandbox.connect` reject invalid `onTimeout` and `onResume` values. Shipped in the JavaScript and Python SDKs 2.48.0 and 2.49.1. [#1832](https://github.com/e2b-dev/E2B/pull/1832), [#1822](https://github.com/e2b-dev/E2B/pull/1822), [#1853](https://github.com/e2b-dev/E2B/pull/1853)
 
 ### New integration and reference guides
 
@@ -229,15 +229,15 @@ The [OpenAI Agents API guide](/agents/openai-agents-api) includes public Workben
 
 ### Fixes
 
-- Desktop `Sandbox.create()` waits for the desktop session to be ready and cleans up on startup failure. Shipped in Desktop JavaScript 2.4.0 and Python 2.5.0. ([#1794](https://github.com/e2b-dev/E2B/pull/1794))
-- Self-hosted `REDIS_URL` accepts passwords in `redis://` and `rediss://` URLs without exposing raw URLs in parse errors. ([`29462af`](https://github.com/e2b-dev/infra/commit/29462afe56fd06b10b77e5ae2cf0b07a1c313f7d), [`ae13f0c`](https://github.com/e2b-dev/infra/commit/ae13f0cbe5d5d11d4c947a07e73b299370475e81))
-- Fixed openssh upgrades blocking template builds on configuration-file prompts. ([`52df1d9`](https://github.com/e2b-dev/infra/commit/52df1d987c47cd3cdde92d828a59b1e64b8bbf38))
-- CLI 2.18.2 skips update checks when `NO_UPDATE_NOTIFIER` is set. ([#1837](https://github.com/e2b-dev/E2B/pull/1837))
+- Desktop `Sandbox.create()` waits for the desktop session to be ready and cleans up on startup failure. Shipped in Desktop JavaScript 2.4.0 and Python 2.5.0. [#1794](https://github.com/e2b-dev/E2B/pull/1794)
+- Self-hosted `REDIS_URL` accepts passwords in `redis://` and `rediss://` URLs without exposing raw URLs in parse errors. [`29462af`](https://github.com/e2b-dev/infra/commit/29462afe56fd06b10b77e5ae2cf0b07a1c313f7d), [`ae13f0c`](https://github.com/e2b-dev/infra/commit/ae13f0cbe5d5d11d4c947a07e73b299370475e81)
+- Fixed openssh upgrades blocking template builds on configuration-file prompts. [`52df1d9`](https://github.com/e2b-dev/infra/commit/52df1d987c47cd3cdde92d828a59b1e64b8bbf38)
+- CLI 2.18.2 skips update checks when `NO_UPDATE_NOTIFIER` is set. [#1837](https://github.com/e2b-dev/E2B/pull/1837)
 - Reliability and security hardening across platform services, including dependency and base image CVE patches.
 
 </Update>
 
-<Update label="September 7, 2026" description="Workspaces rollout, Cursor integration, and sandbox improvements" tags={["Dashboard", "Integrations", "API", "SDK", "Self-hosted"]} rss={{ title: "Workspaces & Cursor Integration", description: "Workspaces are rolling out in the console, and new templates connect Cursor Self-Hosted Machines to E2B. This week also adds HTTPS backend ports, higher Python SDK concurrency, and new integration guides." }}>
+<Update label="September 7, 2026" tags={["Dashboard", "Integrations", "API", "SDK", "Self-hosted"]} rss={{ title: "Workspaces & Cursor Integration", description: "Workspaces are rolling out in the console, and new templates connect Cursor Self-Hosted Machines to E2B. This week also adds HTTPS backend ports, higher Python SDK concurrency, and new integration guides." }}>
 
 ## Workspaces & Cursor Integration
 
@@ -253,15 +253,15 @@ Run Cursor Self-Hosted Machines on E2B with the new `cursor-agents` dispatcher a
 
 ### HTTPS backend ports on sandbox create
 
-Sandbox creation accepts a `network.httpsPorts` list naming the ports the platform connects to over HTTPS, so a service inside the sandbox that only serves TLS can sit behind its public URL instead of failing with a 502. The list survives pause and resume and is returned on sandbox reads. ([`b5f419a`](https://github.com/e2b-dev/infra/commit/b5f419a2b122f8ff881497681bde0d109cbbf0fe))
+Sandbox creation accepts a `network.httpsPorts` list naming the ports the platform connects to over HTTPS, so a service inside the sandbox that only serves TLS can sit behind its public URL instead of failing with a 502. The list survives pause and resume and is returned on sandbox reads. [`b5f419a`](https://github.com/e2b-dev/infra/commit/b5f419a2b122f8ff881497681bde0d109cbbf0fe)
 
 ### Higher stream concurrency in the Python SDK
 
-The Python SDK now spreads each sandbox's command and file traffic across four connection pools by default, so running more than 100 concurrent operations in one process no longer stalls behind a single connection's stream limit. Set `E2B_ENVD_POOL_SHARDS` before importing `e2b` for more headroom. Shipped in the Python SDK 2.46.4. ([#1793](https://github.com/e2b-dev/E2B/pull/1793))
+The Python SDK now spreads each sandbox's command and file traffic across four connection pools by default, so running more than 100 concurrent operations in one process no longer stalls behind a single connection's stream limit. Set `E2B_ENVD_POOL_SHARDS` before importing `e2b` for more headroom. Shipped in the Python SDK 2.46.4. [#1793](https://github.com/e2b-dev/E2B/pull/1793)
 
 ### Self-hosted deployments without Loki
 
-Self-hosted deployments can now run without a Loki instance: the `LOKI_URL` variable is optional, and the new `LOGS_READ_CONFIG` variable selects the backend used for reading sandbox logs. ([`8006b78`](https://github.com/e2b-dev/infra/commit/8006b7863ee201e60a25e83e5d9cb6ab364e98b0))
+Self-hosted deployments can now run without a Loki instance: the `LOKI_URL` variable is optional, and the new `LOGS_READ_CONFIG` variable selects the backend used for reading sandbox logs. [`8006b78`](https://github.com/e2b-dev/infra/commit/8006b7863ee201e60a25e83e5d9cb6ab364e98b0)
 
 ### Dashboard sandbox quickstart
 
@@ -273,16 +273,16 @@ New guides cover [Agno](/agents/agno), [NVIDIA NeMo Gym](/agents/nemo-gym), and 
 
 ### Fixes
 
-- Template builds from minimal RPM-family base images, such as Rocky Linux minimal or UBI, no longer fail during the final build step. ([`12ee9b1`](https://github.com/e2b-dev/infra/commit/12ee9b1062d59a76c5d6b2df26e3e53c66fdbc08))
-- Fixed commands in a resumed sandbox running as root instead of the sandbox's default user after a platform upgrade. Affected sandboxes recover on their next resume. ([`972e9d3`](https://github.com/e2b-dev/infra/commit/972e9d33bcaa37349c4d81608b45dd4c4a6cb33e))
-- Fixed log lines written shortly before a pause being dropped from sandbox logs after resume. ([`e915d32`](https://github.com/e2b-dev/infra/commit/e915d32bfc471a5e102419549db4ab977efa027c))
-- Fixed sandbox pause reporting a failure when a process inside the sandbox exited while the pause was in progress. ([`27eefde`](https://github.com/e2b-dev/infra/commit/27eefded9fc16f0043c023222eec18882c08862c))
+- Template builds from minimal RPM-family base images, such as Rocky Linux minimal or UBI, no longer fail during the final build step. [`12ee9b1`](https://github.com/e2b-dev/infra/commit/12ee9b1062d59a76c5d6b2df26e3e53c66fdbc08)
+- Fixed commands in a resumed sandbox running as root instead of the sandbox's default user after a platform upgrade. Affected sandboxes recover on their next resume. [`972e9d3`](https://github.com/e2b-dev/infra/commit/972e9d33bcaa37349c4d81608b45dd4c4a6cb33e)
+- Fixed log lines written shortly before a pause being dropped from sandbox logs after resume. [`e915d32`](https://github.com/e2b-dev/infra/commit/e915d32bfc471a5e102419549db4ab977efa027c)
+- Fixed sandbox pause reporting a failure when a process inside the sandbox exited while the pause was in progress. [`27eefde`](https://github.com/e2b-dev/infra/commit/27eefded9fc16f0043c023222eec18882c08862c)
 - Volume uploads rejected mid-transfer now return the actual rejection status instead of a generic failure.
 - Reliability and security hardening across platform services, including dependency and base image CVE patches.
 
 </Update>
 
-<Update label="August 31, 2026" description="Wildcard transform rules and API key validation" tags={["SDK", "CLI", "API", "Self-hosted"]} rss={{ title: "Wildcard Transform Rules & Server-Side API Key Validation", description: "This week improves sandbox networking and authentication with wildcard domains in transform rules, server-side API key validation, and readable proxy errors for browser requests." }}>
+<Update label="August 31, 2026" tags={["SDK", "CLI", "API", "Self-hosted"]} rss={{ title: "Wildcard Transform Rules & Server-Side API Key Validation", description: "This week improves sandbox networking and authentication with wildcard domains in transform rules, server-side API key validation, and readable proxy errors for browser requests." }}>
 
 ## Wildcard Transform Rules & Server-Side API Key Validation
 
@@ -290,38 +290,38 @@ This week improves sandbox networking and authentication with wildcard domains i
 
 ### Wildcard domains in network transform rules
 
-[Network transform rules](/network/internet-access) now accept a single leading wildcard label, such as `*.example.com`, so one rule can transform requests to subdomains at any depth. Exact keys take precedence, and when several wildcards match, the most specific one applies. ([`d843e3f`](https://github.com/e2b-dev/infra/commit/d843e3f00d708e292c31a5841a2fe1fcfc1f2997))
+[Network transform rules](/network/internet-access) now accept a single leading wildcard label, such as `*.example.com`, so one rule can transform requests to subdomains at any depth. Exact keys take precedence, and when several wildcards match, the most specific one applies. [`d843e3f`](https://github.com/e2b-dev/infra/commit/d843e3f00d708e292c31a5841a2fe1fcfc1f2997)
 
 ### Server-side API key validation
 
-The SDKs no longer check the `e2b_` [API key](/api-key) format on the client; the `validateApiKey` and `validate_api_key` options are deprecated and have no effect. The API validates keys instead and returns a distinct 401 message for a malformed key. Shipped in the JavaScript and Python SDKs 2.46.0. ([#1751](https://github.com/e2b-dev/E2B/pull/1751))
+The SDKs no longer check the `e2b_` [API key](/api-key) format on the client; the `validateApiKey` and `validate_api_key` options are deprecated and have no effect. The API validates keys instead and returns a distinct 401 message for a malformed key. Shipped in the JavaScript and Python SDKs 2.46.0. [#1751](https://github.com/e2b-dev/E2B/pull/1751)
 
 ### Readable proxy errors for browser requests
 
-Error responses synthesized in front of a sandbox, such as when the sandbox is unreachable, now carry CORS headers and answer preflight requests, so browser code can read the actual error instead of hitting a generic network failure. ([`32c6b84`](https://github.com/e2b-dev/infra/commit/32c6b84d4bacb515a94d0fa0252560f777faef08))
+Error responses synthesized in front of a sandbox, such as when the sandbox is unreachable, now carry CORS headers and answer preflight requests, so browser code can read the actual error instead of hitting a generic network failure. [`32c6b84`](https://github.com/e2b-dev/infra/commit/32c6b84d4bacb515a94d0fa0252560f777faef08)
 
 ### Sandbox git module deprecation
 
-The sandbox `git` module is deprecated as of the JavaScript and Python SDKs 2.46.1 and will be removed in the next major version. Run git through [`commands.run`](/commands) instead. ([#1774](https://github.com/e2b-dev/E2B/pull/1774))
+The sandbox `git` module is deprecated as of the JavaScript and Python SDKs 2.46.1 and will be removed in the next major version. Run git through [`commands.run`](/commands) instead. [#1774](https://github.com/e2b-dev/E2B/pull/1774)
 
 ### CLI configuration file scope
 
-The CLI no longer reads `e2b.toml` outside `e2b template migrate`; the `sandbox create`, `template delete`, `template publish`, and `template unpublish` commands take the template as an argument instead of the `--config` and `--path` flags. This is a breaking change in CLI 2.18.0. ([#1761](https://github.com/e2b-dev/E2B/pull/1761))
+The CLI no longer reads `e2b.toml` outside `e2b template migrate`; the `sandbox create`, `template delete`, `template publish`, and `template unpublish` commands take the template as an argument instead of the `--config` and `--path` flags. This is a breaking change in CLI 2.18.0. [#1761](https://github.com/e2b-dev/E2B/pull/1761)
 
 ### Fixes
 
-- The CLI now passes flags placed after the command in `e2b sandbox exec` through to the remote command, and `e2b sandbox create --detach` prints only the sandbox ID to stdout. ([#1759](https://github.com/e2b-dev/E2B/pull/1759), [#1762](https://github.com/e2b-dev/E2B/pull/1762))
-- Fixed the JavaScript SDK dropping a malformed `egressProxy` address instead of raising a clear error, and null proxy credentials are no longer sent to the API (SDK 2.46.0). ([#1757](https://github.com/e2b-dev/E2B/pull/1757))
-- Fixed snapshot and template builds staying stuck in a non-terminal status after a client disconnect or a rejected pause. ([`8586a66`](https://github.com/e2b-dev/infra/commit/8586a66a5e84504536b2df9b7e28efe9069d8284), [`42f6997`](https://github.com/e2b-dev/infra/commit/42f699786534f1c0ad625ce9b4b7b922b3a16834), [`0159f8c`](https://github.com/e2b-dev/infra/commit/0159f8c0fa5b03c2a1bbe706f35ceea41bcd23c5))
-- Fixed command starts in a sandbox that has exhausted memory or processes returning a generic error instead of a retryable resource exhaustion error. ([`f733a71`](https://github.com/e2b-dev/infra/commit/f733a713361e65633c2cb437c3de1ad755964a1a))
-- Fixed streamed requests aborted mid-response ending with a cut connection instead of a proper error status. ([`3affe52`](https://github.com/e2b-dev/infra/commit/3affe5280b7e1cf8a182840cc50964a6bc5b569d))
+- The CLI now passes flags placed after the command in `e2b sandbox exec` through to the remote command, and `e2b sandbox create --detach` prints only the sandbox ID to stdout. [#1759](https://github.com/e2b-dev/E2B/pull/1759), [#1762](https://github.com/e2b-dev/E2B/pull/1762)
+- Fixed the JavaScript SDK dropping a malformed `egressProxy` address instead of raising a clear error, and null proxy credentials are no longer sent to the API (SDK 2.46.0). [#1757](https://github.com/e2b-dev/E2B/pull/1757)
+- Fixed snapshot and template builds staying stuck in a non-terminal status after a client disconnect or a rejected pause. [`8586a66`](https://github.com/e2b-dev/infra/commit/8586a66a5e84504536b2df9b7e28efe9069d8284), [`42f6997`](https://github.com/e2b-dev/infra/commit/42f699786534f1c0ad625ce9b4b7b922b3a16834), [`0159f8c`](https://github.com/e2b-dev/infra/commit/0159f8c0fa5b03c2a1bbe706f35ceea41bcd23c5)
+- Fixed command starts in a sandbox that has exhausted memory or processes returning a generic error instead of a retryable resource exhaustion error. [`f733a71`](https://github.com/e2b-dev/infra/commit/f733a713361e65633c2cb437c3de1ad755964a1a)
+- Fixed streamed requests aborted mid-response ending with a cut connection instead of a proper error status. [`3affe52`](https://github.com/e2b-dev/infra/commit/3affe5280b7e1cf8a182840cc50964a6bc5b569d)
 - Fixed the dashboard webhook editor not offering the `sandbox.lifecycle.checkpointed` [event](/sandbox/lifecycle-events-webhooks).
-- Self-hosted deployments no longer cache a missing platform file on AWS, which kept sandbox startup failing after the file became available, and failed multipart uploads to Google Cloud Storage are aborted instead of orphaning parts. ([`19ad718`](https://github.com/e2b-dev/infra/commit/19ad71816c3eda57d133f8145ef541dc609c2217), [`9e1caea`](https://github.com/e2b-dev/infra/commit/9e1caea40fc75eb2e07cbe75129db7d3eceb7e4e))
+- Self-hosted deployments no longer cache a missing platform file on AWS, which kept sandbox startup failing after the file became available, and failed multipart uploads to Google Cloud Storage are aborted instead of orphaning parts. [`19ad718`](https://github.com/e2b-dev/infra/commit/19ad71816c3eda57d133f8145ef541dc609c2217), [`9e1caea`](https://github.com/e2b-dev/infra/commit/9e1caea40fc75eb2e07cbe75129db7d3eceb7e4e)
 - Reliability and security hardening across platform services, including dependency and base image CVE patches.
 
 </Update>
 
-<Update label="August 24, 2026" description="SOCKS5 egress proxy, sandbox list filters, and snapshot CLI" tags={["SDK", "CLI", "API", "Sandboxes"]} rss={{ title: "Bring Your Own Proxy & Sandbox List Filters", description: "This week routes sandbox egress through your own SOCKS5 proxy, adds sorting and filters to sandbox listing, and ships snapshot management commands in the CLI." }}>
+<Update label="August 24, 2026" tags={["SDK", "CLI", "API", "Sandboxes"]} rss={{ title: "Bring Your Own Proxy & Sandbox List Filters", description: "This week routes sandbox egress through your own SOCKS5 proxy, adds sorting and filters to sandbox listing, and ships snapshot management commands in the CLI." }}>
 
 ## Bring Your Own Proxy & Sandbox List Filters
 
@@ -329,40 +329,40 @@ This week routes sandbox egress through your own SOCKS5 proxy, adds sorting and 
 
 ### Bring your own proxy for sandbox egress
 
-`Sandbox.create` accepts a [`network.egressProxy`](/network/byop) option that tunnels every outbound TCP connection through a SOCKS5 proxy you operate, applied on the host after `allowOut` and `denyOut` so code inside the sandbox cannot see or route around it. `updateNetwork` swaps the proxy on a running sandbox, and egress fails closed when the proxy is unreachable. Shipped in the JavaScript and Python SDKs 2.41.0. ([#1688](https://github.com/e2b-dev/E2B/pull/1688))
+`Sandbox.create` accepts a [`network.egressProxy`](/network/byop) option that tunnels every outbound TCP connection through a SOCKS5 proxy you operate, applied on the host after `allowOut` and `denyOut` so code inside the sandbox cannot see or route around it. `updateNetwork` swaps the proxy on a running sandbox, and egress fails closed when the proxy is unreachable. Shipped in the JavaScript and Python SDKs 2.41.0. [#1688](https://github.com/e2b-dev/E2B/pull/1688)
 
 ### Sandbox list sorting and filters
 
-[`Sandbox.list`](/sandbox/list) accepts an `order` option (`asc` or `desc`, default `desc`) that sorts by start time across the paginated dataset, plus `startedAfter` and `template` filters that apply server-side. The `e2b sandbox list` command exposes the same knobs through `--order`, `--started-after`, and `--template`. Shipped in the JavaScript and Python SDKs 2.45.0 and the CLI 2.17.0. ([#1735](https://github.com/e2b-dev/E2B/pull/1735), [`e6de33c`](https://github.com/e2b-dev/infra/commit/e6de33c74602b6ba116bb041e70e8bba73133550))
+[`Sandbox.list`](/sandbox/list) accepts an `order` option (`asc` or `desc`, default `desc`) that sorts by start time across the paginated dataset, plus `startedAfter` and `template` filters that apply server-side. The `e2b sandbox list` command exposes the same knobs through `--order`, `--started-after`, and `--template`. Shipped in the JavaScript and Python SDKs 2.45.0 and the CLI 2.17.0. [#1735](https://github.com/e2b-dev/E2B/pull/1735), [`e6de33c`](https://github.com/e2b-dev/infra/commit/e6de33c74602b6ba116bb041e70e8bba73133550)
 
 ### Snapshot commands in the CLI
 
-The [`e2b sandbox snapshot`](/cli/manage-snapshots) group adds `create <sandboxID>` with an optional `--name`, `list [sandboxID]` with a `--name` filter, and `delete <snapshotIDs...>`. Shipped in the CLI 2.17.0. ([#1741](https://github.com/e2b-dev/E2B/pull/1741))
+The [`e2b sandbox snapshot`](/cli/manage-snapshots) group adds `create <sandboxID>` with an optional `--name`, `list [sandboxID]` with a `--name` filter, and `delete <snapshotIDs...>`. Shipped in the CLI 2.17.0. [#1741](https://github.com/e2b-dev/E2B/pull/1741)
 
 ### Machine-readable sandbox placement errors
 
-A failed `POST /sandboxes` now returns a machine-readable `error_code` paired with a status: 503 with `cluster_at_capacity` or `no_compatible_node`, 504 with `placement_timeout`, and 500 with `sandbox_create_failed`, instead of a bare 500. ([`c426430`](https://github.com/e2b-dev/infra/commit/c4264309b3776dbd7b0d456d882afbb97187dc78))
+A failed `POST /sandboxes` now returns a machine-readable `error_code` paired with a status: 503 with `cluster_at_capacity` or `no_compatible_node`, 504 with `placement_timeout`, and 500 with `sandbox_create_failed`, instead of a bare 500. [`c426430`](https://github.com/e2b-dev/infra/commit/c4264309b3776dbd7b0d456d882afbb97187dc78)
 
 ### Multi-connection SDK client
 
-The new [`E2B` client](/client) binds a connection config once and exposes `Sandbox`, `Volume`, and `Template` off it, so one process can talk to several API keys, domains, or self-hosted deployments in parallel. Shipped in the JavaScript and Python SDKs 2.44.0. ([#1720](https://github.com/e2b-dev/E2B/pull/1720))
+The new [`E2B` client](/client) binds a connection config once and exposes `Sandbox`, `Volume`, and `Template` off it, so one process can talk to several API keys, domains, or self-hosted deployments in parallel. Shipped in the JavaScript and Python SDKs 2.44.0. [#1720](https://github.com/e2b-dev/E2B/pull/1720)
 
 ### Refreshed MCP server catalog
 
-The [MCP server catalog](/mcp-gateway/available-servers) picks up 49 new servers and drops six retired ones from the `McpServer` type, so `Template().addMcpServer("postgres")` stops compiling. Shipped in the JavaScript and Python SDKs 2.42.0. ([#1716](https://github.com/e2b-dev/E2B/pull/1716))
+The [MCP server catalog](/mcp-gateway/available-servers) picks up 49 new servers and drops six retired ones from the `McpServer` type, so `Template().addMcpServer("postgres")` stops compiling. Shipped in the JavaScript and Python SDKs 2.42.0. [#1716](https://github.com/e2b-dev/E2B/pull/1716)
 
 ### Fixes
 
-- Improved pause and resume reliability for sandboxes running systemd units under a slice or a nested container runtime, removing the tail of slow resumes those workloads used to see. ([`f06e9bc`](https://github.com/e2b-dev/infra/commit/f06e9bc1e2d605e1e11b65cc3242a8af0c7a3151))
-- Fixed sandbox create failing with a retryable 500 when `denyOut` or `allowOut` contained a CIDR whose range ended at `255.255.255.255`, such as `240.0.0.0/4`. ([`9f6c2eb`](https://github.com/e2b-dev/infra/commit/9f6c2eb54efcaf32a087e854c689793dd01fd200))
-- Fixed network `transform` rules with a wildcard host key such as `*.github.com` not matching connections whose TLS SNI matched the wildcard. ([`9072e15`](https://github.com/e2b-dev/infra/commit/9072e15e7b8a08fa47fee77f3236fff26ea93ac2))
-- Fixed the Python SDK 2.45.1 buffering streamed request bodies across retries, so `files.write` of a file-like object and `volume.write_file` no longer scale peak memory with file size. ([#1718](https://github.com/e2b-dev/E2B/pull/1718))
-- Fixed the JavaScript SDK 2.42.0 sending `autoResume` and `autoPause` local defaults on create when no lifecycle was configured, so the API can apply its own defaults. ([#1693](https://github.com/e2b-dev/E2B/pull/1693), [#1694](https://github.com/e2b-dev/E2B/pull/1694))
+- Improved pause and resume reliability for sandboxes running systemd units under a slice or a nested container runtime, removing the tail of slow resumes those workloads used to see. [`f06e9bc`](https://github.com/e2b-dev/infra/commit/f06e9bc1e2d605e1e11b65cc3242a8af0c7a3151)
+- Fixed sandbox create failing with a retryable 500 when `denyOut` or `allowOut` contained a CIDR whose range ended at `255.255.255.255`, such as `240.0.0.0/4`. [`9f6c2eb`](https://github.com/e2b-dev/infra/commit/9f6c2eb54efcaf32a087e854c689793dd01fd200)
+- Fixed network `transform` rules with a wildcard host key such as `*.github.com` not matching connections whose TLS SNI matched the wildcard. [`9072e15`](https://github.com/e2b-dev/infra/commit/9072e15e7b8a08fa47fee77f3236fff26ea93ac2)
+- Fixed the Python SDK 2.45.1 buffering streamed request bodies across retries, so `files.write` of a file-like object and `volume.write_file` no longer scale peak memory with file size. [#1718](https://github.com/e2b-dev/E2B/pull/1718)
+- Fixed the JavaScript SDK 2.42.0 sending `autoResume` and `autoPause` local defaults on create when no lifecycle was configured, so the API can apply its own defaults. [#1693](https://github.com/e2b-dev/E2B/pull/1693), [#1694](https://github.com/e2b-dev/E2B/pull/1694)
 - Reliability and security hardening across platform services, including dependency and base image CVE patches.
 
 </Update>
 
-<Update label="August 17, 2026" description="Workload identity in SDKs, faster Python HTTP, and clearer placement errors" tags={["SDK", "API", "Dashboard", "Sandboxes"]} rss={{ title: "Workload Identity in the SDKs & Faster Python HTTP", description: "This week ships sandbox workload identity in both SDKs, moves the Python SDK onto a Rust HTTP stack, and returns detailed sandbox placement failure reasons." }}>
+<Update label="August 17, 2026" tags={["SDK", "API", "Dashboard", "Sandboxes"]} rss={{ title: "Workload Identity in the SDKs & Faster Python HTTP", description: "This week ships sandbox workload identity in both SDKs, moves the Python SDK onto a Rust HTTP stack, and returns detailed sandbox placement failure reasons." }}>
 
 ## Workload Identity in the SDKs & Faster Python HTTP
 
@@ -370,15 +370,15 @@ This week ships sandbox workload identity in both SDKs, moves the Python SDK ont
 
 ### Sandbox workload identity in the SDKs
 
-`Sandbox.create` now takes an `iam` option with a `tokens` map defining short-lived [workload identity](/iam/workload-identity) tokens by audience and type, via the new `Secret.iamToken` helper (`Secret.iam_token` in Python). A network rule's `transform` can be a callback receiving token placeholders, so a token reaches egress request headers without the SDK seeing its value. Shipped in the JavaScript and Python SDKs 2.39.0. ([#1606](https://github.com/e2b-dev/E2B/pull/1606), [#1616](https://github.com/e2b-dev/E2B/pull/1616))
+`Sandbox.create` now takes an `iam` option with a `tokens` map defining short-lived [workload identity](/iam/workload-identity) tokens by audience and type, via the new `Secret.iamToken` helper (`Secret.iam_token` in Python). A network rule's `transform` can be a callback receiving token placeholders, so a token reaches egress request headers without the SDK seeing its value. Shipped in the JavaScript and Python SDKs 2.39.0. [#1606](https://github.com/e2b-dev/E2B/pull/1606), [#1616](https://github.com/e2b-dev/E2B/pull/1616)
 
 ### Python SDK moves to a Rust HTTP stack
 
-The Python SDK 2.38.0 routes the control plane, sandbox file transfers, volume content, and template build-context uploads through `pyqwest`, a Rust transport for `httpx`. Connection pools are now process-global per proxy, and `request_timeout` is a whole-transfer deadline. `E2B_MAX_CONNECTIONS` is no longer read. ([#1601](https://github.com/e2b-dev/E2B/pull/1601), [#1602](https://github.com/e2b-dev/E2B/pull/1602), [#1603](https://github.com/e2b-dev/E2B/pull/1603), [#1623](https://github.com/e2b-dev/E2B/pull/1623))
+The Python SDK 2.38.0 routes the control plane, sandbox file transfers, volume content, and template build-context uploads through `pyqwest`, a Rust transport for `httpx`. Connection pools are now process-global per proxy, and `request_timeout` is a whole-transfer deadline. `E2B_MAX_CONNECTIONS` is no longer read. [#1601](https://github.com/e2b-dev/E2B/pull/1601), [#1602](https://github.com/e2b-dev/E2B/pull/1602), [#1603](https://github.com/e2b-dev/E2B/pull/1603), [#1623](https://github.com/e2b-dev/E2B/pull/1623)
 
 ### Detailed sandbox placement failure reasons
 
-A failed sandbox create or resume now returns a message naming the reason: cluster at capacity, no compatible node, placement timed out, snapshot files missing, or repeated create failures. Every case previously returned a bare `Failed to place sandbox`. ([`063aa20`](https://github.com/e2b-dev/infra/commit/063aa20c871116c80915ab1f5c2e81d804e6b2d0))
+A failed sandbox create or resume now returns a message naming the reason: cluster at capacity, no compatible node, placement timed out, snapshot files missing, or repeated create failures. Every case previously returned a bare `Failed to place sandbox`. [`063aa20`](https://github.com/e2b-dev/infra/commit/063aa20c871116c80915ab1f5c2e81d804e6b2d0)
 
 ### Sandbox concurrency add-on management in the dashboard
 
@@ -386,14 +386,14 @@ The billing page in the [console](https://console.e2b.dev) lets you buy multiple
 
 ### Fixes
 
-- Fixed sandbox proxy errors returning the HTML error page to browser `fetch()` and `XMLHttpRequest` callers that expected JSON, by using `Accept`, `Sec-Fetch-Mode`, and `X-Requested-With` before the User-Agent sniff. ([`d70ca24`](https://github.com/e2b-dev/infra/commit/d70ca24dbe1325b8f773b1435224efa862ae5156))
-- Fixed sandboxes resumed from large snapshots losing the working set the platform preloads on resume when the snapshot upload took longer than expected, which made the next resume slower than it should be. ([`aeab31d`](https://github.com/e2b-dev/infra/commit/aeab31df792a293066a28286a80829e75db28463))
-- Restored the `http2` parameter on the Python SDK 2.39.1 transport factories, so `http2=False` again returns a transport pinned to HTTP/1.1. ([#1671](https://github.com/e2b-dev/E2B/pull/1671))
+- Fixed sandbox proxy errors returning the HTML error page to browser `fetch()` and `XMLHttpRequest` callers that expected JSON, by using `Accept`, `Sec-Fetch-Mode`, and `X-Requested-With` before the User-Agent sniff. [`d70ca24`](https://github.com/e2b-dev/infra/commit/d70ca24dbe1325b8f773b1435224efa862ae5156)
+- Fixed sandboxes resumed from large snapshots losing the working set the platform preloads on resume when the snapshot upload took longer than expected, which made the next resume slower than it should be. [`aeab31d`](https://github.com/e2b-dev/infra/commit/aeab31df792a293066a28286a80829e75db28463)
+- Restored the `http2` parameter on the Python SDK 2.39.1 transport factories, so `http2=False` again returns a transport pinned to HTTP/1.1. [#1671](https://github.com/e2b-dev/E2B/pull/1671)
 - Reliability and security hardening across platform services, including dependency and base image CVE patches.
 
 </Update>
 
-<Update label="August 10, 2026" description="Self-hosted proxy retirement, template cert repair, and SDK install fixes" tags={["Self-hosted", "Templates", "SDK"]} rss={{ title: "Self-Hosted Proxy Retirement & Template Cert Repair", description: "This week retires the deprecated reverse-proxy service on self-hosted clusters, repairs SSL trust stores baked into templates, and unblocks Python SDK installs alongside newer wcmatch." }}>
+<Update label="August 10, 2026" tags={["Self-hosted", "Templates", "SDK"]} rss={{ title: "Self-Hosted Proxy Retirement & Template Cert Repair", description: "This week retires the deprecated reverse-proxy service on self-hosted clusters, repairs SSL trust stores baked into templates, and unblocks Python SDK installs alongside newer wcmatch." }}>
 
 ## Self-Hosted Proxy Retirement & Template Cert Repair
 
@@ -401,33 +401,33 @@ This week retires the deprecated reverse-proxy service on self-hosted clusters, 
 
 ### Reverse-proxy service retired on self-hosted clusters
 
-Self-hosted deployments no longer build or ship the reverse-proxy service. `DOCKER_REVERSE_PROXY_VERSION` is removed from both `.env.aws.template` and `.env.gcp.template`, and a new `DOCKER_REVERSE_PROXY_ENABLED` toggle (default on) controls whether the AWS ECR repository is created and whether the GCP deployment runs. Clusters without a prebuilt `docker-reverse-proxy:latest` image must set the toggle to `false`. ([`d153bbe`](https://github.com/e2b-dev/infra/commit/d153bbe9d1e2ccd5e087d7c1dece5b8974175b54))
+Self-hosted deployments no longer build or ship the reverse-proxy service. `DOCKER_REVERSE_PROXY_VERSION` is removed from both `.env.aws.template` and `.env.gcp.template`, and a new `DOCKER_REVERSE_PROXY_ENABLED` toggle (default on) controls whether the AWS ECR repository is created and whether the GCP deployment runs. Clusters without a prebuilt `docker-reverse-proxy:latest` image must set the toggle to `false`. [`d153bbe`](https://github.com/e2b-dev/infra/commit/d153bbe9d1e2ccd5e087d7c1dece5b8974175b54)
 
 ### Repaired SSL trust store in template builds
 
-Template builds that install SSL-related packages such as `ca-certificates` or `openjdk` no longer leave the finalized template with a half-configured package or a silently broken Java trust store. Directory paths under `/etc/ssl/certs` claimed by installed packages are restored before the certificate bundle is packed. Existing broken templates need a rebuild. ([`6f17229a`](https://github.com/e2b-dev/infra/commit/6f17229a2a75695de19cbbba4f8f65a7f13ec6c5))
+Template builds that install SSL-related packages such as `ca-certificates` or `openjdk` no longer leave the finalized template with a half-configured package or a silently broken Java trust store. Directory paths under `/etc/ssl/certs` claimed by installed packages are restored before the certificate bundle is packed. Existing broken templates need a rebuild. [`6f17229a`](https://github.com/e2b-dev/infra/commit/6f17229a2a75695de19cbbba4f8f65a7f13ec6c5)
 
 ### Separate egress marking for template builds and sandboxes
 
-On [BYOC](/byoc) clusters that opt in to [DSCP marking](/deployment/dscp-marking), template-build traffic can now carry a different DSCP value from sandbox traffic, so a downstream firewall or shaper can classify the two separately. An unset build value inherits the sandbox value, and an explicit `0` disables marking for builds only. ([`41c38cbe`](https://github.com/e2b-dev/infra/commit/41c38cbec4681192584139931ef294eaee8297d2))
+On [BYOC](/byoc) clusters that opt in to [DSCP marking](/deployment/dscp-marking), template-build traffic can now carry a different DSCP value from sandbox traffic, so a downstream firewall or shaper can classify the two separately. An unset build value inherits the sandbox value, and an explicit `0` disables marking for builds only. [`41c38cbe`](https://github.com/e2b-dev/infra/commit/41c38cbec4681192584139931ef294eaee8297d2)
 
 ### Python SDK installs alongside newer wcmatch
 
-The Python SDK 2.37.1 relaxes its `wcmatch` requirement to `>=10.1,<12`, so `pip install e2b 'deepagents>=0.7.0'` and other combinations that pull in `wcmatch` 11 resolve without a conflict. ([#1638](https://github.com/e2b-dev/E2B/pull/1638))
+The Python SDK 2.37.1 relaxes its `wcmatch` requirement to `>=10.1,<12`, so `pip install e2b 'deepagents>=0.7.0'` and other combinations that pull in `wcmatch` 11 resolve without a conflict. [#1638](https://github.com/e2b-dev/E2B/pull/1638)
 
 ### Public Git argument and status types in the JavaScript SDK
 
-The JavaScript SDK 2.38.1 exports `GitResetMode`, `GitResetOpts`, `GitRestoreOpts`, and `GitStatusLabel` from the `e2b` package entry, so you can annotate wrappers around `sandbox.git.reset()`, `sandbox.git.restore()`, and `sandbox.git.status()` without inferring types. ([#1642](https://github.com/e2b-dev/E2B/pull/1642))
+The JavaScript SDK 2.38.1 exports `GitResetMode`, `GitResetOpts`, `GitRestoreOpts`, and `GitStatusLabel` from the `e2b` package entry, so you can annotate wrappers around `sandbox.git.reset()`, `sandbox.git.restore()`, and `sandbox.git.status()` without inferring types. [#1642](https://github.com/e2b-dev/E2B/pull/1642)
 
 ### Fixes
 
-- Aligned the Python SDK 2.37.1 `strip_ansi_escape_codes` with the JavaScript SDK 2.38.1 `stripAnsi`, so template build logs are cleaned identically across languages and OSC, CSI, DCS, SOS, PM, and APC control sequences no longer leak into cleaned output. ([#1545](https://github.com/e2b-dev/E2B/pull/1545))
+- Aligned the Python SDK 2.37.1 `strip_ansi_escape_codes` with the JavaScript SDK 2.38.1 `stripAnsi`, so template build logs are cleaned identically across languages and OSC, CSI, DCS, SOS, PM, and APC control sequences no longer leak into cleaned output. [#1545](https://github.com/e2b-dev/E2B/pull/1545)
 - Reliability and security hardening across platform services, including dependency and base image CVE patches.
 
 
 </Update>
 
-<Update label="August 3, 2026" description="Access tokens disabled, multi-distro templates, and CLI session flags" tags={["Templates", "CLI", "SDK", "API"]} rss={{ title: "Access Tokens Disabled & Multi-Distro Templates", description: "Access tokens are now disabled; authenticate the CLI with E2B_API_KEY instead. This week also improves templates and terminal workflows with Fedora, Alpine, Arch, and NixOS base images, CLI session flags, and cross-runtime detection of web platform objects." }}>
+<Update label="August 3, 2026" tags={["Templates", "CLI", "SDK", "API"]} rss={{ title: "Access Tokens Disabled & Multi-Distro Templates", description: "Access tokens are now disabled; authenticate the CLI with E2B_API_KEY instead. This week also improves templates and terminal workflows with Fedora, Alpine, Arch, and NixOS base images, CLI session flags, and cross-runtime detection of web platform objects." }}>
 
 ## Access Tokens Disabled & Multi-Distro Templates
 
@@ -439,35 +439,35 @@ As of August 1, 2026, E2B no longer accepts access tokens for authentication, co
 
 ### Fedora, Alpine, Arch, and NixOS base images
 
-Templates can now start from Fedora, Alpine, and Arch [base images](/template/base-image) using the new `fromFedoraImage`, `fromAlpineImage`, and `fromArchImage` helpers in JavaScript SDK 2.37.0, or `from_fedora_image`, `from_alpine_image`, and `from_arch_image` in Python SDK 2.36.0. Base image provisioning identifies the distribution from `/etc/os-release`, and unsupported images fail the build with a clear reason. The premade `e2bdev/nixos` image adds NixOS support for images whose packages and services are declared in the image configuration. ([#3411](https://github.com/e2b-dev/infra/pull/3411), [#3412](https://github.com/e2b-dev/infra/pull/3412), [#1612](https://github.com/e2b-dev/E2B/pull/1612), [#1625](https://github.com/e2b-dev/E2B/pull/1625))
+Templates can now start from Fedora, Alpine, and Arch [base images](/template/base-image) using the new `fromFedoraImage`, `fromAlpineImage`, and `fromArchImage` helpers in JavaScript SDK 2.37.0, or `from_fedora_image`, `from_alpine_image`, and `from_arch_image` in Python SDK 2.36.0. Base image provisioning identifies the distribution from `/etc/os-release`, and unsupported images fail the build with a clear reason. The premade `e2bdev/nixos` image adds NixOS support for images whose packages and services are declared in the image configuration. [#3411](https://github.com/e2b-dev/infra/pull/3411), [#3412](https://github.com/e2b-dev/infra/pull/3412), [#1612](https://github.com/e2b-dev/E2B/pull/1612), [#1625](https://github.com/e2b-dev/E2B/pull/1625)
 
 ### Terminal session flags in the CLI
 
-`e2b sandbox create` and `e2b sandbox connect` now accept `--user`, `--cwd`, and repeatable `--env KEY=VALUE` flags in `@e2b/cli` 2.16.1. The connected terminal starts as the given user, in the given working directory, and with the given environment variables. ([#1501](https://github.com/e2b-dev/E2B/pull/1501))
+`e2b sandbox create` and `e2b sandbox connect` now accept `--user`, `--cwd`, and repeatable `--env KEY=VALUE` flags in `@e2b/cli` 2.16.1. The connected terminal starts as the given user, in the given working directory, and with the given environment variables. [#1501](https://github.com/e2b-dev/E2B/pull/1501)
 
 ### Cross-runtime detection of web platform objects
 
-The JavaScript SDK in version 2.37.0 now identifies `Request`, `Blob`, `File`, and `ReadableStream` values by shape rather than by class, so replacements installed by frameworks such as remix, `@hono/node-server`, and jsdom test environments no longer take the wrong branch. This fixes API calls failing with `Failed to parse URL from [object Request]`, uploads that silently contained the text `[object Blob]`, and `volume.readFile()` returning empty data. ([#1618](https://github.com/e2b-dev/E2B/pull/1618))
+The JavaScript SDK in version 2.37.0 now identifies `Request`, `Blob`, `File`, and `ReadableStream` values by shape rather than by class, so replacements installed by frameworks such as remix, `@hono/node-server`, and jsdom test environments no longer take the wrong branch. This fixes API calls failing with `Failed to parse URL from [object Request]`, uploads that silently contained the text `[object Blob]`, and `volume.readFile()` returning empty data. [#1618](https://github.com/e2b-dev/E2B/pull/1618)
 
 ### BYOC volume endpoints return the cluster domain
 
-Teams connected to a custom [BYOC cluster](/byoc) now receive their cluster domain from the volume create and get endpoints, and the SDKs route volume content requests to that host instead of the default `api.<E2B_DOMAIN>`. Teams on the default cluster keep their configured default. ([#3490](https://github.com/e2b-dev/infra/pull/3490))
+Teams connected to a custom [BYOC cluster](/byoc) now receive their cluster domain from the volume create and get endpoints, and the SDKs route volume content requests to that host instead of the default `api.<E2B_DOMAIN>`. Teams on the default cluster keep their configured default. [#3490](https://github.com/e2b-dev/infra/pull/3490)
 
 ### Cleaner installs of the JavaScript SDK and CLI
 
-Installing `e2b` and `@e2b/cli` no longer prints deprecation warnings for the transitive `glob` package. The JavaScript SDK moves to `glob` 13 in version 2.36.1, and the CLI moves `@npmcli/package-json` to version 7 in `@e2b/cli` 2.16.0, dropping fresh install package counts from 37 to 26 for the SDK and from 183 to 145 for the CLI. ([#1613](https://github.com/e2b-dev/E2B/pull/1613), [#1614](https://github.com/e2b-dev/E2B/pull/1614))
+Installing `e2b` and `@e2b/cli` no longer prints deprecation warnings for the transitive `glob` package. The JavaScript SDK moves to `glob` 13 in version 2.36.1, and the CLI moves `@npmcli/package-json` to version 7 in `@e2b/cli` 2.16.0, dropping fresh install package counts from 37 to 26 for the SDK and from 183 to 145 for the CLI. [#1613](https://github.com/e2b-dev/E2B/pull/1613), [#1614](https://github.com/e2b-dev/E2B/pull/1614)
 
 ### Fixes
 
-- Fixed [template builds](/template/build) failing when a `copy` step targeted a trailing-slash destination that did not already exist in the base image, so `COPY test.sh /tests/` now creates `/tests/` on demand. ([#3458](https://github.com/e2b-dev/infra/pull/3458))
-- Template builds now fall back to the base image's declared `ID_LIKE` family with a best-effort warning when the exact distribution is not known, restoring builds from Debian derivatives such as Kali. ([#3459](https://github.com/e2b-dev/infra/pull/3459))
-- The API now rejects a `timeout` of zero or a negative number on sandbox create, resume, and fork with a `400 Bad Request` instead of accepting the value and failing later. ([#3419](https://github.com/e2b-dev/infra/pull/3419))
-- Fixed a failing local disk on a sandbox host taking down every sandbox on the machine, so a bad block now fails a single read instead of the whole node. ([#3385](https://github.com/e2b-dev/infra/pull/3385))
+- Fixed [template builds](/template/build) failing when a `copy` step targeted a trailing-slash destination that did not already exist in the base image, so `COPY test.sh /tests/` now creates `/tests/` on demand. [#3458](https://github.com/e2b-dev/infra/pull/3458)
+- Template builds now fall back to the base image's declared `ID_LIKE` family with a best-effort warning when the exact distribution is not known, restoring builds from Debian derivatives such as Kali. [#3459](https://github.com/e2b-dev/infra/pull/3459)
+- The API now rejects a `timeout` of zero or a negative number on sandbox create, resume, and fork with a `400 Bad Request` instead of accepting the value and failing later. [#3419](https://github.com/e2b-dev/infra/pull/3419)
+- Fixed a failing local disk on a sandbox host taking down every sandbox on the machine, so a bad block now fails a single read instead of the whole node. [#3385](https://github.com/e2b-dev/infra/pull/3385)
 - Reliability and security hardening across platform services, including dependency and base image CVE patches.
 
 </Update>
 
-<Update label="July 27, 2026" description="Projects rename, symlink support, Python SDK transport" tags={["SDK", "CLI", "API"]} rss={{ title: "Projects Rename, Symlink Support & Python SDK Transport", description: "This week improves the CLI and SDKs with the team-to-project rename, symlink listing in filesystem calls, and a rebuilt Python transport layer." }}>
+<Update label="July 27, 2026" tags={["SDK", "CLI", "API"]} rss={{ title: "Projects Rename, Symlink Support & Python SDK Transport", description: "This week improves the CLI and SDKs with the team-to-project rename, symlink listing in filesystem calls, and a rebuilt Python transport layer." }}>
 
 ## Projects Rename, Symlink Support & Python SDK Transport
 
@@ -475,33 +475,33 @@ This week improves the CLI and SDKs with the team-to-project rename, symlink lis
 
 ### Team-to-project rename in the CLI
 
-The CLI now uses "project" wording in terminal output, replaces the `--team` flag with `--project`, and adds an `E2B_PROJECT_ID` environment variable, matching the platform-wide switch to [projects](/projects). The renamed CLI configuration file at `~/.e2b/config.json` migrates on first use, and the previous team-named flags and variables continue to work. ([#1570](https://github.com/e2b-dev/E2B/pull/1570), [#1577](https://github.com/e2b-dev/E2B/pull/1577), [#1580](https://github.com/e2b-dev/E2B/pull/1580))
+The CLI now uses "project" wording in terminal output, replaces the `--team` flag with `--project`, and adds an `E2B_PROJECT_ID` environment variable, matching the platform-wide switch to [projects](/projects). The renamed CLI configuration file at `~/.e2b/config.json` migrates on first use, and the previous team-named flags and variables continue to work. [#1570](https://github.com/e2b-dev/E2B/pull/1570), [#1577](https://github.com/e2b-dev/E2B/pull/1577), [#1580](https://github.com/e2b-dev/E2B/pull/1580)
 
 ### Symlinks in filesystem listings
 
-The JavaScript and Python SDKs now surface symbolic links from `files.list()` and `files.getInfo()` with a dedicated `FileType.SYMLINK` type and a `symlinkTarget` or `symlink_target` field carrying the link destination, so agents can traverse and inspect linked files instead of skipping them. See [file and directory metadata](/filesystem/info). ([#1564](https://github.com/e2b-dev/E2B/pull/1564))
+The JavaScript and Python SDKs now surface symbolic links from `files.list()` and `files.getInfo()` with a dedicated `FileType.SYMLINK` type and a `symlinkTarget` or `symlink_target` field carrying the link destination, so agents can traverse and inspect linked files instead of skipping them. See [file and directory metadata](/filesystem/info). [#1564](https://github.com/e2b-dev/E2B/pull/1564)
 
 ### Python SDK transport rebuild
 
-The Python SDK ships a rebuilt transport for sandbox commands, filesystem, and PTY calls in version 2.35.0, replacing its vendored client. The rebuild removes the direct `protobuf` package dependency and normalizes error handling, so `CommandResult.error` is now `None` on success instead of an empty string. ([#1558](https://github.com/e2b-dev/E2B/pull/1558))
+The Python SDK ships a rebuilt transport for sandbox commands, filesystem, and PTY calls in version 2.35.0, replacing its vendored client. The rebuild removes the direct `protobuf` package dependency and normalizes error handling, so `CommandResult.error` is now `None` on success instead of an empty string. [#1558](https://github.com/e2b-dev/E2B/pull/1558)
 
 ### Cloudflare Workers and edge runtime compatibility
 
-The JavaScript SDK now imports cleanly under Cloudflare Workers and other edge runtimes, removing bare `require` calls that crashed at module load and dropping a `new Function` shim rejected by strict content-security policies. ([#1583](https://github.com/e2b-dev/E2B/pull/1583), [#1607](https://github.com/e2b-dev/E2B/pull/1607))
+The JavaScript SDK now imports cleanly under Cloudflare Workers and other edge runtimes, removing bare `require` calls that crashed at module load and dropping a `new Function` shim rejected by strict content-security policies. [#1583](https://github.com/e2b-dev/E2B/pull/1583), [#1607](https://github.com/e2b-dev/E2B/pull/1607)
 
 ### Fixes
 
-- The API now includes the exhaustion reason in "node exhausted" placement warnings, so capacity errors identify which resource ran out. ([#3279](https://github.com/e2b-dev/infra/pull/3279))
-- The API now exposes pagination headers through CORS, so browser clients can read `x-total-count` and cursor headers on paginated list endpoints. ([#3388](https://github.com/e2b-dev/infra/pull/3388))
-- Deleting an API key now invalidates the authentication cache immediately, so a revoked key stops working without waiting for the previous cache window to expire. ([#3324](https://github.com/e2b-dev/infra/pull/3324))
-- Volume operations now return the correct HTTP status codes for not-found and conflict cases instead of a generic 500. ([#3371](https://github.com/e2b-dev/infra/pull/3371))
-- The CLI now sorts `e2b sandbox list` output by sandbox start timestamp rather than the locale-formatted date string, so entries appear in true chronological order. ([#1573](https://github.com/e2b-dev/E2B/pull/1573))
-- The JavaScript SDK now selects stack-trace frames by SDK boundary, so error stacks point at user code even when the SDK internals change depth. ([#1599](https://github.com/e2b-dev/E2B/pull/1599))
+- The API now includes the exhaustion reason in "node exhausted" placement warnings, so capacity errors identify which resource ran out. [#3279](https://github.com/e2b-dev/infra/pull/3279)
+- The API now exposes pagination headers through CORS, so browser clients can read `x-total-count` and cursor headers on paginated list endpoints. [#3388](https://github.com/e2b-dev/infra/pull/3388)
+- Deleting an API key now invalidates the authentication cache immediately, so a revoked key stops working without waiting for the previous cache window to expire. [#3324](https://github.com/e2b-dev/infra/pull/3324)
+- Volume operations now return the correct HTTP status codes for not-found and conflict cases instead of a generic 500. [#3371](https://github.com/e2b-dev/infra/pull/3371)
+- The CLI now sorts `e2b sandbox list` output by sandbox start timestamp rather than the locale-formatted date string, so entries appear in true chronological order. [#1573](https://github.com/e2b-dev/E2B/pull/1573)
+- The JavaScript SDK now selects stack-trace frames by SDK boundary, so error stacks point at user code even when the SDK internals change depth. [#1599](https://github.com/e2b-dev/E2B/pull/1599)
 - Reliability and security hardening across platform services, including dependency and base image CVE patches.
 
 </Update>
 
-<Update label="July 21, 2026" description="Sandbox forking, snapshot name filter, and template fixes" tags={["Sandboxes", "SDK", "Templates", "Self-hosted"]} rss={{ title: "Sandbox Forking & Snapshot Name Filters", description: "This week improves sandbox provisioning and snapshot workflows with in-place sandbox forking, name-based snapshot lookup, and Docker-compatible template file copying." }}>
+<Update label="July 21, 2026" tags={["Sandboxes", "SDK", "Templates", "Self-hosted"]} rss={{ title: "Sandbox Forking & Snapshot Name Filters", description: "This week improves sandbox provisioning and snapshot workflows with in-place sandbox forking, name-based snapshot lookup, and Docker-compatible template file copying." }}>
 
 ## Sandbox Forking & Snapshot Name Filters
 
@@ -509,25 +509,25 @@ This week improves sandbox provisioning and snapshot workflows with in-place san
 
 ### Sandbox forking
 
-You can now fork a running [sandbox](/sandbox) to spin up one or more clones from its exact in-memory state. The source is briefly paused, snapshotted, and resumed with its ID and expiration untouched, while each fork is returned independently as a running sandbox or a per-fork error. Use `sandbox.fork({ count, timeoutMs })` in JavaScript SDK 2.35.0 or `sandbox.fork(count=..., timeout=...)` in Python SDK 2.34.0. ([#3202](https://github.com/e2b-dev/infra/pull/3202), [#1554](https://github.com/e2b-dev/E2B/pull/1554))
+You can now fork a running [sandbox](/sandbox) to spin up one or more clones from its exact in-memory state. The source is briefly paused, snapshotted, and resumed with its ID and expiration untouched, while each fork is returned independently as a running sandbox or a per-fork error. Use `sandbox.fork({ count, timeoutMs })` in JavaScript SDK 2.35.0 or `sandbox.fork(count=..., timeout=...)` in Python SDK 2.34.0. [#3202](https://github.com/e2b-dev/infra/pull/3202), [#1554](https://github.com/e2b-dev/E2B/pull/1554)
 
 ### Snapshot filtering by name
 
-`Sandbox.listSnapshots()` and `Sandbox.list_snapshots()` now accept a `name` filter matching a snapshot name or ID, optionally tag-qualified such as `"my-team/my-snapshot:v1"`. It combines with the existing sandbox ID filter and returns an empty page for unknown names. Available in JavaScript SDK 2.34.0 and Python SDK 2.33.0. ([#1523](https://github.com/e2b-dev/E2B/pull/1523))
+`Sandbox.listSnapshots()` and `Sandbox.list_snapshots()` now accept a `name` filter matching a snapshot name or ID, optionally tag-qualified such as `"my-team/my-snapshot:v1"`. It combines with the existing sandbox ID filter and returns an empty page for unknown names. Available in JavaScript SDK 2.34.0 and Python SDK 2.33.0. [#1523](https://github.com/e2b-dev/E2B/pull/1523)
 
 ### Docker-compatible template file copies
 
-The [template `copy` step](/template/defining-template) now merges into existing destination directories instead of replacing them, matching Docker `COPY` semantics. Copying `src/` into an image that already has files under `/app/src/` preserves those entries and only overwrites what the source provides. ([#3283](https://github.com/e2b-dev/infra/pull/3283))
+The [template `copy` step](/template/defining-template) now merges into existing destination directories instead of replacing them, matching Docker `COPY` semantics. Copying `src/` into an image that already has files under `/app/src/` preserves those entries and only overwrites what the source provides. [#3283](https://github.com/e2b-dev/infra/pull/3283)
 
 ### Fixes
 
-- Fixed template builds occasionally reporting a failed command stream as success, so build failures now surface reliably. ([#3281](https://github.com/e2b-dev/infra/pull/3281))
-- Fixed [template builds](/template/build) sizing the root filesystem from stale free-space totals, which could leave the resized template short on space after an unclean shutdown. ([#3282](https://github.com/e2b-dev/infra/pull/3282))
-- Fixed copying a template layer when the source snapshot contained only a filesystem image and no memory state. ([#3299](https://github.com/e2b-dev/infra/pull/3299))
-- Fixed resumed sandboxes forwarding stale pre-resume log lines with their old timestamps instead of dropping them. ([#3297](https://github.com/e2b-dev/infra/pull/3297))
-- Fixed the JavaScript SDK `Template.copy()` resolving source paths against the SDK's own directory under `target: es2022` and above. ([#1539](https://github.com/e2b-dev/E2B/pull/1539))
-- Fixed the Python SDK leaking a proxy connection pool on every [volume](/volumes) operation when a proxy was configured, and added connect-level retries via `E2B_CONNECTION_RETRIES`. ([#1534](https://github.com/e2b-dev/E2B/pull/1534))
-- Self-hosted: fixed the Nomad node-pool autoscaler terminating random allocations when downscaling ineligible nodes. ([#3301](https://github.com/e2b-dev/infra/pull/3301))
+- Fixed template builds occasionally reporting a failed command stream as success, so build failures now surface reliably. [#3281](https://github.com/e2b-dev/infra/pull/3281)
+- Fixed [template builds](/template/build) sizing the root filesystem from stale free-space totals, which could leave the resized template short on space after an unclean shutdown. [#3282](https://github.com/e2b-dev/infra/pull/3282)
+- Fixed copying a template layer when the source snapshot contained only a filesystem image and no memory state. [#3299](https://github.com/e2b-dev/infra/pull/3299)
+- Fixed resumed sandboxes forwarding stale pre-resume log lines with their old timestamps instead of dropping them. [#3297](https://github.com/e2b-dev/infra/pull/3297)
+- Fixed the JavaScript SDK `Template.copy()` resolving source paths against the SDK's own directory under `target: es2022` and above. [#1539](https://github.com/e2b-dev/E2B/pull/1539)
+- Fixed the Python SDK leaking a proxy connection pool on every [volume](/volumes) operation when a proxy was configured, and added connect-level retries via `E2B_CONNECTION_RETRIES`. [#1534](https://github.com/e2b-dev/E2B/pull/1534)
+- Self-hosted: fixed the Nomad node-pool autoscaler terminating random allocations when downscaling ineligible nodes. [#3301](https://github.com/e2b-dev/infra/pull/3301)
 - Reliability and security hardening across platform services, including dependency and base image CVE patches.
 
 </Update>
@@ -538,22 +538,22 @@ The [template `copy` step](/template/defining-template) now merges into existing
 
 **Per-role storage URLs for self-hosted deployments**
 
-Self-hosted deployments can now point templates and the build cache at different storage backends by setting `TEMPLATE_STORAGE_URL` and `BUILD_CACHE_STORAGE_URL` to full destination URLs, including `s3://`, `gs://`, and `file://` schemes. Existing bucket and provider environment variables continue to work unchanged. ([#3246](https://github.com/e2b-dev/infra/pull/3246))
+Self-hosted deployments can now point templates and the build cache at different storage backends by setting `TEMPLATE_STORAGE_URL` and `BUILD_CACHE_STORAGE_URL` to full destination URLs, including `s3://`, `gs://`, and `file://` schemes. Existing bucket and provider environment variables continue to work unchanged. [#3246](https://github.com/e2b-dev/infra/pull/3246)
 
 ## Updates
 
 **Compressed uploads for AWS storage**
 
-Self-hosted deployments backed by AWS S3 can now upload template layers with the same compressed transfer path already used for other providers, cutting bandwidth on large template builds. ([#3232](https://github.com/e2b-dev/infra/pull/3232))
+Self-hosted deployments backed by AWS S3 can now upload template layers with the same compressed transfer path already used for other providers, cutting bandwidth on large template builds. [#3232](https://github.com/e2b-dev/infra/pull/3232)
 
 ## Bug fixes
 
-- Fixed an issue where a resumed sandbox could silently drop outbound traffic until its network cache re-resolved, causing stalled connections right after resume. ([#3271](https://github.com/e2b-dev/infra/pull/3271))
-- Fixed a rare deadlock in [sandbox command execution](/commands) where cancelling a request while a command was starting could leave the call hung. ([#3256](https://github.com/e2b-dev/infra/pull/3256))
-- Fixed [template build](/template/build) failures caused by incorrect compressed uploads and cache handling for template layers. ([#3231](https://github.com/e2b-dev/infra/pull/3231))
-- Fixed an issue where creating a template could fail with a stale lock error when a previous build had exited without cleaning up. ([#3217](https://github.com/e2b-dev/infra/pull/3217))
-- Fixed [template builds](/template/build) unpacking OCI image layers so that whiteouts and permissions match the behavior of the Docker daemon. ([#3215](https://github.com/e2b-dev/infra/pull/3215))
-- Fixed an issue where a sandbox could remain accounted for after being removed, keeping it in the paused list until the next reconciliation. ([#3199](https://github.com/e2b-dev/infra/pull/3199))
+- Fixed an issue where a resumed sandbox could silently drop outbound traffic until its network cache re-resolved, causing stalled connections right after resume. [#3271](https://github.com/e2b-dev/infra/pull/3271)
+- Fixed a rare deadlock in [sandbox command execution](/commands) where cancelling a request while a command was starting could leave the call hung. [#3256](https://github.com/e2b-dev/infra/pull/3256)
+- Fixed [template build](/template/build) failures caused by incorrect compressed uploads and cache handling for template layers. [#3231](https://github.com/e2b-dev/infra/pull/3231)
+- Fixed an issue where creating a template could fail with a stale lock error when a previous build had exited without cleaning up. [#3217](https://github.com/e2b-dev/infra/pull/3217)
+- Fixed [template builds](/template/build) unpacking OCI image layers so that whiteouts and permissions match the behavior of the Docker daemon. [#3215](https://github.com/e2b-dev/infra/pull/3215)
+- Fixed an issue where a sandbox could remain accounted for after being removed, keeping it in the paused list until the next reconciliation. [#3199](https://github.com/e2b-dev/infra/pull/3199)
 - Reliability and security hardening across platform services, including dependency and base image CVE patches.
 
 </Update>
@@ -1822,3 +1822,4 @@ Additionally, you can now select which OpenAI model you want to use with smol de
 <video controls className="w-full aspect-video" src="/images/changelog/2023-06-16-protocol-and-smol-updates-2.mp4" />
 
 </Update>
+
