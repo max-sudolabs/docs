@@ -200,3 +200,122 @@ sandbox.commands.run(
 ### Flags
 
 It's the same as for S3.
+
+## Azure Blob Storage
+
+### Prerequisites
+
+To use Azure Blob Storage, you'll need a [storage account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-create) and a [container](https://learn.microsoft.com/en-us/azure/storage/blobs/blob-containers-portal). The container must exist before you mount it.
+
+You can authenticate with the storage account access key or with a shared access signature (SAS) token for the container. Give the SAS token read and list permissions, plus write permission if you want to write files. Without list permission the mount fails.
+
+### Mounting the container
+
+To mount the container, install Microsoft's `blobfuse2` package from the Microsoft package repository in a [template](/template/quickstart).
+
+<CodeGroup>
+
+```ts JavaScript & TypeScript
+const template = Template()
+  .fromImage("ubuntu:24.04")
+  .aptInstall(["wget", "ca-certificates"])
+  .runCmd(
+    "wget -q https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb -O /tmp/packages-microsoft-prod.deb && sudo dpkg -i /tmp/packages-microsoft-prod.deb",
+  )
+  .aptInstall(["fuse3", "blobfuse2"])
+```
+
+
+```python Python
+template = (
+    Template()
+    .from_image("ubuntu:24.04")
+    .apt_install(["wget", "ca-certificates"])
+    .run_cmd(
+        "wget -q https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb -O /tmp/packages-microsoft-prod.deb && sudo dpkg -i /tmp/packages-microsoft-prod.deb"
+    )
+    .apt_install(["fuse3", "blobfuse2"])
+)
+```
+
+</CodeGroup>
+
+`blobfuse2` reads its settings from a config file. Replace the placeholders with your storage account name, container name and access key.
+
+```yaml blobfuse2.yaml
+allow-other: true
+
+logging:
+  type: silent
+
+components:
+  - libfuse
+  - block_cache
+  - attr_cache
+  - azstorage
+
+block_cache:
+  block-size-mb: 16
+  mem-size-mb: 256
+  prefetch: 11
+  path: /tmp/blobfuse2-cache
+  disk-size-mb: 4096
+
+azstorage:
+  type: block
+  account-name: <storage-account-name>
+  container: <container-name>
+  mode: key
+  account-key: "<storage-account-key>"
+```
+
+`mem-size-mb` is the memory `blobfuse2` reserves for its block cache. Keep it below the sandbox's memory. It must be at least `prefetch` times `block-size-mb` (176 MB here), or the mount fails. `prefetch` is set explicitly because its default grows with the number of vCPUs. `disk-size-mb` caps the disk space the block cache may use under `path`.
+
+The container is mounted during the sandbox runtime using the `blobfuse2 mount` command.
+
+<CodeGroup isRunnable={false}>
+```js JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('<your template id>')
+await sandbox.files.makeDir('/home/user/bucket')
+await sandbox.files.write('/home/user/blobfuse2.yaml', '<your config file content>')
+// The config file contains your credentials, so make it readable only by its owner
+await sandbox.commands.run('chmod 600 /home/user/blobfuse2.yaml')
+
+await sandbox.commands.run('sudo blobfuse2 mount /home/user/bucket --config-file=/home/user/blobfuse2.yaml')
+```
+
+```python Python
+from e2b import Sandbox
+
+sandbox = Sandbox.create("<your template id>")
+sandbox.files.make_dir("/home/user/bucket")
+sandbox.files.write("/home/user/blobfuse2.yaml", "<your config file content>")
+# The config file contains your credentials, so make it readable only by its owner
+sandbox.commands.run("chmod 600 /home/user/blobfuse2.yaml")
+
+sandbox.commands.run(
+    "sudo blobfuse2 mount /home/user/bucket --config-file=/home/user/blobfuse2.yaml"
+)
+```
+</CodeGroup>
+
+To unmount the container, run `sudo blobfuse2 unmount /home/user/bucket`.
+
+### Authenticate with a SAS token
+
+To use a SAS token instead of the access key, replace the `mode` and `account-key` lines in the config file with:
+
+```yaml
+  mode: sas
+  sas: "<sas-token>"
+```
+
+### Options
+
+For the full list of config options, see [`advancedConfig.yaml`](https://github.com/Azure/azure-storage-fuse/blob/main/setup/advancedConfig.yaml) in the `azure-storage-fuse` repository.
+
+### Allow the default user to access the files
+
+The container is mounted with `sudo`, so only root can access it by default. The `allow-other: true` line in the config file lets the default user read and write the files.
