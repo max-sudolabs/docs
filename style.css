@@ -697,8 +697,9 @@ pre code {
 }
 
 /* Mintlify lifts links (position: relative, z-index 10) and sinks prose code (z-index -1), which would put the code's
-   text under the link chip's fill; inside a link the code stays in normal flow. */
-html #content-area .mdx-content :is(p, [data-as="p"], li, td, th) :is(a.link, a:is(:not([class]), [class=""])) code:not(pre code, .callout code) {
+   text under the link chip's fill; inside a link the code stays in normal flow, in callouts too (excluding them hid
+   linked code in notes under the chip). */
+html #content-area .mdx-content :is(p, [data-as="p"], li, td, th) :is(a.link, a:is(:not([class]), [class=""])) code:not(pre code) {
     position: static;
     z-index: auto;
     padding: 0;
@@ -756,9 +757,14 @@ nav[aria-label="Pages"] li > :is(a, button) {
     font-weight: var(--e2b-weight-regular);
 }
 
-/* Table of contents (v1.37): the active section is medium weight, and heading instead of orange. */
+/* Table of contents (v1.37): the active section is medium weight, and heading instead of orange. Mintlify also
+   thickens it with a 0.15 px text shadow each side, which read as semibold; medium stands alone. */
 #table-of-contents a[aria-current="location"] {
     font-weight: var(--e2b-weight-medium);
+}
+
+#table-of-contents a {
+    text-shadow: none;
 }
 
 /* Mintlify marks the whole active path with data-active (parents too) but only the deepest entry gets
@@ -1271,7 +1277,7 @@ header .nav-logo {
 
 /* Dropdown menus (Copy page, the SDK and version pickers): item labels follow the sidebar links, description at rest
    and heading on hover or keyboard highlight. Mintlify kept every label at one light grey and only tinted the hovered
-   row 5%, which barely showed. The current item keeps its orange. */
+   row 5%, which barely showed. The current item is neutral too (below). */
 :root [role="menu"] :is([class~="text-gray-800"], [class~="dark:text-gray-300"]) {
     color: var(--color-description);
     transition: color 150ms ease;
@@ -1697,14 +1703,19 @@ a[href*="auth/sign-in"].whitespace-nowrap.font-medium:hover {
     }
 }
 
-/* Tint inline code with its alert's foreground in both themes. */
-
 :root .callout :is(.code-group, .code-block) button[aria-label] {
     color: var(--color-description);
 }
 
-:is(#content-area, #content-side-layout) .callout code:not(pre code) {
+/* Tint inline code with its alert's foreground in both themes. A link that holds code is that tinted chip, with its
+   hairline underline in the callout's colour, instead of the neutral chip and ring it takes on the page. */
+:is(#content-area, #content-side-layout) .callout code:not(pre code),
+:root #content-area .callout :is(a.link, a:is(:not([class]), [class=""])):has(code) {
     background-color: color-mix(in oklab, var(--callout-foreground, currentColor) 10%, transparent);
+}
+
+:root #content-area .callout :is(a.link, a:is(:not([class]), [class=""])):has(code) {
+    box-shadow: inset 0 calc(var(--e2b-hairline) * -1) 0 currentColor;
 }
 
 /* Callouts keep Mintlify's anatomy in the colour system's status colours: label and body step 11, border step 4, fill
@@ -1847,8 +1858,19 @@ a[href*="auth/sign-in"].whitespace-nowrap.font-medium:hover {
     background-color: var(--e2b-nav-rail-active);
 }
 
+/* The third level draws no rail: its current page is heading and medium only, and the rail marker moves to the group
+   row it sits in (Examples), which is heading and medium too. */
 :is(#sidebar-content, #mobile-nav) li > ul > li > ul > li > :is(a, button)::before {
-    left: 2.5rem;
+    content: none;
+}
+
+:is(#sidebar-content, #mobile-nav) li > ul > li:has(> ul > li[data-active-nav-item="true"]) > button::before {
+    background-color: var(--e2b-nav-rail-active);
+}
+
+:root :is(#sidebar-content, #mobile-nav) li > ul > li:has(> ul > li[data-active-nav-item="true"]) > button {
+    color: var(--color-heading);
+    font-weight: var(--e2b-weight-medium);
 }
 
 /* The active sidebar item is heading, icon included, as the active rail marker already is (was orange #E32A01).
@@ -2747,13 +2769,20 @@ nav[aria-label="Pages"] li > :is(a, button) svg[class~="size-3"] {
     color: var(--color-description);
 }
 
-/* Highlighted code lines: the accent tint with an accent bar (Mintlify's primary at 20%). */
+/* Highlighted code lines: the info tint with an info mark bar (Mintlify's primary at 20%). Blue, chosen over the
+   accent orange, green and violet (2026-10-23, Peter). */
+:root {
+    --e2b-code-highlight-fill: var(--color-info-tint);
+    --e2b-code-highlight-bar: var(--color-info-mark);
+}
+
 :root .mdx-content pre .line.line-highlight {
-    background-color: var(--color-accent-tint) !important;
+    background-color: var(--e2b-code-highlight-fill) !important;
 }
 
 :root .mdx-content pre .line.line-highlight::after {
-    border-left-color: var(--color-accent-mark);
+    border-left-color: var(--e2b-code-highlight-bar);
+    background-color: var(--e2b-code-highlight-fill) !important; /* the 16 px gutter before the line (primary at 20%) */
 }
 
 /* Accordions: the page, not the dark code panel colour (bg-codeblock, a blue-black #0B0C0E on dark), the hover fill
@@ -3062,4 +3091,21 @@ html:root {
     [class~="hover:dark:bg-gray-800"]
 ):hover {
     background-color: var(--color-hover);
+}
+
+/* The current item in any menu (theme, SDK, version, code panel language) is heading and medium, its label, check and
+   icon included, as the current sidebar and table of contents entries; Mintlify drew it in the primary orange. In the
+   SDK and version menus every label was medium, so the others drop to regular and the current one stands out. */
+:root [role="menu"] :is([data-component-part="version-select-item"], [data-dropdown-item]) p {
+    font-weight: var(--e2b-weight-regular);
+}
+
+:root [role="menu"] :is([role^="menuitem"], a):is([data-active="true"], [data-selected="true"], [aria-current], [aria-checked="true"]) {
+    color: var(--color-heading);
+    font-weight: var(--e2b-weight-medium);
+}
+
+:root [role="menu"] :is([role^="menuitem"], a):is([data-active="true"], [data-selected="true"], [aria-current], [aria-checked="true"]) :is(p, div, span, svg) {
+    color: inherit;
+    font-weight: inherit;
 }
