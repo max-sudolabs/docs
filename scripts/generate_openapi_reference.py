@@ -68,7 +68,7 @@ INFRA_API_SPEC = "spec/openapi.yml"
 DOCKER_IMAGE = "e2b-openapi-generator"
 
 DOCKERFILE = """\
-FROM golang:1.25-alpine
+FROM golang:1.26.10-alpine
 RUN apk add --no-cache git
 RUN go install github.com/bufbuild/buf/cmd/buf@v1.50.0
 RUN go install github.com/sudorandom/protoc-gen-connect-openapi@v0.25.3
