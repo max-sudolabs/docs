@@ -599,8 +599,8 @@ html[data-current-path^="/sdk-reference/"] .mdx-content > h6 + * thead th {
 
 /* Body links: link ink with an underline in the same colour at 4 px offset, as on the blog, one hairline thick (--e2b-hairline: one device
    pixel, so 0.5 px on retina, where the blog's 0.75 px snapped to a full 1 px, and 1 px on 1x screens). Covers Markdown links (a.link) and plain HTML links written in
-   MDX, which Mintlify leaves unclassed. */
-.mdx-content :is(a.link, a:not([class])) {
+   MDX, which Mintlify leaves unclassed or renders with an empty class attribute (inside Steps). */
+.mdx-content :is(a.link, a:is(:not([class]), [class=""])) {
     color: var(--e2b-link);
     font-weight: inherit;
     border-bottom: 0;
@@ -612,13 +612,13 @@ html[data-current-path^="/sdk-reference/"] .mdx-content > h6 + * thead th {
 }
 
 /* Links as on the blog (e2b-dev/web article links): 80% opacity on hover. */
-.mdx-content :is(a.link, a:not([class])):hover {
+.mdx-content :is(a.link, a:is(:not([class]), [class=""])):hover {
     opacity: 0.8;
 }
 
 /* Bold text inside a link keeps the link colour instead of the white Mintlify gives strong on dark pages,
    at the medium weight as on the blog. */
-.mdx-content :is(a.link, a:not([class])) :is(strong, b) {
+.mdx-content :is(a.link, a:is(:not([class]), [class=""])) :is(strong, b) {
     color: inherit;
     font-weight: var(--e2b-weight-medium);
 }
@@ -649,14 +649,14 @@ pre code {
 }
 
 /* Inline code in running text and tables is one size, the docs code size 13 px (0.9em gave 11.7 px in tables and
-   13.5 px in text), as a small label like the website's pricing-card tags: 2 px 6 px with 2 px corners, a 1 px
-   inline-code-line ring on the chip fill (below).
+   13.5 px in text), as a small label like the website's pricing-card tags: 6 px sides with 2 px corners, a hairline
+   (--e2b-hairline: 0.5 px on retina, 1 px on 1x) inline-code-line ring on the chip fill (below).
    The label's box, not its text, sits on the column edge. API field descriptions are Mintlify prose blocks outside
    the paragraph rule (they gave 13.5 px with Mintlify's 6 px corners), so they are named too.
    Inline code inside headings keeps 0.9em of the heading. */
 .mdx-content :is(p, [data-as="p"], li, td, th) code:not(pre code),
 #content-area :is(.primitive-param-field, .object-param-field) code:not(pre code) {
-    padding: 0.125rem 0.375rem;
+    padding: var(--e2b-code-chip-padding);
     border-radius: 2px;
     font-size: 0.8125rem;
     line-height: 1.25rem;
@@ -675,7 +675,7 @@ pre code {
 :root #content-area .mdx-content :is(p, [data-as="p"], li, td, th) code:not(pre code, .callout code),
 :root #content-area :is(.primitive-param-field, .object-param-field) code:not(pre code) {
     background-color: var(--color-chip);
-    box-shadow: inset 0 0 0 1px var(--color-inline-code-line);
+    box-shadow: inset 0 0 0 var(--e2b-hairline) var(--color-inline-code-line);
     color: var(--color-inline-code);
 }
 
@@ -683,22 +683,22 @@ pre code {
    in the link colour (its underline), and the code inside drops its own chip, so "`mode` option" reads as one linked
    label (mono name, sans text) and a code-only link is a chip with an underlined edge. No vertical padding: the link's own line box
    (19 px for 16 px Inter) is already the height of a code chip. Each line of a wrapped link is its own chip. */
-.mdx-content :is(a.link, a:not([class])):has(code) {
-    padding: 0 0.375rem;
+.mdx-content :is(a.link, a:is(:not([class]), [class=""])):has(code) {
+    padding: var(--e2b-code-link-padding-block) 0.375rem;
     border-radius: 2px;
     text-decoration-line: none;
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
 }
 
-:root .mdx-content :is(a.link, a:not([class])):has(code) {
+:root .mdx-content :is(a.link, a:is(:not([class]), [class=""])):has(code) {
     background-color: var(--color-chip);
-    box-shadow: inset 0 calc(var(--e2b-hairline) * -1) 0 var(--e2b-link-underline), inset 0 0 0 1px var(--color-inline-code-line);
+    box-shadow: inset 0 calc(var(--e2b-hairline) * -1) 0 var(--e2b-link-underline), inset 0 0 0 var(--e2b-hairline) var(--color-inline-code-line);
 }
 
 /* Mintlify lifts links (position: relative, z-index 10) and sinks prose code (z-index -1), which would put the code's
    text under the link chip's fill; inside a link the code stays in normal flow. */
-html #content-area .mdx-content :is(p, [data-as="p"], li, td, th) :is(a.link, a:not([class])) code:not(pre code, .callout code) {
+html #content-area .mdx-content :is(p, [data-as="p"], li, td, th) :is(a.link, a:is(:not([class]), [class=""])) code:not(pre code, .callout code) {
     position: static;
     z-index: auto;
     padding: 0;
@@ -793,15 +793,17 @@ nav[aria-label="Pages"] a[aria-current="page"] {
 }
 
 /* Copy page: the website's line button (e2b-dev/web components/ui/button, variant line), one size down for the
-   docs header: 32 px tall, 12 px side padding, 8 px icon gap, the docs label, Commit Mono 12/16 caps (the same as
-   the page eyebrow above the title; was 13/16); a 1 px chip-line border and a reading-body label. */
+   docs header: 32 px tall, 12 px side padding, the docs label, Commit Mono 12/16 caps (the same as the page eyebrow
+   above the title; was 13/16); a 1 px chip-line border and a reading-body label. The icon has 12 px of visual space on
+   both sides, from the border line to its strokes and from its strokes to the label: the copy icon's strokes stop
+   1/18 of its 16 px box (1rem / 18) short of each side, so the padding and the gap are each 12 px less that. */
 #page-context-menu-button {
     height: 2rem;
-    padding: 0 0.75rem 0 11px; /* 12 px from the outer edge to the icon, counting the 1 px left border */
+    padding: 0 0.75rem 0 calc(0.75rem - 1rem / 18);
 }
 
 #page-context-menu-button > div {
-    gap: 0.5rem;
+    gap: calc(0.75rem - 1rem / 18);
     font-size: 0.75rem;
     font-weight: 400;
     line-height: 1rem;
@@ -836,16 +838,33 @@ nav[aria-label="Pages"] a[aria-current="page"] {
 
 /* Copy page goes from COPY PAGE straight to COPIED and back, the copy icon crossfading into a check and the two labels
    crossfading in place (opacity, scale and blur, as transitions, so they run both ways, can be interrupted and do not
-   play on page load). Mintlify's three states are idle, copying (disabled, "Copying...") and copied (~2 s,
-   text-gray-600, not disabled). The label grid stacks Mintlify's reserved "Copy page" span (first, normally invisible)
-   and its live span (last). COPY PAGE is always drawn from the reserved span, which never changes text or position;
-   the live span is shown only as COPIED, 16 px after the check (8 px gap + 8 px), so no word ever moves.
-   The slot is sized to its label and its width transitions with the crossfade, so the button narrows to fit COPIED and
-   grows back for COPY PAGE (from the right, as the menu is right-aligned). The widths count characters in Commit Mono,
-   where every glyph is 1ch, and assume --e2b-tracking-mono stays 0; the button clips the outgoing COPY PAGE as it narrows.
-   Spacing from the outer edge: COPY PAGE 12 · icon · 8 · text · 12; COPIED 12 · check · 16 · text · 12. */
+   play on page load). Mintlify's three states are idle, copying (disabled, "Copying...") and copied (~2 s, not
+   disabled); it adds text-gray-600 on the click, for both copying and copied. Copying waits on a fetch of the page's
+   .md (200-350 ms on docs.e2b.dev, uncached), so everything starts on the click, not on copied.
+   The label grid stacks Mintlify's reserved "Copy page" span (first, normally invisible), its live span (last) and a
+   COPIED drawn by ::after. COPY PAGE is always drawn from the reserved span, which never changes text or position.
+   COPIED fades in from ::after while copying; on copied the live span (reading "Copied") replaces it at once in the same
+   place, so no word ever moves. Only "Copy failed" swaps the text.
+   The button keeps its COPY PAGE width in layout; as COPIED it slides right by the 3ch it no longer needs, with
+   transform only, and its right end tucks under the chevron, so it reads as narrowing from the left (the menu is
+   right-aligned). The offset counts characters in Commit Mono, where every glyph is 1ch, and
+   assumes --e2b-tracking-mono stays 0.
+   The check's strokes stop 1.75/18 of the box short of each side, 0.75/18 more than the copy icon's, so the check
+   moves left by that and COPIED by twice it (the check is 1.5/18 narrower), keeping 12 px on both sides of the icon;
+   the slide grows by COPIED's shift.
+   Visual spacing, both labels: border line · 12 · icon strokes · 12 · text · 12. */
 #page-context-menu-button {
-    overflow: clip;
+    font-size: 0.75rem; /* so ch here is the label's ch */
+    transition: transform 300ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+#page-context-menu-button[class~="text-gray-600"] {
+    transform: translateX(calc(3ch + 1.5rem / 18)); /* COPY PAGE (9ch) to COPIED (6ch, shifted left 1.5/18 of the icon) */
+}
+
+/* The chevron paints over the slid button's right end (a transformed element paints above static siblings). */
+#page-context-menu button[aria-haspopup="menu"] {
+    position: relative;
 }
 
 #page-context-menu-button .grid {
@@ -853,22 +872,21 @@ nav[aria-label="Pages"] a[aria-current="page"] {
     text-align: left;
     white-space: nowrap;
     width: 9ch; /* COPY PAGE */
-    transition: width 300ms cubic-bezier(0.2, 0, 0, 1);
 }
 
-/* Mintlify gives "Copy failed" the same class as COPIED, so the slot may not be narrower than the live label: the reserved
-   span leaves the layout and min-width lets a longer label widen the slot at once instead of being clipped. */
+/* Mintlify gives "Copy failed" the same class as COPIED, so a longer label must widen the slot (min-width) and still
+   clear the chevron after the slide: the live span reserves the slide after itself. For COPIED that comes to exactly
+   9ch, so the layout does not change. */
 #page-context-menu-button[class~="text-gray-600"]:not(:disabled) .grid {
-    position: relative;
-    width: calc(6ch + 0.5rem); /* COPIED, after its 8 px offset */
     min-width: max-content;
 }
 
-#page-context-menu-button[class~="text-gray-600"]:not(:disabled) .grid > span:first-child {
-    position: absolute;
+#page-context-menu-button[class~="text-gray-600"]:not(:disabled) .grid > span:last-child {
+    margin-right: calc(3ch + 1.5rem / 18); /* the slide above */
 }
 
-#page-context-menu-button .grid > span {
+#page-context-menu-button .grid > span:first-child,
+#page-context-menu-button .grid::after {
     transition-property: opacity, filter;
     transition-duration: 300ms;
     transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
@@ -878,32 +896,41 @@ nav[aria-label="Pages"] a[aria-current="page"] {
     visibility: visible;
 }
 
-/* Back from COPIED, the live span disappears at once (it already reads "Copy page" by then), while COPY PAGE fades in. */
-#page-context-menu-button .grid > span:last-child {
+#page-context-menu-button[class~="text-gray-600"] .grid > span:first-child {
     opacity: 0;
     filter: blur(4px);
-    margin-left: 0.5rem; /* the 8 px flex gap + 8 px = 16 px after the check */
-    transition-duration: 0s;
 }
 
-#page-context-menu-button[class~="text-gray-600"]:not(:disabled) .grid > span:first-child {
+/* The live span never animates: it appears at once on copied, over the COPIED that ::after has already faded in, and
+   back from copied it disappears at once (it already reads "Copy page" by then) while COPY PAGE fades in. */
+#page-context-menu-button .grid > span:last-child,
+#page-context-menu-button .grid::after {
+    grid-area: 1 / 1;
+    margin-left: calc(-1.5rem / 18); /* the check is narrower than the copy icon; see above */
+}
+
+#page-context-menu-button .grid > span:last-child {
     opacity: 0;
-    filter: blur(4px);
 }
 
 #page-context-menu-button[class~="text-gray-600"]:not(:disabled) .grid > span:last-child {
     opacity: 1;
-    filter: none;
-    transition-duration: 300ms;
 }
 
-/* COPIED arrives from the copying state, where the live span is display: none (below), and an element coming back from
-   display: none has no previous style to transition from; @starting-style gives it one. */
-@starting-style {
-    #page-context-menu-button[class~="text-gray-600"]:not(:disabled) .grid > span:last-child {
-        opacity: 0;
-        filter: blur(4px);
-    }
+#page-context-menu-button .grid::after {
+    content: "Copied";
+    opacity: 0;
+    filter: blur(4px);
+    pointer-events: none;
+}
+
+#page-context-menu-button[class~="text-gray-600"]:disabled .grid::after {
+    opacity: 1;
+    filter: none;
+}
+
+#page-context-menu-button[class~="text-gray-600"]:not(:disabled) .grid::after {
+    transition-duration: 0s;
 }
 
 /* "Copying..." is wider than "Copy page" and would widen the slot, so it leaves the layout entirely. */
@@ -926,7 +953,7 @@ nav[aria-label="Pages"] a[aria-current="page"] {
     content: "";
     position: absolute;
     top: calc(50% - 0.5rem);
-    left: 0;
+    left: calc(-0.75rem / 18); /* the check's strokes start where the copy icon's do */
     width: 1rem;
     height: 1rem;
     background-color: currentColor;
@@ -938,13 +965,13 @@ nav[aria-label="Pages"] a[aria-current="page"] {
     pointer-events: none;
 }
 
-#page-context-menu-button[class~="text-gray-600"]:not(:disabled) svg {
+#page-context-menu-button[class~="text-gray-600"] svg {
     opacity: 0;
     transform: scale(0.25);
     filter: blur(4px);
 }
 
-#page-context-menu-button[class~="text-gray-600"]:not(:disabled) > div::before {
+#page-context-menu-button[class~="text-gray-600"] > div::before {
     opacity: 1;
     transform: none;
     filter: none;
@@ -955,10 +982,11 @@ nav[aria-label="Pages"] a[aria-current="page"] {
         animation: none;
     }
 
+    #page-context-menu-button,
     #page-context-menu-button svg,
     #page-context-menu-button > div::before,
-    #page-context-menu-button .grid,
-    #page-context-menu-button .grid > span {
+    #page-context-menu-button .grid > span,
+    #page-context-menu-button .grid::after {
         transition: none;
     }
 }
@@ -1260,8 +1288,9 @@ header .nav-logo {
 
 /* Tooltips (Copy, Copied, the API playground's hints): inverted chrome, the inverted fill with the on-inverted label
    (Mintlify fills them with the primary orange), Inter 12/16, 2 px 6 px
-   (Mintlify's own box), one step below the docs ui size. */
-[data-base-ui-portal] [data-side] > div[class*="bg-primary"] {
+   (Mintlify's own box), one step below the docs ui size. Menu rows in the same portals carry hover:bg-primary-light/10,
+   which the class match would catch, so they are left out. */
+[data-base-ui-portal] [data-side] > div[class*="bg-primary"]:not([role^="menuitem"]) {
     padding: 0.125rem 0.375rem;
     border: 0;
     background-color: var(--color-inverted);
@@ -1339,7 +1368,8 @@ html[data-current-path^="/api-reference/"]
     code-block,
     code-group,
     .code-block,
-    .code-group
+    .code-group,
+    .codeblock-dark
 ) {
     background-color: var(--e2b-code-surface);
 }
@@ -1353,16 +1383,17 @@ html[data-current-path^="/api-reference/"]
 
 /* Mintlify draws the floating code buttons (report, copy, ask AI) white at 40% (60% on hover), for code panels that
    are always dark; on light the panel is white (v1.35), so the icons take black at the same strengths. */
-/* Mintlify sets code panel titles (the API playground's endpoint name) in its near-white gray-50, for dark panels. */
-html:not(.dark) :is(.code-block, .code-group) .text-gray-50 {
+/* Mintlify sets code panel titles (the API playground's endpoint name) in its near-white gray-50, for dark panels; they
+   are heading in both themes. */
+:root :is(.code-block, .code-group, .codeblock-dark) .text-gray-50 {
     color: var(--color-heading);
 }
 
-html:not(.dark) :is(.code-block, .code-group) button svg[class*="text-white/40"] {
+html:not(.dark) :is(.code-block, .code-group, .codeblock-dark) button svg[class*="text-white/40"] {
     color: rgb(0 0 0 / 0.4);
 }
 
-html:not(.dark) :is(.code-block, .code-group) button:hover svg[class*="text-white/40"] {
+html:not(.dark) :is(.code-block, .code-group, .codeblock-dark) button:hover svg[class*="text-white/40"] {
     color: rgb(0 0 0 / 0.6);
 }
 
@@ -1399,6 +1430,12 @@ html:not(.dark) :is(.code-block, .code-group) button:hover svg[class*="text-whit
 
 :root .code-group [role="tab"][aria-selected="true"] > .absolute {
     background-color: var(--color-heading);
+}
+
+/* The hovered tab label takes the chip fill. Mintlify's gray-700 at 70% was made for its dark code panels; on ours,
+   which draw no fill of their own, it read near-black on the light page. */
+:root .code-group [role="tab"]:hover > div:first-child {
+    background-color: var(--color-chip);
 }
 
 /* Code blocks (v1.35): match the website's article code block (e2b-dev/web components/article/code-block.tsx).
@@ -1652,13 +1689,15 @@ a[href*="auth/sign-in"].whitespace-nowrap.font-medium:hover {
     background-color: currentColor;
 }
 
-/* Tint inline code with its alert's foreground in both themes. */
-/* Layered important is required to override Mintlify's layered text-current utility. */
+/* Links in a callout take the callout's text colour (blue in a note), set apart by their underline, which follows
+   the link colour. Layered important is required to override Mintlify's layered text-current utility. */
 @layer base {
-    #content-area .callout a.link {
-        color: var(--e2b-link) !important;
+    #content-area .callout :is(a.link, a:is(:not([class]), [class=""])) {
+        color: var(--callout-foreground, var(--e2b-link)) !important;
     }
 }
+
+/* Tint inline code with its alert's foreground in both themes. */
 
 :root .callout :is(.code-group, .code-block) button[aria-label] {
     color: var(--color-description);
@@ -1810,12 +1849,6 @@ a[href*="auth/sign-in"].whitespace-nowrap.font-medium:hover {
 
 :is(#sidebar-content, #mobile-nav) li > ul > li > ul > li > :is(a, button)::before {
     left: 2.5rem;
-}
-
-/* Inactive rows retain hover feedback; active rows use text and the nested rail. */
-html:not(.dark) :is(#sidebar-content, #mobile-nav)
-    li:not([data-active-nav-item="true"]) > :is(a, button):hover {
-    background-color: var(--color-hover);
 }
 
 /* The active sidebar item is heading, icon included, as the active rail marker already is (was orange #E32A01).
@@ -2294,7 +2327,7 @@ html [data-component-part="field-info-pill"] {
     line-height: 1.25rem;
     font-feature-settings: var(--e2b-font-mono-features);
     letter-spacing: 0;
-    padding: 0.125rem 0.375rem;
+    padding: var(--e2b-code-chip-padding);
     border: 0;
     border-radius: 2px;
     box-shadow: none;
@@ -2305,7 +2338,7 @@ html [data-component-part="field-info-pill"] {
 /* API type labels follow the inline code label: chip fill, inline-code-line ring, inline-code ink (colour v0.20.0). */
 :root [data-component-part="field-info-pill"] {
     background-color: var(--color-chip);
-    box-shadow: inset 0 0 0 1px var(--color-inline-code-line);
+    box-shadow: inset 0 0 0 var(--e2b-hairline) var(--color-inline-code-line);
     color: var(--color-inline-code);
 }
 
@@ -2325,10 +2358,63 @@ html [data-component-part="field-info-pill"] {
 }
 
 /* Code surfaces use the same blog-card line, including Mintlify's ring-based blocks. */
-:is(#content-area, #content-side-layout) :is(.code-block, .code-group),
-html[data-current-path^="/api-reference/"] [role="dialog"] :is(.code-block, .code-group) {
+:is(#content-area, #content-side-layout) :is(.code-block, .code-group, .codeblock-dark),
+html[data-current-path^="/api-reference/"] [role="dialog"] :is(.code-block, .code-group, .codeblock-dark) {
     border-color: var(--e2b-code-line);
     --tw-ring-color: var(--e2b-code-line);
+}
+
+/* The API response example is not a code group: Mintlify draws it as an always-dark panel (codeblock-dark bg-codeblock,
+   #0B0C0E, white at 5% on dark) with a ring and 16 px corners, which read black beside the request panel on light.
+   It takes the request panel's surface (above), a 1 px code-line border in place of the ring and the content corners. */
+:is(#content-side-layout, html[data-current-path^="/api-reference/"] [role="dialog"]) .codeblock-dark:not(.code-group) {
+    border: 1px solid var(--e2b-code-line);
+    border-radius: var(--e2b-content-radius);
+    box-shadow: none;
+}
+
+/* Code panel pickers (the request language, the response status and example) are description at rest and take the chip
+   fill and heading on hover and while their menu is open, as the code group tabs. Mintlify drew them in the primary
+   orange or gray-500, with a gray-700 at 70% (near-black on light) or primary tint hover, and outlined the open picker
+   with a gray-400 at 50% border and a gray-800 ring instead of a fill. */
+:root .codeblock-dark button[aria-haspopup="menu"],
+:root .codeblock-dark button[aria-haspopup="menu"] > div {
+    color: var(--color-description);
+}
+
+:root .codeblock-dark button[aria-haspopup="menu"] > div:hover,
+:root .codeblock-dark button[aria-haspopup="menu"][data-popup-open] > div {
+    border-color: transparent;
+    background-color: var(--color-chip);
+    color: var(--color-heading);
+    box-shadow: none;
+}
+
+/* Their menus (the language menu and the response status menu) are known by their rows' primary tint hover. Mintlify
+   keeps them on a dark code panel colour in both themes (bg-codeblock with a white/10 border; the status menu a
+   borderless #0F1117, black on dark), with white at 50% rows (the status menu's orange on dark), a primary tint hover
+   and a primary check on the selected row. They take the page with a line-subtle border, description rows, the
+   picker's chip fill with heading on the highlighted row (the hover fill, one step closer to the page, all but vanished
+   on dark), and a heading selected row. */
+:root [role="menu"]:has([role^="menuitem"][class~="hover:bg-primary-light/10"]) {
+    border: 1px solid var(--color-line-subtle);
+    background-color: var(--color-page);
+    color: var(--color-description);
+}
+
+:root [role="menu"] [role^="menuitem"][class~="hover:bg-primary-light/10"] {
+    color: var(--color-description);
+}
+
+/* The selected row is heading throughout (label, language icon and check), not only its check. */
+:root [role="menu"] [role^="menuitem"][class~="hover:bg-primary-light/10"][aria-checked="true"],
+:root [role="menu"] [role^="menuitem"][class~="hover:bg-primary-light/10"] svg[class~="text-primary"] {
+    color: var(--color-heading);
+}
+
+:root [role="menu"] [role^="menuitem"][class~="hover:bg-primary-light/10"]:is(:hover, [data-highlighted]) {
+    background-color: var(--color-chip);
+    color: var(--color-heading);
 }
 
 /* Changelog supporting metadata is muted, as the website's. */
@@ -2421,4 +2507,559 @@ html[data-current-path="/faq"] .mdx-content > h3:not(h2 + h3) {
     html[data-current-path="/faq"] .mdx-content > h2 + h3 {
         margin-top: 1rem;
     }
+}
+
+/* Code chips (inline code, API type labels, linked code) are one 18 px box. In a box of 2 px padding Commit Mono
+   centres capitals (4.1 px above, 4.8 px below the baseline) but leaves lowercase 0.7 px low (6.2 px above the
+   x-height), and most code is lowercase (`string`, `sandbox.kill()`), so the text sits half a pixel higher: 1.5 px
+   above, 2.5 px below. Lowercase is then 0.2 px low and capitals 0.85 px high.
+   A link that holds code is a chip on the link's own line box (Inter's 1.21em content area): 18 px at 15 px text, but
+   15.5 px in the 13 px API descriptions, so it takes the padding that brings that line box to 18 px. */
+:root {
+    --e2b-code-chip-padding: 1.5px 0.375rem 2.5px;
+    --e2b-code-link-padding-block: max(0px, calc((1.125rem - 1.2109em) / 2));
+}
+
+/* Mintlify's mono face (paperMono) set the API field names, the request path and the content type picker; every mono
+   text is Commit Mono. Mintlify's .font-mono and .font-family-mono read this variable. */
+html:root {
+    --font-paper-mono: var(--e2b-font-mono);
+    --font-family-mono-custom: var(--e2b-font-mono);
+}
+
+/* API method badges (GET, POST …, in the sidebar and the request bar) take the Required and Deprecated label's type
+   and box: Commit Mono 10/12 caps, 2 4 px, 18 px with its 1 px edge, square, in their method colours (above). Mintlify
+   set them in Inter at 8.8 px in the sidebar (15 px tall) and 14 px in the request bar (24 px). The sidebar column
+   widens from 32 to 40 px for PATCH. */
+.method-pill.method-pill,
+.method-nav-pill.method-nav-pill > span {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.25rem;
+    border: 1px solid transparent;
+    border-radius: 0;
+    font-family: var(--e2b-font-mono);
+    font-size: 0.625rem;
+    font-weight: 400;
+    line-height: 0.75rem;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    font-feature-settings: var(--e2b-font-mono-features);
+}
+
+.method-nav-pill.method-nav-pill {
+    width: 2.5rem;
+}
+
+/* The request bar's path: segments heading, separators muted. A path parameter ({sandboxID}) is a code chip in the
+   field name's blue, not Mintlify's fixed #DA622B orange with a 2 px border and 6 px corners. */
+:root #content-area .method-pill ~ * [class~="font-mono"] > [class~="text-gray-400"] {
+    color: var(--color-muted);
+}
+
+:root #content-area .method-pill ~ * [class~="font-mono"] > [class~="text-gray-800"] {
+    color: var(--color-heading);
+}
+
+:root [class*="text-[#DA622B]"]:not(.method-pill, .method-nav-pill *) {
+    padding: var(--e2b-code-chip-padding);
+    border: 0;
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 var(--e2b-hairline) var(--color-inline-code-line);
+    background-color: var(--color-chip);
+    color: var(--color-code-variable);
+    font-family: var(--e2b-font-mono);
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 0.875rem; /* a block in the bar: the inline code chip's 14 px content box, so 18 px with its padding */
+    letter-spacing: 0;
+}
+
+/* Code panel pickers and their tab labels are square, as the menus they open and every other control. */
+.codeblock-dark button[aria-haspopup="menu"],
+.codeblock-dark button[aria-haspopup="menu"] > div,
+.code-group [role="tab"] > div:first-child {
+    border-radius: 0;
+}
+
+/* Mintlify colour sweep. The chrome and components below still drew Mintlify's warm gray scale (gray-400 #A59F9E,
+   gray-600 #565150 …), its primary orange on hover, or fixed fills. They take the colour system's roles: description
+   at rest, heading on hover or when current, line-subtle lines, the hover and chip fills, the page for surfaces. */
+
+/* Every Mintlify gray line (border-standard, gray-50 to gray-200, the cards' gray-950 at 10%) is line-subtle. */
+:root :is(
+    [class~="border-standard"],
+    [class~="border-gray-50"],
+    [class~="border-gray-100"],
+    [class~="border-gray-200"],
+    [class~="border-gray-950/10"]
+) {
+    border-color: var(--color-line-subtle);
+}
+
+/* Navbar: tabs, search, the GitHub link, the theme switch and the bar's bottom line. */
+:root .nav-tabs-item {
+    color: var(--color-description);
+}
+
+:root .nav-tabs-item:is(:hover, [data-active]) {
+    color: var(--color-heading);
+}
+
+:root .nav-tabs-item:not([data-active]):hover > div[class~="absolute"] {
+    background-color: var(--color-line);
+}
+
+:root #search-bar-entry {
+    background-color: var(--color-page);
+    color: var(--color-description);
+    filter: none;
+    --tw-ring-color: var(--color-line-subtle);
+}
+
+:root #search-bar-entry:hover {
+    --tw-ring-color: var(--color-line);
+}
+
+:root #search-bar-entry svg {
+    color: inherit;
+}
+
+:root #search-bar-entry:hover svg {
+    color: var(--color-heading);
+}
+
+:root nav[aria-label="Main"] a[href*="github.com"],
+:root #theme-preference-menu-trigger {
+    color: var(--color-description);
+}
+
+:root nav[aria-label="Main"] a[href*="github.com"]:hover,
+:root #theme-preference-menu-trigger:hover {
+    color: var(--color-heading);
+}
+
+:root nav[aria-label="Main"] a[href*="github.com"] span,
+:root #theme-preference-menu-trigger svg {
+    color: inherit;
+}
+
+:root :is(#navbar-transition, #navbar [class~="border-gray-500/5"]) {
+    border-color: var(--color-line-subtle);
+}
+
+/* Sidebar: group headers are heading; collapsible groups follow the links (description, heading on hover), chevrons
+   included; inactive rows take the hover fill in both themes (was light only, with Mintlify's white at 5% on dark);
+   active rows use text and the nested rail. */
+:root .sidebar-group-header {
+    color: var(--color-heading);
+}
+
+:root nav[aria-label="Pages"] li > button {
+    color: var(--color-description);
+}
+
+:root nav[aria-label="Pages"] li > button:hover {
+    color: var(--color-heading);
+}
+
+nav[aria-label="Pages"] li > :is(a, button) svg[class~="size-3"] {
+    color: inherit;
+}
+
+:root :is(#sidebar-content, #mobile-nav) li:not([data-active-nav-item="true"]) > :is(a, button):hover {
+    background-color: var(--color-hover);
+}
+
+/* Table of contents: inactive entries and the title are description, heading on hover. */
+:root #table-of-contents li:not([data-active="true"]) > a,
+:root #table-of-contents button {
+    color: var(--color-description);
+}
+
+:root #table-of-contents li:not([data-active="true"]) > a:hover,
+:root #table-of-contents button:hover {
+    color: var(--color-heading);
+}
+
+/* Copy page: the chevron is description, heading on hover; both halves take the chip fill on hover. */
+:root #page-context-menu button svg {
+    color: var(--color-description);
+}
+
+:root #page-context-menu button:hover svg {
+    color: var(--color-heading);
+}
+
+:root #page-context-menu button:hover {
+    background-color: var(--color-chip);
+}
+
+/* Previous and next page links: description titles and chevrons, heading on hover. */
+:root #pagination [data-component-part="pagination-title"] {
+    color: var(--color-description);
+}
+
+:root #pagination a:hover [data-component-part="pagination-title"] {
+    color: var(--color-heading);
+}
+
+:root #pagination [data-component-part="pagination-chevron"] {
+    stroke: var(--color-description);
+}
+
+:root #pagination a:hover [data-component-part="pagination-chevron"] {
+    stroke: var(--color-heading);
+}
+
+/* Footer: social icons (masked shapes) and Powered by are description, heading on hover. */
+:root #footer a.h-fit svg {
+    background-color: var(--color-description);
+}
+
+:root #footer a.h-fit:hover svg {
+    background-color: var(--color-heading);
+}
+
+:root #footer a.group {
+    color: var(--color-description);
+}
+
+:root #footer a.group:hover {
+    color: var(--color-heading);
+}
+
+/* Scroll areas: no track, a line thumb, line-strong on hover. */
+:root [data-component-part="scroll-area-scrollbar"] {
+    background-color: transparent;
+}
+
+:root [data-component-part="scroll-area-thumb"] {
+    background-color: var(--color-line);
+}
+
+:root [data-component-part="scroll-area-thumb"]:hover {
+    background-color: var(--color-line-strong);
+}
+
+/* Code group tabs at rest are description (Mintlify's gray-400). */
+:root .code-group [role="tab"]:not([aria-selected="true"]) {
+    color: var(--color-description);
+}
+
+/* Highlighted code lines: the accent tint with an accent bar (Mintlify's primary at 20%). */
+:root .mdx-content pre .line.line-highlight {
+    background-color: var(--color-accent-tint) !important;
+}
+
+:root .mdx-content pre .line.line-highlight::after {
+    border-left-color: var(--color-accent-mark);
+}
+
+/* Accordions: the page, not the dark code panel colour (bg-codeblock, a blue-black #0B0C0E on dark), the hover fill
+   on the row, a description caret and heading titles. */
+:root details.accordion {
+    background-color: var(--color-page);
+}
+
+:root [data-component-part="accordion-button"]:hover {
+    background-color: var(--color-hover);
+}
+
+:root [data-component-part="accordion-caret-right"] svg {
+    color: var(--color-description);
+}
+
+:root [data-component-part="accordion-title"] {
+    color: var(--color-heading);
+}
+
+/* Steps: the chip fill for the number, line-subtle for the rail, heading titles. */
+:root [data-component-part="step-indicator"] {
+    background-color: var(--color-chip);
+    color: var(--color-heading);
+}
+
+:root [data-component-part="step-line"] {
+    background-color: var(--color-line-subtle);
+}
+
+:root [data-component-part="step-title"] {
+    color: var(--color-heading);
+}
+
+/* Cards: description text and icon, the card hover line instead of the primary orange, the icon heading on hover. */
+:root #content-area .card {
+    background-color: var(--color-page);
+}
+
+:root #content-area .card:hover {
+    border-color: var(--color-raised-line-hover) !important;
+}
+
+:root #content-area .card [class~="text-gray-600"] {
+    color: var(--color-description);
+}
+
+:root #content-area .card [class*="group-hover:text-primary"] {
+    color: var(--color-description);
+}
+
+:root #content-area .card:hover [class*="group-hover:text-primary"] {
+    color: var(--color-heading);
+}
+
+/* Tabs: description labels, heading for the current tab (its underline follows), a line on hover. Mintlify drew the
+   current tab in the primary orange and the others in gray-900. */
+:root [data-component-part="tab-button"] {
+    color: var(--color-description);
+}
+
+:root [data-component-part="tab-button"]:hover {
+    border-color: var(--color-line);
+    color: var(--color-heading);
+}
+
+:root [role="tab"][aria-selected="true"] > [data-component-part="tab-button"] {
+    border-color: currentColor;
+    color: var(--color-heading);
+}
+
+/* Frames: the surface with a line-subtle edge (gray-50 at 50%, black at 5%). */
+:root #content-area .frame {
+    background-color: var(--color-surface);
+}
+
+:root #content-area .frame > [class~="border"] {
+    border-color: var(--color-line-subtle);
+}
+
+/* Expandables (Show child attributes): description, heading with the hover fill on hover, the icon in the text colour
+   (Mintlify's stone scale). */
+:root [data-component-part="expandable-button"] {
+    color: var(--color-description);
+}
+
+:root [data-component-part="expandable-button"]:hover {
+    background-color: var(--color-hover);
+    color: var(--color-heading);
+}
+
+:root [data-component-part="expandable-button"] [data-component-part="icon-svg"] {
+    background-color: currentColor;
+}
+
+/* API fields: the anchor link tile (gray-400 on white with a gray-400 ring and a brightness filter on dark), the
+   default value's label (stone-400) and the content type picker (gray-600). */
+:root [class~="group/link"] > div {
+    box-shadow: 0 0 0 1px var(--color-line-subtle);
+    background-color: var(--color-page);
+    color: var(--color-description);
+    filter: none;
+}
+
+:root [class~="group/link"]:hover > div {
+    color: var(--color-heading);
+}
+
+:root [data-component-part="field-info-pill"] [class~="text-stone-400"] {
+    color: var(--color-description);
+}
+
+:root button[class~="font-mono"][class~="text-gray-600"] {
+    color: var(--color-description);
+}
+
+:root button[class~="font-mono"][class~="text-gray-600"]:hover {
+    color: var(--color-heading);
+}
+
+/* The request bar's copy icon (gray-400, white at 40% on dark) and the code panel pickers' chevrons are description,
+   or follow their picker. */
+:root [class~="text-gray-400"][class~="dark:text-white/40"] {
+    color: var(--color-description);
+}
+
+:root .codeblock-dark button[aria-haspopup="menu"] svg {
+    color: inherit;
+}
+
+/* Code block file names (gray-300) are heading, as the code group's current tab. */
+:root [data-component-part="code-block-header-filename"] {
+    color: var(--color-heading);
+}
+
+/* Accordion, step and tab bodies keep the reading body; their nested .prose (and prose-gray) reset it to Mintlify's
+   gray-700 on light. */
+:root :is(.mdx-content .prose, .prose-gray) {
+    --tw-prose-body: var(--color-body-reading);
+    color: var(--color-body-reading);
+}
+
+/* Code panel text outside a token span takes the code text colour (Mintlify's gray-50, near-white on light). */
+:root [data-component-part="code-group-tab-content"] {
+    color: var(--color-code-text);
+}
+
+/* Mintlify's secondary text pairs (gray-600 / gray-300, gray-500 / gray-400: the content type, the response example
+   tabs, picker chevrons) are description in the article and the API playground, heading where they brighten on hover.
+   The app wrapper carries the second pair too, so the rule stays inside those areas. */
+:root :is(#content-area, #content-side-layout, [id^="api-playground"], [role="dialog"]) :is(
+    [class~="text-gray-600"][class~="dark:text-gray-300"],
+    [class~="text-gray-500"][class~="dark:text-gray-400"]
+) {
+    color: var(--color-description);
+}
+
+:root :is(#content-area, #content-side-layout, [id^="api-playground"], [role="dialog"]) [class~="text-gray-600"][class~="dark:text-gray-300"]:is([class~="hover:text-zinc-950"], [class~="hover:text-gray-900"]):hover {
+    color: var(--color-heading);
+}
+
+/* The SDK reference version picker (navbar) and SDK picker (sidebar): description, heading on hover or while open,
+   chevrons following; the SDK name is heading. Their hover fill is a Mintlify important utility (gray-600 at 5%),
+   which only an important declaration in an earlier layer outranks. */
+:root :is([data-component-part="version-select-trigger"], #sidebar .nav-dropdown-trigger) {
+    color: var(--color-description);
+}
+
+:root :is([data-component-part="version-select-trigger"], #sidebar .nav-dropdown-trigger):is(:hover, [aria-expanded="true"]) {
+    color: var(--color-heading);
+}
+
+:root :is([data-component-part="version-select-trigger"], #sidebar .nav-dropdown-trigger) svg[class~="size-3"] {
+    color: inherit;
+}
+
+:root #sidebar .nav-dropdown-trigger .nav-dropdown-item-title {
+    color: var(--color-heading);
+}
+
+@layer base {
+    :root :is([data-component-part="version-select-trigger"], #sidebar .nav-dropdown-trigger):hover {
+        background-color: var(--color-hover) !important;
+    }
+}
+
+/* API playground dialog. Its type labels are flex boxes (inline in the article), so the 20 px line made them 24 px
+   tall; they take the code chip's 14 px content box. Its fills and text were Mintlify's warm grays: the request path
+   and the optional fields row on gray-50 (#F9F4F2, which read pink on white), names and section titles gray-900 and
+   gray-800, helper text gray-600, separators gray-400. They take the surface, heading (field names the code-variable
+   blue, as in the article), description and muted. */
+[role="dialog"] [data-component-part="field-info-pill"] {
+    line-height: 0.875rem;
+}
+
+:root [role="dialog"] [class~="bg-gray-50"] {
+    background-color: var(--color-surface);
+}
+
+:root [role="dialog"] :is([class~="text-gray-900"], [class~="text-gray-800"]) {
+    color: var(--color-heading);
+}
+
+:root [role="dialog"] [class~="font-semibold"][class~="text-gray-900"][class~="dark:text-gray-100"] {
+    color: var(--color-code-variable);
+}
+
+:root [role="dialog"] [class~="text-gray-600"] {
+    color: var(--color-description);
+}
+
+:root [role="dialog"] button[class~="text-gray-600"]:hover {
+    color: var(--color-heading);
+}
+
+:root [role="dialog"] [class~="text-gray-400"] {
+    color: var(--color-muted);
+}
+
+:root [role="dialog"] svg[class~="bg-gray-400"] {
+    background-color: var(--color-description);
+}
+
+/* Playground inputs take the input line (Mintlify's gray-200 at 70%). */
+:root .text-playground-input {
+    border-color: var(--color-line);
+}
+
+/* Lines with no colour class take Mintlify's default border colour (its gray-100 on light, white at 10% on dark); the
+   default is line-subtle. In the base layer, so every border colour utility still applies; the root qualifier outranks
+   Mintlify's own base rules, which load later in the same layer. */
+@layer base {
+    html:root *,
+    html:root ::before,
+    html:root ::after {
+        border-color: var(--color-line-subtle);
+    }
+}
+
+/* Mintlify's gray scale, the source of every gray-* utility it ships (text, fills, lines, hovers, rings, prose), is
+   tinted toward the brand orange (gray-50 #F9F4F2 read pink on white; red runs 3 to 7 above blue at every step). Each
+   step keeps its luminance, so every contrast holds, with the tint removed; steps within 3 of the colour system's
+   neutral ramp snap to it (50 → neutral #F4F4F4, 700 → #3D3D3D, 950 → #0A0A0A). Rules above still map the visible
+   chrome to colour-system roles; this catches whatever Mintlify draws from its grays that no rule names. */
+html:root {
+    --gray-50: 244 244 244;
+    --gray-100: 240 240 240;
+    --gray-200: 224 224 224;
+    --gray-300: 208 208 208;
+    --gray-400: 160 160 160;
+    --gray-500: 114 114 114;
+    --gray-600: 82 82 82;
+    --gray-700: 61 61 61;
+    --gray-800: 39 39 39;
+    --gray-900: 25 25 25;
+    --gray-950: 10 10 10;
+    --default-border-color: 240 240 240;
+}
+
+/* Image zoom buttons: a square page-coloured control with an input line, a description icon and heading on hover,
+   instead of Mintlify's round frosted-glass button (white at 55% with a blur, a black/20 border and a three-layer
+   shadow). */
+:root [class~="bg-white/55"] {
+    border: 1px solid var(--color-line);
+    border-radius: 0;
+    box-shadow: none;
+    background-color: var(--color-page);
+    color: var(--color-description);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+:root [class~="bg-white/55"]:hover {
+    border-color: var(--color-line-strong);
+    color: var(--color-heading);
+}
+
+:root [class~="bg-white/55"] svg {
+    color: inherit;
+}
+
+/* The changelog filter label (gray-700) is description, as the other labels. */
+:root #changelog-filters [class~="text-gray-700"] {
+    color: var(--color-description);
+}
+
+/* Dividers drawn between children (divide-* and the arbitrary [&>:not([hidden])~:not([hidden])]:border-* variant, gray-100
+   on light, white at 10% on dark) are line-subtle, as every other Mintlify gray line. */
+:root :is(
+    [class*="divide-gray-"],
+    [class*="divide-white/"],
+    [class*="]:border-gray-"],
+    [class*="]:border-white/"]
+) > * {
+    border-color: var(--color-line-subtle);
+}
+
+/* Mintlify's hover fills (gray-50, gray-100, gray-600 at 5% on light; white at 5%, gray-200 at 5%, gray-800 on dark)
+   are the hover fill, as the sidebar rows and accordion headers above. */
+:root :is(
+    [class~="hover:bg-gray-50"],
+    [class~="hover:bg-gray-100"],
+    [class~="hover:bg-gray-600/5"],
+    [class~="dark:hover:bg-white/5"],
+    [class~="dark:hover:bg-gray-200/5"],
+    [class~="hover:dark:bg-gray-800"]
+):hover {
+    background-color: var(--color-hover);
 }
