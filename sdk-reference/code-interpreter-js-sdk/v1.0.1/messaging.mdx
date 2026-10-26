@@ -31,10 +31,10 @@ new Execution(
 
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
-| `results` | `Result`[] | `[]` | List of result of the cell (interactively interpreted last line), display calls (e.g. matplotlib plots). |
+| `results` | `Result[]` | `[]` | List of result of the cell (interactively interpreted last line), display calls (e.g. matplotlib plots). |
 | `logs` | `Logs` | `...` | Logs printed to stdout and stderr during execution. |
-| `error`? | `ExecutionError` | `undefined` | An Error object if an error occurred, null otherwise. |
-| `executionCount`? | `number` | `undefined` | Execution count of the cell. |
+| `error?` | `ExecutionError` | `undefined` | An Error object if an error occurred, null otherwise. |
+| `executionCount?` | `number` | `undefined` | Execution count of the cell. |
 
 ###### Returns
 
@@ -47,7 +47,7 @@ new Execution(
 | <a id="error"></a> `error?` | `public` | `ExecutionError` | `undefined` | An Error object if an error occurred, null otherwise. |
 | <a id="executioncount"></a> `executionCount?` | `public` | `number` | `undefined` | Execution count of the cell. |
 | <a id="logs"></a> `logs` | `public` | `Logs` | `undefined` | Logs printed to stdout and stderr during execution. |
-| <a id="results"></a> `results` | `public` | `Result`[] | `[]` | List of result of the cell (interactively interpreted last line), display calls (e.g. matplotlib plots). |
+| <a id="results"></a> `results` | `public` | `Result[]` | `[]` | List of result of the cell (interactively interpreted last line), display calls (e.g. matplotlib plots). |
 
 #### Accessors
 
@@ -63,7 +63,7 @@ Returns the text representation of the main result of the cell.
 
 ###### Returns
 
-`undefined` \| `string`
+`undefined | string`
 
 #### Methods
 
@@ -81,9 +81,9 @@ Returns the serializable representation of the execution result.
 
 | Name | Type |
 | ------ | ------ |
-| `error` | `undefined` \| `ExecutionError` |
+| `error` | `undefined \| ExecutionError` |
 | `logs` | `Logs` |
-| `results` | `Result`[] |
+| `results` | `Result[]` |
 
 ***
 
@@ -201,7 +201,7 @@ new Result(rawData: RawData, isMainResult: boolean): Result
 | Property | Modifier | Type | Description |
 | ------ | ------ | ------ | ------ |
 | <a id="chart"></a> `chart?` | `readonly` | `ChartTypes` | Contains the chart data. |
-| <a id="data"></a> `data?` | `readonly` | `Record`\<`string`, `unknown`\> | Contains the data from DataFrame. |
+| <a id="data"></a> `data?` | `readonly` | `Record<string, unknown>` | Contains the data from DataFrame. |
 | <a id="extra"></a> `extra?` | `readonly` | `any` | Extra data that can be included. Not part of the standard types. |
 | <a id="html"></a> `html?` | `readonly` | `string` | HTML representation of the data. |
 | <a id="ismainresult"></a> `isMainResult` | `readonly` | `boolean` | - |
@@ -228,7 +228,7 @@ Returns all the formats available for the result.
 
 ###### Returns
 
-`string`[]
+`string[]`
 
 Array of strings representing the formats available for the result.
 
@@ -246,17 +246,17 @@ Returns the serializable representation of the result.
 
 | Name | Type |
 | ------ | ------ |
-| `extra`? | `any` |
-| `html` | `undefined` \| `string` |
-| `javascript` | `undefined` \| `string` |
-| `jpeg` | `undefined` \| `string` |
-| `json` | `undefined` \| `string` |
-| `latex` | `undefined` \| `string` |
-| `markdown` | `undefined` \| `string` |
-| `pdf` | `undefined` \| `string` |
-| `png` | `undefined` \| `string` |
-| `svg` | `undefined` \| `string` |
-| `text` | `undefined` \| `string` |
+| `extra?` | `any` |
+| `html` | `undefined \| string` |
+| `javascript` | `undefined \| string` |
+| `jpeg` | `undefined \| string` |
+| `json` | `undefined \| string` |
+| `latex` | `undefined \| string` |
+| `markdown` | `undefined \| string` |
+| `pdf` | `undefined \| string` |
+| `png` | `undefined \| string` |
+| `svg` | `undefined \| string` |
+| `text` | `undefined \| string` |
 
 ## Type Aliases
 
@@ -272,8 +272,8 @@ Data printed to stdout and stderr during execution, usually by print statements,
 
 | Name | Type | Description |
 | ------ | ------ | ------ |
-| <a id="stderr"></a> `stderr` | `string`[] | List of strings printed to stderr by prints, subprocesses, etc. |
-| <a id="stdout"></a> `stdout` | `string`[] | List of strings printed to stdout by prints, subprocesses, etc. |
+| <a id="stderr"></a> `stderr` | `string[]` | List of strings printed to stderr by prints, subprocesses, etc. |
+| <a id="stdout"></a> `stdout` | `string[]` | List of strings printed to stdout by prints, subprocesses, etc. |
 
 ***
 
@@ -311,7 +311,7 @@ function extractError(res: Response): Promise<undefined | SandboxError>
 
 #### Returns
 
-`Promise`\<`undefined` \| `SandboxError`\>
+`Promise<undefined | SandboxError>`
 
 ***
 
@@ -333,11 +333,11 @@ onError?: (error: ExecutionError) => any): Promise<void>
 | ------ | ------ |
 | `execution` | `Execution` |
 | `line` | `string` |
-| `onStdout`? | (`output`: `OutputMessage`) => `any` |
-| `onStderr`? | (`output`: `OutputMessage`) => `any` |
-| `onResult`? | (`data`: `Result`) => `any` |
-| `onError`? | (`error`: `ExecutionError`) => `any` |
+| `onStdout?` | `(output: OutputMessage) => any` |
+| `onStderr?` | `(output: OutputMessage) => any` |
+| `onResult?` | `(data: Result) => any` |
+| `onError?` | `(error: ExecutionError) => any` |
 
 #### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`

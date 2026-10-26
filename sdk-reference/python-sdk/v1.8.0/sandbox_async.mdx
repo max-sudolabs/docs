@@ -569,7 +569,7 @@ sandbox = await AsyncSandbox.create()
 sandbox_id = sandbox.sandbox_id
 
 same_sandbox = await AsyncSandbox.connect(sandbox_id)
-
+```
 
 ### kill
 
@@ -886,9 +886,11 @@ async def send_stdin(pid: int,
 
 Send data to command stdin.
 
-:param pid Process ID of the command. You can get the list of processes using `sandbox.commands.list()`.
-:param data: Data to send to the command
-:param request_timeout: Timeout for the request in **seconds**
+**Arguments**:
+
+- `pid`: Process ID of the command. You can get the list of processes using `sandbox.commands.list()`.
+- `data`: Data to send to the command
+- `request_timeout`: Timeout for the request in **seconds**
 
 
 

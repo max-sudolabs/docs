@@ -25,7 +25,7 @@ class Commands()
 Module for executing commands in the sandbox.
 
 
-#### list
+### list
 
 ```python
 def list(request_timeout: Optional[float] = None) -> List[ProcessInfo]
@@ -42,7 +42,7 @@ Lists all running commands and PTY sessions.
 List of running commands and PTY sessions
 
 
-#### kill
+### kill
 
 ```python
 def kill(pid: int, request_timeout: Optional[float] = None) -> bool
@@ -62,7 +62,7 @@ It uses `SIGKILL` signal to kill the command.
 `True` if the command was killed, `False` if the command was not found
 
 
-#### send\_stdin
+### send\_stdin
 
 ```python
 def send_stdin(pid: int, data: str, request_timeout: Optional[float] = None)
@@ -70,13 +70,15 @@ def send_stdin(pid: int, data: str, request_timeout: Optional[float] = None)
 
 Send data to command stdin.
 
-:param pid Process ID of the command. You can get the list of processes using `sandbox.commands.list()`.
-:param data: Data to send to the command
-:param request_timeout: Timeout for the request in **seconds**
+**Arguments**:
+
+- `pid`: Process ID of the command. You can get the list of processes using `sandbox.commands.list()`.
+- `data`: Data to send to the command
+- `request_timeout`: Timeout for the request in **seconds**
 
 
 
-#### run
+### run
 
 ```python
 @overload
@@ -110,7 +112,7 @@ Start a new command and wait until it finishes executing.
 `CommandResult` result of the command execution
 
 
-#### run
+### run
 
 ```python
 @overload
@@ -142,7 +144,7 @@ Start a new command and return a handle to interact with it.
 `CommandHandle` handle to interact with the running command
 
 
-#### connect
+### connect
 
 ```python
 def connect(pid: int,
@@ -178,7 +180,7 @@ Command execution handle.
 It provides methods for waiting for the command to finish, retrieving stdout/stderr, and killing the command.
 
 
-#### pid
+### pid
 
 ```python
 @property
@@ -188,7 +190,7 @@ def pid()
 Command process ID.
 
 
-#### \_\_iter\_\_
+### \_\_iter\_\_
 
 ```python
 def __iter__()
@@ -201,7 +203,7 @@ Iterate over the command output.
 Generator of command outputs
 
 
-#### disconnect
+### disconnect
 
 ```python
 def disconnect() -> None
@@ -213,7 +215,7 @@ The command is not killed, but SDK stops receiving events from the command.
 You can reconnect to the command using `sandbox.commands.connect` method.
 
 
-#### wait
+### wait
 
 ```python
 def wait(on_pty: Optional[Callable[[PtyOutput], None]] = None,
@@ -236,7 +238,7 @@ If the command exits with a non-zero exit code, it throws a `CommandExitExceptio
 `CommandResult` result of command execution
 
 
-#### kill
+### kill
 
 ```python
 def kill() -> bool
@@ -262,7 +264,7 @@ class Pty()
 Module for interacting with PTYs (pseudo-terminals) in the sandbox.
 
 
-#### kill
+### kill
 
 ```python
 def kill(pid: int, request_timeout: Optional[float] = None) -> bool
@@ -280,7 +282,7 @@ Kill PTY.
 `true` if the PTY was killed, `false` if the PTY was not found
 
 
-#### send\_stdin
+### send\_stdin
 
 ```python
 def send_stdin(pid: int,
@@ -297,7 +299,7 @@ Send input to a PTY.
 - `request_timeout`: Timeout for the request in **seconds**
 
 
-#### create
+### create
 
 ```python
 def create(size: PtySize,
@@ -324,7 +326,7 @@ Start a new PTY (pseudo-terminal).
 Handle to interact with the PTY
 
 
-#### resize
+### resize
 
 ```python
 def resize(pid: int,
@@ -352,7 +354,7 @@ class SandboxApi(SandboxApiBase)
 ```
 
 
-#### list
+### list
 
 ```python
 @classmethod
@@ -405,7 +407,7 @@ sandbox = Sandbox()
 ```
 
 
-#### files
+### files
 
 ```python
 @property
@@ -415,7 +417,7 @@ def files() -> Filesystem
 Module for interacting with the sandbox filesystem.
 
 
-#### commands
+### commands
 
 ```python
 @property
@@ -425,7 +427,7 @@ def commands() -> Commands
 Module for running commands in the sandbox.
 
 
-#### pty
+### pty
 
 ```python
 @property
@@ -435,7 +437,7 @@ def pty() -> Pty
 Module for interacting with the sandbox pseudo-terminal.
 
 
-#### sandbox\_id
+### sandbox\_id
 
 ```python
 @property
@@ -445,7 +447,7 @@ def sandbox_id() -> str
 Unique identifier of the sandbox
 
 
-#### \_\_init\_\_
+### \_\_init\_\_
 
 ```python
 def __init__(template: Optional[str] = None,
@@ -477,7 +479,7 @@ By default, the sandbox is created from the default `base` sandbox template.
 sandbox instance for the new sandbox
 
 
-#### is\_running
+### is\_running
 
 ```python
 def is_running(request_timeout: Optional[float] = None) -> bool
@@ -502,7 +504,7 @@ sandbox.is_running() # Returns False
 ```
 
 
-#### connect
+### connect
 
 ```python
 @classmethod
@@ -531,9 +533,9 @@ sandbox = Sandbox()
 sandbox_id = sandbox.sandbox_id
 
 same_sandbox = Sandbox.connect(sandbox_id)
+```
 
-
-#### kill
+### kill
 
 ```python
 @overload
@@ -551,7 +553,7 @@ Kill the sandbox.
 `True` if the sandbox was killed, `False` if the sandbox was not found
 
 
-#### kill
+### kill
 
 ```python
 @overload
@@ -576,7 +578,7 @@ Kill the sandbox specified by sandbox ID.
 `True` if the sandbox was killed, `False` if the sandbox was not found
 
 
-#### kill
+### kill
 
 ```python
 @class_method_variant("_cls_kill")
@@ -594,7 +596,7 @@ Kill the sandbox.
 `True` if the sandbox was killed, `False` if the sandbox was not found
 
 
-#### set\_timeout
+### set\_timeout
 
 ```python
 @overload
@@ -614,7 +616,7 @@ Maximum time a sandbox can be kept alive is 24 hours (86_400 seconds) for Pro us
 - `request_timeout`: Timeout for the request in **seconds**
 
 
-#### set\_timeout
+### set\_timeout
 
 ```python
 @overload
@@ -653,7 +655,7 @@ class Filesystem()
 Module for interacting with the filesystem in the sandbox.
 
 
-#### read
+### read
 
 ```python
 @overload
@@ -677,7 +679,7 @@ Read file content as a `str`.
 File content as a `str`
 
 
-#### read
+### read
 
 ```python
 @overload
@@ -701,7 +703,7 @@ Read file content as a `bytearray`.
 File content as a `bytearray`
 
 
-#### read
+### read
 
 ```python
 @overload
@@ -725,7 +727,7 @@ Read file content as a `Iterator[bytes]`.
 File content as an `Iterator[bytes]`
 
 
-#### write
+### write
 
 ```python
 def write(path: str,
@@ -754,7 +756,7 @@ Writing to a file at path that doesn't exist creates the necessary directories.
 Information about the written file
 
 
-#### list
+### list
 
 ```python
 def list(path: str,
@@ -775,7 +777,7 @@ List entries in a directory.
 List of entries in the directory
 
 
-#### exists
+### exists
 
 ```python
 def exists(path: str,
@@ -796,7 +798,7 @@ Check if a file or a directory exists.
 `True` if the file or directory exists, `False` otherwise
 
 
-#### remove
+### remove
 
 ```python
 def remove(path: str,
@@ -813,7 +815,7 @@ Remove a file or a directory.
 - `request_timeout`: Timeout for the request in **seconds**
 
 
-#### rename
+### rename
 
 ```python
 def rename(old_path: str,
@@ -836,7 +838,7 @@ Rename a file or directory.
 Information about the renamed file or directory
 
 
-#### make\_dir
+### make\_dir
 
 ```python
 def make_dir(path: str,
@@ -857,7 +859,7 @@ Create a new directory and all directories along the way if needed on the specif
 `True` if the directory was created, `False` if the directory already exists
 
 
-#### watch\_dir
+### watch\_dir
 
 ```python
 def watch_dir(path: str,
@@ -892,7 +894,7 @@ It is used to get the latest events that have occurred in the watched directory.
 Use `.stop()` to stop watching the directory.
 
 
-#### stop
+### stop
 
 ```python
 def stop()
@@ -902,7 +904,7 @@ Stop watching the directory.
 After you stop the watcher you won't be able to get the events anymore.
 
 
-#### get\_new\_events
+### get\_new\_events
 
 ```python
 def get_new_events() -> List[FilesystemEvent]

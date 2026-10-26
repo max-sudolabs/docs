@@ -5,6 +5,14 @@ import { glob } from "glob";
 import { CONSTANTS } from "../lib/constants.js";
 import { log } from "../lib/log.js";
 
+/**
+ * The CLI's own Markdown export stringifies object defaults ("[default: [object Object]]",
+ * e.g. the repeatable --env option). Drops those annotations; real defaults are kept.
+ */
+export function cleanCliMarkdown(content: string): string {
+  return content.replace(/ ?\[default: \[object Object\]\]/g, "");
+}
+
 async function findCliOutputDir(sdkDir: string): Promise<string | null> {
   const possibleDirs = ["sdk_ref", "api_ref"];
 
@@ -64,7 +72,9 @@ export async function generateCli(sdkDir: string): Promise<string> {
       CONSTANTS.MD_EXTENSION,
       CONSTANTS.MDX_EXTENSION
     );
-    await fs.move(srcPath, destPath);
+    const content = await fs.readFile(srcPath, "utf-8");
+    await fs.writeFile(destPath, cleanCliMarkdown(content));
+    await fs.remove(srcPath);
   }
 
   return outputDir;

@@ -356,9 +356,11 @@ async def send_stdin(pid: int,
 
 Send data to command stdin.
 
-:param pid Process ID of the command. You can get the list of processes using `sandbox.commands.list()`.
-:param data: Data to send to the command
-:param request_timeout: Timeout for the request in **seconds**
+**Arguments**:
+
+- `pid`: Process ID of the command. You can get the list of processes using `sandbox.commands.list()`.
+- `data`: Data to send to the command
+- `request_timeout`: Timeout for the request in **seconds**
 
 
 
@@ -374,8 +376,10 @@ Close the command stdin.
 
 This signals EOF to the command. The command must have been started with `stdin=True`.
 
-:param pid Process ID of the command. You can get the list of processes using `sandbox.commands.list()`.
-:param request_timeout: Timeout for the request in **seconds**
+**Arguments**:
+
+- `pid`: Process ID of the command. You can get the list of processes using `sandbox.commands.list()`.
+- `request_timeout`: Timeout for the request in **seconds**
 
 
 

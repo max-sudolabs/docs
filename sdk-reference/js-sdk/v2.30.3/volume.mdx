@@ -56,9 +56,9 @@ Create a local Volume instance with no API call.
 | `volumeId` | `string` | volume ID. |
 | `name` | `string` | volume name. |
 | `token` | `string` | volume auth token. |
-| `domain`? | `string` | domain for the volume API. |
-| `debug`? | `boolean` | whether to use debug mode. |
-| `proxy`? | `string` | proxy URL for the volume content API. |
+| `domain?` | `string` | domain for the volume API. |
+| `debug?` | `boolean` | whether to use debug mode. |
+| `proxy?` | `string` | proxy URL for the volume content API. |
 
 ###### Returns
 
@@ -93,11 +93,11 @@ Uses getInfo under the hood. Returns `true` if the path exists,
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the file or directory. |
-| `opts`? | `VolumeApiOpts` | connection options. |
+| `opts?` | `VolumeApiOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 `true` if the path exists, `false` otherwise.
 
@@ -114,11 +114,11 @@ Get information about a file or directory.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the file or directory. |
-| `opts`? | `VolumeApiOpts` | connection options. |
+| `opts?` | `VolumeApiOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`VolumeEntryStat`\>
+`Promise<VolumeEntryStat>`
 
 information about the entry.
 
@@ -135,11 +135,11 @@ List directory contents.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the directory. |
-| `opts`? | `VolumeApiOpts` & `object` | connection options. |
+| `opts?` | `VolumeApiOpts` & `object` | connection options. |
 
 ###### Returns
 
-`Promise`\<`VolumeEntryStat`[]\>
+`Promise<VolumeEntryStat[]>`
 
 list of entries in the directory.
 
@@ -156,11 +156,11 @@ Create a directory.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the directory to create. |
-| `opts`? | `VolumeMetadataOptions` & `object` & `VolumeApiOpts` | connection options. |
+| `opts?` | `VolumeMetadataOptions` & `object` & `VolumeApiOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`VolumeEntryStat`\>
+`Promise<VolumeEntryStat>`
 
 ### readFile()
 
@@ -179,11 +179,11 @@ You can pass `text`, `bytes`, `blob`, or `stream` to `opts.format` to change the
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the file. |
-| `opts`? | `VolumeApiOpts` & `object` | connection options. |
+| `opts?` | `VolumeApiOpts` & `object` | connection options. |
 
 ###### Returns
 
-`Promise`\<`string`\>
+`Promise<string>`
 
 file content as string
 
@@ -202,11 +202,11 @@ You can pass `text`, `bytes`, `blob`, or `stream` to `opts.format` to change the
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the file. |
-| `opts`? | `VolumeApiOpts` & `object` | connection options. |
+| `opts?` | `VolumeApiOpts` & `object` | connection options. |
 
 ###### Returns
 
-`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+`Promise<Uint8Array<ArrayBufferLike>>`
 
 file content as `Uint8Array`
 
@@ -225,11 +225,11 @@ You can pass `text`, `bytes`, `blob`, or `stream` to `opts.format` to change the
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the file. |
-| `opts`? | `VolumeApiOpts` & `object` | connection options. |
+| `opts?` | `VolumeApiOpts` & `object` | connection options. |
 
 ###### Returns
 
-`Promise`\<`Blob`\>
+`Promise<Blob>`
 
 file content as `Blob`
 
@@ -248,11 +248,11 @@ You can pass `text`, `bytes`, `blob`, or `stream` to `opts.format` to change the
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the file. |
-| `opts`? | `VolumeApiOpts` & `object` | connection options. |
+| `opts?` | `VolumeApiOpts` & `object` | connection options. |
 
 ###### Returns
 
-`Promise`\<`ReadableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\>\>
+`Promise<ReadableStream<Uint8Array<ArrayBufferLike>>>`
 
 file content as `ReadableStream`
 
@@ -269,11 +269,11 @@ Remove a file or directory.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the file or directory to remove. |
-| `opts`? | `VolumeApiOpts` | connection options. |
+| `opts?` | `VolumeApiOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ### updateMetadata()
 
@@ -292,11 +292,11 @@ Update file or directory metadata.
 | ------ | ------ | ------ |
 | `path` | `string` | path to the file or directory. |
 | `metadata` | `VolumeMetadataOptions` | metadata to update (uid, gid, mode). |
-| `opts`? | `VolumeApiOpts` | connection options. |
+| `opts?` | `VolumeApiOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`VolumeEntryStat`\>
+`Promise<VolumeEntryStat>`
 
 updated entry information.
 
@@ -324,12 +324,12 @@ Writing to a file that already exists overwrites the file.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the file. |
-| `data` | \| `string` \| `ArrayBuffer` \| `Blob` \| `ReadableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\> | data to write to the file. Data can be a string, `ArrayBuffer`, `Blob`, or `ReadableStream`. |
-| `opts`? | `VolumeMetadataOptions` & `object` & `VolumeApiOpts` | connection options. |
+| `data` | `string \| ArrayBuffer \| Blob \| ReadableStream<Uint8Array<ArrayBufferLike>>` | data to write to the file. Data can be a string, `ArrayBuffer`, `Blob`, or `ReadableStream`. |
+| `opts?` | `VolumeMetadataOptions` & `object` & `VolumeApiOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`VolumeEntryStat`\>
+`Promise<VolumeEntryStat>`
 
 information about the written file
 
@@ -346,11 +346,11 @@ Connect to an existing volume by ID.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `volumeId` | `string` | volume ID. |
-| `opts`? | `ConnectionOpts` | connection options. |
+| `opts?` | `ConnectionOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`Volume`\>
+`Promise<Volume>`
 
 Volume instance.
 
@@ -367,11 +367,11 @@ Create a new volume.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `name` | `string` | name of the volume. |
-| `opts`? | `ConnectionOpts` | connection options. |
+| `opts?` | `ConnectionOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`Volume`\>
+`Promise<Volume>`
 
 new Volume instance.
 
@@ -388,11 +388,11 @@ Destroy a volume.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `volumeId` | `string` | volume ID. |
-| `opts`? | `ConnectionOpts` | connection options. |
+| `opts?` | `ConnectionOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 ### getInfo()
 
@@ -407,11 +407,11 @@ Get volume information.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `volumeId` | `string` | volume ID. |
-| `opts`? | `ConnectionOpts` | connection options. |
+| `opts?` | `ConnectionOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`VolumeAndToken`\>
+`Promise<VolumeAndToken>`
 
 volume information.
 
@@ -427,11 +427,11 @@ List all volumes.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts`? | `ConnectionOpts` | connection options. |
+| `opts?` | `ConnectionOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`VolumeInfo`[]\>
+`Promise<VolumeInfo[]>`
 
 list of volume information.
 
@@ -450,7 +450,7 @@ new VolumeConnectionConfig(volume: Volume, opts?: VolumeApiOpts): VolumeConnecti
 | Parameter | Type |
 | ------ | ------ |
 | `volume` | `Volume` |
-| `opts`? | `VolumeApiOpts` |
+| `opts?` | `VolumeApiOpts` |
 
 ###### Returns
 
@@ -463,7 +463,7 @@ new VolumeConnectionConfig(volume: Volume, opts?: VolumeApiOpts): VolumeConnecti
 | <a id="apiurl"></a> `apiUrl` | `readonly` | `string` |
 | <a id="debug-1"></a> `debug` | `readonly` | `boolean` |
 | <a id="domain-1"></a> `domain` | `readonly` | `string` |
-| <a id="headers"></a> `headers?` | `readonly` | `Record`\<`string`, `string`\> |
+| <a id="headers"></a> `headers?` | `readonly` | `Record<string, string>` |
 | <a id="logger"></a> `logger?` | `readonly` | `Logger` |
 | <a id="proxy-1"></a> `proxy?` | `readonly` | `string` |
 | <a id="requesttimeoutms"></a> `requestTimeoutMs` | `readonly` | `number` |
@@ -482,12 +482,12 @@ getSignal(requestTimeoutMs?: number, signal?: AbortSignal): undefined | AbortSig
 
 | Parameter | Type |
 | ------ | ------ |
-| `requestTimeoutMs`? | `number` |
-| `signal`? | `AbortSignal` |
+| `requestTimeoutMs?` | `number` |
+| `signal?` | `AbortSignal` |
 
 ###### Returns
 
-`undefined` \| `AbortSignal`
+`undefined | AbortSignal`
 
 ## Interfaces
 
@@ -641,9 +641,9 @@ Options for updating file metadata.
 
 | Name | Type | Description |
 | ------ | ------ | ------ |
-| <a id="gid"></a> `gid`? | `number` | Group ID of the file or directory. |
-| <a id="mode"></a> `mode`? | `number` | Mode of the file or directory. |
-| <a id="uid"></a> `uid`? | `number` | User ID of the file or directory. |
+| <a id="gid"></a> `gid?` | `number` | Group ID of the file or directory. |
+| <a id="mode"></a> `mode?` | `number` | Mode of the file or directory. |
+| <a id="uid"></a> `uid?` | `number` | User ID of the file or directory. |
 
 ***
 
@@ -659,4 +659,4 @@ Options for file and directory operations.
 
 | Name | Type | Description |
 | ------ | ------ | ------ |
-| `force`? | `boolean` | For makeDir: Create parent directories if they don't exist. For writeFile: Force overwrite of an existing file. |
+| `force?` | `boolean` | For makeDir: Create parent directories if they don't exist. For writeFile: Force overwrite of an existing file. |

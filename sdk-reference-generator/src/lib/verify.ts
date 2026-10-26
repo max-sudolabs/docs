@@ -83,6 +83,19 @@ export async function verifyGeneratedDocs(
               `Unbalanced code fences: ${sdkEntry.name}/${versionEntry.name}/${file}`
             );
           }
+
+          // upstream generation bugs that reach readers: an object stringified into the
+          // text (e.g. a CLI option default) and docstring fields that were not converted
+          if (content.includes('[object Object]')) {
+            warnings.push(
+              `Stringified object ("[object Object]"): ${sdkEntry.name}/${versionEntry.name}/${file}`
+            );
+          }
+          if (/^\s*:(param|return|returns|raises|type)\b/m.test(content)) {
+            warnings.push(
+              `Unconverted docstring fields (":param" etc.): ${sdkEntry.name}/${versionEntry.name}/${file}`
+            );
+          }
         }
       }
     }

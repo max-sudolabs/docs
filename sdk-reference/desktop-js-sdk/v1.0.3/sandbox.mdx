@@ -34,7 +34,7 @@ Double left click on the current mouse position.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ### getCursorPosition()
 
@@ -46,7 +46,7 @@ Get the current cursor position.
 
 ###### Returns
 
-`Promise`\<`null` \| `CursorPosition`\>
+`Promise<null | CursorPosition>`
 
 A object with the x and y coordinates
 
@@ -64,7 +64,7 @@ Get the current screen size.
 
 ###### Returns
 
-`Promise`\<`null` \| `ScreenSize`\>
+`Promise<null | ScreenSize>`
 
 An ScreenSize object
 
@@ -82,7 +82,7 @@ Left click on the current mouse position.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ### middleClick()
 
@@ -94,7 +94,7 @@ Middle click on the current mouse position.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ### moveMouse()
 
@@ -113,7 +113,7 @@ Move the mouse to the given coordinates.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ### open()
 
@@ -131,7 +131,7 @@ Open a file or a URL in the default application.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ### press()
 
@@ -149,7 +149,7 @@ Press a key.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ### rightClick()
 
@@ -161,7 +161,7 @@ Right click on the current mouse position.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ### screenshot()
 
@@ -175,7 +175,7 @@ Take a screenshot and save it to the given name.
 
 ###### Returns
 
-`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+`Promise<Uint8Array<ArrayBufferLike>>`
 
 A Uint8Array bytes representation of the screenshot.
 
@@ -195,7 +195,7 @@ Take a screenshot and save it to the given name.
 
 ###### Returns
 
-`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+`Promise<Uint8Array<ArrayBufferLike>>`
 
 A Uint8Array bytes representation of the screenshot.
 
@@ -215,7 +215,7 @@ Take a screenshot and save it to the given name.
 
 ###### Returns
 
-`Promise`\<`Blob`\>
+`Promise<Blob>`
 
 A Blob representation of the screenshot.
 
@@ -235,7 +235,7 @@ Take a screenshot and save it to the given name.
 
 ###### Returns
 
-`Promise`\<`ReadableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\>\>
+`Promise<ReadableStream<Uint8Array<ArrayBufferLike>>>`
 
 A ReadableStream of bytes representation of the screenshot.
 
@@ -251,12 +251,12 @@ Scroll the mouse wheel by the given amount.
 
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
-| `direction` | `"up"` \| `"down"` | `'down'` | The direction to scroll. Can be "up" or "down". |
+| `direction` | `"up" \| "down"` | `'down'` | The direction to scroll. Can be "up" or "down". |
 | `amount` | `number` | `1` | The amount to scroll. |
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ### waitAndVerify()
 
@@ -275,13 +275,13 @@ Wait for a command to return a specific result.
 | Parameter | Type | Default value | Description |
 | ------ | ------ | ------ | ------ |
 | `cmd` | `string` | `undefined` | The command to run. |
-| `onResult` | (`result`: `CommandResult`) => `boolean` | `undefined` | The function to check the result of the command. |
+| `onResult` | `(result: CommandResult) => boolean` | `undefined` | The function to check the result of the command. |
 | `timeout` | `number` | `10` | The maximum time to wait for the command to return the result. |
 | `interval` | `number` | `0.5` | The interval to wait between checks. |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 `true` if the command returned the result within the timeout, otherwise `false`.
 
@@ -304,7 +304,7 @@ Write the given text at the current cursor position.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ### create()
 
@@ -320,18 +320,18 @@ Create a new sandbox from the default `desktop` sandbox template.
 
 | Type Parameter |
 | ------ |
-| `S` *extends* *typeof* `Sandbox` |
+| `S extends typeof Sandbox` |
 
 ###### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `this` | `S` | - |
-| `opts`? | `SandboxOpts` | connection options. |
+| `opts?` | `SandboxOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`InstanceType`\<`S`\>\>
+`Promise<InstanceType<S>>`
 
 sandbox instance for the new sandbox.
 
@@ -339,12 +339,6 @@ sandbox instance for the new sandbox.
 
 ```ts
 const sandbox = await Sandbox.create()
-```
-
-###### Constructs
-
-Sandbox
-
 ```
 
 ###### Call Signature
@@ -362,7 +356,7 @@ Create a new sandbox from the specified sandbox template.
 
 | Type Parameter |
 | ------ |
-| `S` *extends* *typeof* `Sandbox` |
+| `S extends typeof Sandbox` |
 
 ###### Parameters
 
@@ -370,11 +364,11 @@ Create a new sandbox from the specified sandbox template.
 | ------ | ------ | ------ |
 | `this` | `S` | - |
 | `template` | `string` | sandbox template name or ID. |
-| `opts`? | `SandboxOpts` | connection options. |
+| `opts?` | `SandboxOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`InstanceType`\<`S`\>\>
+`Promise<InstanceType<S>>`
 
 sandbox instance for the new sandbox.
 
@@ -382,12 +376,6 @@ sandbox instance for the new sandbox.
 
 ```ts
 const sandbox = await Sandbox.create('<template-name-or-id>')
-```
-
-###### Constructs
-
-Sandbox
-
 ```
 
 ## Interfaces

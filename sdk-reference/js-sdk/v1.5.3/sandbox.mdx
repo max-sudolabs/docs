@@ -60,7 +60,7 @@ Get the URL to download a file from the sandbox.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the file in the sandbox. |
-| `opts`? | `SandboxUrlOpts` | download url options. |
+| `opts?` | `SandboxUrlOpts` | download url options. |
 
 ###### Returns
 
@@ -111,11 +111,11 @@ Get sandbox information like sandbox ID, template, metadata, started at/end at d
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts`? | `Pick`\<`SandboxOpts`, `"requestTimeoutMs"`\> | connection options. |
+| `opts?` | `Pick<SandboxOpts, "requestTimeoutMs">` | connection options. |
 
 ###### Returns
 
-`Promise`\<`SandboxInfo`\>
+`Promise<SandboxInfo>`
 
 information about the sandbox
 
@@ -131,11 +131,11 @@ Check if the sandbox is running.
 
 | Parameter | Type |
 | ------ | ------ |
-| `opts`? | `Pick`\<`ConnectionOpts`, `"requestTimeoutMs"`\> |
+| `opts?` | `Pick<ConnectionOpts, "requestTimeoutMs">` |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 `true` if the sandbox is running, `false` otherwise.
 
@@ -161,11 +161,11 @@ Kill the sandbox.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts`? | `Pick`\<`SandboxOpts`, `"requestTimeoutMs"`\> | connection options. |
+| `opts?` | `Pick<SandboxOpts, "requestTimeoutMs">` | connection options. |
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ### setTimeout()
 
@@ -184,11 +184,11 @@ Maximum time a sandbox can be kept alive is 24 hours (86_400_000 milliseconds) f
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `timeoutMs` | `number` | timeout in **milliseconds**. |
-| `opts`? | `Pick`\<`SandboxOpts`, `"requestTimeoutMs"`\> | connection options. |
+| `opts?` | `Pick<SandboxOpts, "requestTimeoutMs">` | connection options. |
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ### uploadUrl()
 
@@ -204,8 +204,8 @@ You have to send a POST request to this URL with the file as multipart/form-data
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `path`? | `string` | path to the file in the sandbox. |
-| `opts`? | `SandboxUrlOpts` | download url options. |
+| `path?` | `string` | path to the file in the sandbox. |
+| `opts?` | `SandboxUrlOpts` | download url options. |
 
 ###### Returns
 
@@ -229,7 +229,7 @@ With sandbox ID you can connect to the same sandbox from different places or env
 
 | Type Parameter |
 | ------ |
-| `S` *extends* *typeof* `Sandbox` |
+| `S extends typeof Sandbox` |
 
 ###### Parameters
 
@@ -237,11 +237,11 @@ With sandbox ID you can connect to the same sandbox from different places or env
 | ------ | ------ | ------ |
 | `this` | `S` | - |
 | `sandboxId` | `string` | sandbox ID. |
-| `opts`? | `Omit`\<`SandboxOpts`, `"timeoutMs"` \| `"metadata"` \| `"envs"`\> | connection options. |
+| `opts?` | `Omit<SandboxOpts, "timeoutMs" \| "metadata" \| "envs">` | connection options. |
 
 ###### Returns
 
-`Promise`\<`InstanceType`\<`S`\>\>
+`Promise<InstanceType<S>>`
 
 sandbox instance for the existing sandbox.
 
@@ -269,18 +269,18 @@ Create a new sandbox from the default `base` sandbox template.
 
 | Type Parameter |
 | ------ |
-| `S` *extends* *typeof* `Sandbox` |
+| `S extends typeof Sandbox` |
 
 ###### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `this` | `S` | - |
-| `opts`? | `SandboxOpts` | connection options. |
+| `opts?` | `SandboxOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`InstanceType`\<`S`\>\>
+`Promise<InstanceType<S>>`
 
 sandbox instance for the new sandbox.
 
@@ -289,10 +289,6 @@ sandbox instance for the new sandbox.
 ```ts
 const sandbox = await Sandbox.create()
 ```
-
-###### Constructs
-
-Sandbox
 
 ###### create(this, template, opts)
 
@@ -309,7 +305,7 @@ Create a new sandbox from the specified sandbox template.
 
 | Type Parameter |
 | ------ |
-| `S` *extends* *typeof* `Sandbox` |
+| `S extends typeof Sandbox` |
 
 ###### Parameters
 
@@ -317,11 +313,11 @@ Create a new sandbox from the specified sandbox template.
 | ------ | ------ | ------ |
 | `this` | `S` | - |
 | `template` | `string` | sandbox template name or ID. |
-| `opts`? | `SandboxOpts` | connection options. |
+| `opts?` | `SandboxOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`InstanceType`\<`S`\>\>
+`Promise<InstanceType<S>>`
 
 sandbox instance for the new sandbox.
 
@@ -330,10 +326,6 @@ sandbox instance for the new sandbox.
 ```ts
 const sandbox = await Sandbox.create('<template-name-or-id>')
 ```
-
-###### Constructs
-
-Sandbox
 
 ### getInfo()
 
@@ -348,11 +340,11 @@ Get sandbox information like sandbox ID, template, metadata, started at/end at d
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `sandboxId` | `string` | sandbox ID. |
-| `opts`? | `SandboxApiOpts` | connection options. |
+| `opts?` | `SandboxApiOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`SandboxInfo`\>
+`Promise<SandboxInfo>`
 
 sandbox information.
 
@@ -369,11 +361,11 @@ Kill the sandbox specified by sandbox ID.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `sandboxId` | `string` | sandbox ID. |
-| `opts`? | `SandboxApiOpts` | connection options. |
+| `opts?` | `SandboxApiOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 `true` if the sandbox was found and killed, `false` otherwise.
 
@@ -389,11 +381,11 @@ List all running sandboxes.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts`? | `SandboxListOpts` | connection options. |
+| `opts?` | `SandboxListOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`ListedSandbox`[]\>
+`Promise<ListedSandbox[]>`
 
 list of running sandboxes.
 
@@ -419,11 +411,11 @@ Maximum time a sandbox can be kept alive is 24 hours (86_400_000 milliseconds) f
 | ------ | ------ | ------ |
 | `sandboxId` | `string` | sandbox ID. |
 | `timeoutMs` | `number` | timeout in **milliseconds**. |
-| `opts`? | `SandboxApiOpts` | connection options. |
+| `opts?` | `SandboxApiOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ## Interfaces
 

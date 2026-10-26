@@ -67,11 +67,11 @@ Check if a file or a directory exists.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to a file or a directory |
-| `opts`? | `FilesystemRequestOpts` | connection options. |
+| `opts?` | `FilesystemRequestOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 `true` if the file or directory exists, `false` otherwise
 
@@ -88,11 +88,11 @@ Get information about a file or directory.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to a file or directory. |
-| `opts`? | `FilesystemRequestOpts` | connection options. |
+| `opts?` | `FilesystemRequestOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`EntryInfo`\>
+`Promise<EntryInfo>`
 
 information about the file or directory like name, type, and path.
 
@@ -109,11 +109,11 @@ List entries in a directory.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the directory. |
-| `opts`? | `FilesystemListOpts` | connection options. |
+| `opts?` | `FilesystemListOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`EntryInfo`[]\>
+`Promise<EntryInfo[]>`
 
 list of entries in the sandbox filesystem directory.
 
@@ -130,11 +130,11 @@ Create a new directory and all directories along the way if needed on the specif
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to a new directory. For example '/dirA/dirB' when creating 'dirB'. |
-| `opts`? | `FilesystemRequestOpts` | connection options. |
+| `opts?` | `FilesystemRequestOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 `true` if the directory was created, `false` if it already exists.
 
@@ -155,11 +155,11 @@ You can pass `text`, `bytes`, `blob`, or `stream` to `opts.format` to change the
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the file. |
-| `opts`? | `FilesystemReadOpts` & `object` | connection options. |
+| `opts?` | `FilesystemReadOpts` & `object` | connection options. |
 
 ###### Returns
 
-`Promise`\<`string`\>
+`Promise<string>`
 
 file content as string
 
@@ -178,11 +178,11 @@ You can pass `text`, `bytes`, `blob`, or `stream` to `opts.format` to change the
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the file. |
-| `opts`? | `FilesystemReadOpts` & `object` | connection options. |
+| `opts?` | `FilesystemReadOpts` & `object` | connection options. |
 
 ###### Returns
 
-`Promise`\<`Uint8Array`\<`ArrayBufferLike`\>\>
+`Promise<Uint8Array<ArrayBufferLike>>`
 
 file content as `Uint8Array`
 
@@ -201,11 +201,11 @@ You can pass `text`, `bytes`, `blob`, or `stream` to `opts.format` to change the
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the file. |
-| `opts`? | `FilesystemReadOpts` & `object` | connection options. |
+| `opts?` | `FilesystemReadOpts` & `object` | connection options. |
 
 ###### Returns
 
-`Promise`\<`Blob`\>
+`Promise<Blob>`
 
 file content as `Blob`
 
@@ -229,11 +229,11 @@ cancel it (`opts.signal`).
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the file. |
-| `opts`? | `FilesystemReadOpts` & `object` | connection options. |
+| `opts?` | `FilesystemReadOpts` & `object` | connection options. |
 
 ###### Returns
 
-`Promise`\<`ReadableStream`\<`Uint8Array`\<`ArrayBufferLike`\>\>\>
+`Promise<ReadableStream<Uint8Array<ArrayBufferLike>>>`
 
 file content as `ReadableStream`
 
@@ -250,11 +250,11 @@ Remove a file or directory.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to a file or directory. |
-| `opts`? | `FilesystemRequestOpts` | connection options. |
+| `opts?` | `FilesystemRequestOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ### rename()
 
@@ -273,11 +273,11 @@ Rename a file or directory.
 | ------ | ------ | ------ |
 | `oldPath` | `string` | path to the file or directory to rename. |
 | `newPath` | `string` | new path for the file or directory. |
-| `opts`? | `FilesystemRequestOpts` | connection options. |
+| `opts?` | `FilesystemRequestOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`EntryInfo`\>
+`Promise<EntryInfo>`
 
 information about renamed file or directory.
 
@@ -297,12 +297,12 @@ Start watching a directory for filesystem events.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to directory to watch. |
-| `onEvent` | (`event`: `FilesystemEvent`) => `void` \| `Promise`\<`void`\> | callback to call when an event in the directory occurs. |
-| `opts`? | `WatchOpts` & `object` | connection options. |
+| `onEvent` | `(event: FilesystemEvent) => void \| Promise<void>` | callback to call when an event in the directory occurs. |
+| `opts?` | `WatchOpts` & `object` | connection options. |
 
 ###### Returns
 
-`Promise`\<`WatchHandle`\>
+`Promise<WatchHandle>`
 
 `WatchHandle` object for stopping watching directory.
 
@@ -330,12 +330,12 @@ Writing to a file at path that doesn't exist creates the necessary directories.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to file. |
-| `data` | `string` \| `Blob` \| `ReadableStream`\<`any`\> \| `ArrayBuffer` | data to write to the file. Data can be a string, `ArrayBuffer`, `Blob`, or `ReadableStream`. |
-| `opts`? | `FilesystemWriteOpts` | connection options. |
+| `data` | `string \| Blob \| ReadableStream<any> \| ArrayBuffer` | data to write to the file. Data can be a string, `ArrayBuffer`, `Blob`, or `ReadableStream`. |
+| `opts?` | `FilesystemWriteOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`WriteInfo`\>
+`Promise<WriteInfo>`
 
 information about the written file
 
@@ -357,12 +357,12 @@ Writing to a file at path that doesn't exist creates the necessary directories.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `files` | `WriteEntry`[] | - |
-| `opts`? | `FilesystemWriteOpts` | connection options. |
+| `files` | `WriteEntry[]` | - |
+| `opts?` | `FilesystemWriteOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`WriteInfo`[]\>
+`Promise<WriteInfo[]>`
 
 information about the written file
 
@@ -384,12 +384,12 @@ Writing to a file at path that doesn't exist creates the necessary directories.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `files` | `WriteEntry`[] | list of files to write as `WriteEntry` objects, each containing `path` and `data`. |
-| `opts`? | `FilesystemWriteOpts` | connection options. |
+| `files` | `WriteEntry[]` | list of files to write as `WriteEntry` objects, each containing `path` and `data`. |
+| `opts?` | `FilesystemWriteOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`WriteInfo`[]\>
+`Promise<WriteInfo[]>`
 
 information about the written files
 
@@ -779,11 +779,11 @@ Callback to call when the watch operation stops.
 
 | Parameter | Type |
 | ------ | ------ |
-| `err`? | `Error` |
+| `err?` | `Error` |
 
 ###### Returns
 
-`void` \| `Promise`\<`void`\>
+`void | Promise<void>`
 
 ### recursive?
 
@@ -900,7 +900,7 @@ type WriteEntry = object;
 
 | Name | Type |
 | ------ | ------ |
-| <a id="data"></a> `data` | `string` \| `ArrayBuffer` \| `Blob` \| `ReadableStream` |
+| <a id="data"></a> `data` | `string \| ArrayBuffer \| Blob \| ReadableStream` |
 | <a id="path-2"></a> `path` | `string` |
 
 ## Functions

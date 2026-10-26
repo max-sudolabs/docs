@@ -41,11 +41,11 @@ Creates a new context to run code in.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts`? | `CreateCodeContextOpts` | options for creating the context. |
+| `opts?` | `CreateCodeContextOpts` | options for creating the context. |
 
 ###### Returns
 
-`Promise`\<`Context`\>
+`Promise<Context>`
 
 context object.
 
@@ -59,7 +59,7 @@ List all contexts.
 
 ###### Returns
 
-`Promise`\<`Context`[]\>
+`Promise<Context[]>`
 
 list of contexts.
 
@@ -75,11 +75,11 @@ Removes a context.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `context` | `string` \| `Context` | context to remove. |
+| `context` | `string \| Context` | context to remove. |
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 void.
 
@@ -95,11 +95,11 @@ Restart a context.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `context` | `string` \| `Context` | context to restart. |
+| `context` | `string \| Context` | context to restart. |
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 void.
 
@@ -123,11 +123,11 @@ You can reference previously defined variables, imports, and functions in the co
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `code` | `string` | code to execute. |
-| `opts`? | `RunCodeOpts` & `object` | options for executing the code. |
+| `opts?` | `RunCodeOpts` & `object` | options for executing the code. |
 
 ###### Returns
 
-`Promise`\<`Execution`\>
+`Promise<Execution>`
 
 `Execution` result object.
 
@@ -148,11 +148,11 @@ You can reference previously defined variables, imports, and functions in the co
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `code` | `string` | code to execute. |
-| `opts`? | `RunCodeOpts` & `object` | options for executing the code |
+| `opts?` | `RunCodeOpts` & `object` | options for executing the code |
 
 ###### Returns
 
-`Promise`\<`Execution`\>
+`Promise<Execution>`
 
 `Execution` result object
 

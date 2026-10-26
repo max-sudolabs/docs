@@ -163,7 +163,6 @@ await sandbox.isRunning() // Returns true
 
 await sandbox.kill()
 await sandbox.isRunning() // Returns false
-```
 
 ###### Defined in
 
@@ -183,7 +182,7 @@ connection options.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ###### Defined in
 
@@ -211,7 +210,7 @@ connection options.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ###### Defined in
 
@@ -266,7 +265,7 @@ connection options.
 
 ###### Returns
 
-`Promise`\<`InstanceType`\<`S`\>\>
+`Promise<InstanceType<S>>`
 
 sandbox instance for the existing sandbox.
 
@@ -306,7 +305,7 @@ connection options.
 
 ###### Returns
 
-`Promise`\<`InstanceType`\<`S`\>\>
+`Promise<InstanceType<S>>`
 
 sandbox instance for the new sandbox.
 
@@ -315,10 +314,6 @@ sandbox instance for the new sandbox.
 ```ts
 const sandbox = await Sandbox.create()
 ```
-
-###### Constructs
-
-Sandbox
 
 ###### Defined in
 
@@ -348,7 +343,7 @@ connection options.
 
 ###### Returns
 
-`Promise`\<`InstanceType`\<`S`\>\>
+`Promise<InstanceType<S>>`
 
 sandbox instance for the new sandbox.
 
@@ -357,10 +352,6 @@ sandbox instance for the new sandbox.
 ```ts
 const sandbox = await Sandbox.create('<template-name-or-id>')
 ```
-
-###### Constructs
-
-Sandbox
 
 ###### Defined in
 
@@ -384,7 +375,7 @@ connection options.
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 `true` if the sandbox was found and killed, `false` otherwise.
 
@@ -406,7 +397,7 @@ connection options.
 
 ###### Returns
 
-`Promise`\<`SandboxInfo`[]\>
+`Promise<SandboxInfo[]>`
 
 list of running sandboxes.
 
@@ -441,7 +432,7 @@ connection options.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ###### Defined in
 

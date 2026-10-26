@@ -86,6 +86,25 @@ describe('verifyGeneratedDocs', () => {
     expect(result.warnings[0]).toContain('Unbalanced code fences');
   });
 
+  it('warns about stringified objects and unconverted docstring fields', async () => {
+    const sdkPath = path.join(tempDir, CONSTANTS.DOCS_SDK_REF_PATH, 'test-sdk', 'v1.0.0');
+    await fs.ensureDir(sdkPath);
+    await fs.writeFile(
+      path.join(sdkPath, 'cli.mdx'),
+      '---\nsidebarTitle: "CLI"\n---\n\n- `-e, --env <KEY=VALUE>: env [default: [object Object]]`\n'
+    );
+    await fs.writeFile(
+      path.join(sdkPath, 'commands.mdx'),
+      '---\nsidebarTitle: "Commands"\n---\n\nSend data.\n\n:param pid Process ID\n'
+    );
+
+    const result = await verifyGeneratedDocs(tempDir);
+
+    expect(result.warnings.some((w) => w.includes('[object Object]'))).toBe(true);
+    expect(result.warnings.some((w) => w.includes('Unconverted docstring fields'))).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
   it('warns about versions with no MDX files', async () => {
     const sdkPath = path.join(tempDir, CONSTANTS.DOCS_SDK_REF_PATH, 'test-sdk', 'v1.0.0');
     await fs.ensureDir(sdkPath);

@@ -33,7 +33,7 @@ new TemplateBase(options?: TemplateOptions): TemplateBase
 
 | Parameter | Type |
 | ------ | ------ |
-| `options`? | `TemplateOptions` |
+| `options?` | `TemplateOptions` |
 
 ###### Returns
 
@@ -87,9 +87,9 @@ Install Debian/Ubuntu packages using apt-get.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `packages` | `string` \| `string`[] | Package name(s) |
-| `options`? | `object` | - |
-| `options.noInstallRecommends`? | `boolean` | - |
+| `packages` | `string \| string[]` | Package name(s) |
+| `options?` | `object` | - |
+| `options.noInstallRecommends?` | `boolean` | - |
 
 ###### Returns
 
@@ -186,10 +186,10 @@ Install Bun packages using bun.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `packages`? | `string` \| `string`[] | Package name(s) or undefined for package.json |
-| `options`? | `object` | Install options |
-| `options.dev`? | `boolean` | - |
-| `options.g`? | `boolean` | - |
+| `packages?` | `string \| string[]` | Package name(s) or undefined for package.json |
+| `options?` | `object` | Install options |
+| `options.dev?` | `boolean` | - |
+| `options.g?` | `boolean` | - |
 
 ###### Returns
 
@@ -224,13 +224,13 @@ Copy files or directories into the template.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `src` | `PathLike` \| `PathLike`[] | Source path(s) |
+| `src` | `PathLike \| PathLike[]` | Source path(s) |
 | `dest` | `PathLike` | Destination path |
-| `options`? | `object` | Copy options |
-| `options.forceUpload`? | `true` | - |
-| `options.mode`? | `number` | - |
-| `options.resolveSymlinks`? | `boolean` | - |
-| `options.user`? | `string` | - |
+| `options?` | `object` | Copy options |
+| `options.forceUpload?` | `true` | - |
+| `options.mode?` | `number` | - |
+| `options.resolveSymlinks?` | `boolean` | - |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -259,7 +259,7 @@ Copy multiple items with individual options.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `items` | `CopyItem`[] | Array of copy items |
+| `items` | `CopyItem[]` | Array of copy items |
 
 ###### Returns
 
@@ -438,7 +438,7 @@ Start from a Docker image in Google Container Registry.
 | ------ | ------ | ------ |
 | `image` | `string` | Full GCR/GAR image path |
 | `credentials` | `object` | GCP service account credentials |
-| `credentials.serviceAccountJSON` | `string` \| `object` | - |
+| `credentials.serviceAccountJSON` | `string \| object` | - |
 
 ###### Returns
 
@@ -470,9 +470,9 @@ Start from a custom Docker image.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `baseImage` | `string` | Docker image name |
-| `credentials`? | `object` | Optional credentials for private registries |
-| `credentials.password`? | `string` | - |
-| `credentials.username`? | `string` | - |
+| `credentials?` | `object` | Optional credentials for private registries |
+| `credentials.password?` | `string` | - |
+| `credentials.username?` | `string` | - |
 
 ###### Returns
 
@@ -622,11 +622,11 @@ Clone a Git repository.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `url` | `string` | Repository URL |
-| `path`? | `PathLike` | Optional destination path |
-| `options`? | `object` | Clone options |
-| `options.branch`? | `string` | - |
-| `options.depth`? | `number` | - |
-| `options.user`? | `string` | - |
+| `path?` | `PathLike` | Optional destination path |
+| `options?` | `object` | Clone options |
+| `options.branch?` | `string` | - |
+| `options.depth?` | `number` | - |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -661,10 +661,10 @@ Create directories.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `path` | `PathLike` \| `PathLike`[] | Directory path(s) |
-| `options`? | `object` | Directory options |
-| `options.mode`? | `number` | - |
-| `options.user`? | `string` | - |
+| `path` | `PathLike \| PathLike[]` | Directory path(s) |
+| `options?` | `object` | Directory options |
+| `options.mode?` | `number` | - |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -699,9 +699,9 @@ Create a symbolic link.
 | ------ | ------ | ------ |
 | `src` | `PathLike` | Source path (target) |
 | `dest` | `PathLike` | Destination path (symlink location) |
-| `options`? | `object` | Symlink options |
-| `options.force`? | `boolean` | - |
-| `options.user`? | `string` | - |
+| `options?` | `object` | Symlink options |
+| `options.force?` | `boolean` | - |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -731,10 +731,10 @@ Install Node.js packages using npm.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `packages`? | `string` \| `string`[] | Package name(s) or undefined for package.json |
-| `options`? | `object` | Install options |
-| `options.dev`? | `boolean` | - |
-| `options.g`? | `boolean` | - |
+| `packages?` | `string \| string[]` | Package name(s) or undefined for package.json |
+| `options?` | `object` | Install options |
+| `options.dev?` | `boolean` | - |
+| `options.g?` | `boolean` | - |
 
 ###### Returns
 
@@ -766,9 +766,9 @@ Install Python packages using pip.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `packages`? | `string` \| `string`[] | Package name(s) or undefined for current directory |
-| `options`? | `object` | Install options |
-| `options.g`? | `boolean` | Install globally as root (default: true). Set to false for user-only installation with --user flag |
+| `packages?` | `string \| string[]` | Package name(s) or undefined for current directory |
+| `options?` | `object` | Install options |
+| `options.g?` | `boolean` | Install globally as root (default: true). Set to false for user-only installation with --user flag |
 
 ###### Returns
 
@@ -799,11 +799,11 @@ Remove files or directories.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `path` | `PathLike` \| `PathLike`[] | Path(s) to remove |
-| `options`? | `object` | Remove options |
-| `options.force`? | `boolean` | - |
-| `options.recursive`? | `boolean` | - |
-| `options.user`? | `string` | - |
+| `path` | `PathLike \| PathLike[]` | Path(s) to remove |
+| `options?` | `object` | Remove options |
+| `options.force?` | `boolean` | - |
+| `options.recursive?` | `boolean` | - |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -837,9 +837,9 @@ Rename or move a file or directory.
 | ------ | ------ | ------ |
 | `src` | `PathLike` | Source path |
 | `dest` | `PathLike` | Destination path |
-| `options`? | `object` | Rename options |
-| `options.force`? | `boolean` | - |
-| `options.user`? | `string` | - |
+| `options?` | `object` | Rename options |
+| `options.force?` | `boolean` | - |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -871,8 +871,8 @@ Run a shell command.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `command` | `string` | Command string |
-| `options`? | `object` | Command options |
-| `options.user`? | `string` | - |
+| `options?` | `object` | Command options |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -902,9 +902,9 @@ Run a shell command.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `commands` | `string`[] | - |
-| `options`? | `object` | Command options |
-| `options.user`? | `string` | - |
+| `commands` | `string[]` | - |
+| `options?` | `object` | Command options |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -935,7 +935,7 @@ Note: Environment variables defined here are available only during template buil
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `envs` | `Record`\<`string`, `string`\> | Environment variables |
+| `envs` | `Record<string, string>` | Environment variables |
 
 ###### Returns
 
@@ -963,7 +963,7 @@ Set or update the ready check command.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `readyCommand` | `string` \| `ReadyCmd` | Command to check readiness |
+| `readyCommand` | `string \| ReadyCmd` | Command to check readiness |
 
 ###### Returns
 
@@ -1002,7 +1002,7 @@ Set the start command and ready check.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `startCommand` | `string` | Command to run on startup |
-| `readyCommand` | `string` \| `ReadyCmd` | Command to check readiness |
+| `readyCommand` | `string \| ReadyCmd` | Command to check readiness |
 
 ###### Returns
 
@@ -1126,11 +1126,11 @@ Check if a template with the given alias exists.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `alias` | `string` | Template alias to check |
-| `options`? | `ConnectionOpts` | Authentication options |
+| `options?` | `ConnectionOpts` | Authentication options |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 True if the alias exists, false otherwise
 
@@ -1163,12 +1163,12 @@ Assign tag(s) to an existing template build.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `targetName` | `string` | Template name in 'name:tag' format (the source build to tag from) |
-| `tags` | `string` \| `string`[] | Tag or tags to assign |
-| `options`? | `ConnectionOpts` | Authentication options |
+| `tags` | `string \| string[]` | Tag or tags to assign |
+| `options?` | `ConnectionOpts` | Authentication options |
 
 ###### Returns
 
-`Promise`\<`TemplateTagInfo`\>
+`Promise<TemplateTagInfo>`
 
 Tag info with buildId and assigned tags
 
@@ -1201,11 +1201,11 @@ Build and deploy a template to E2B infrastructure.
 | ------ | ------ | ------ |
 | `template` | `TemplateClass` | The template to build |
 | `name` | `string` | Template name in 'name' or 'name:tag' format |
-| `options`? | `Omit`\<`BuildOptions`, `"alias"`\> | Optional build configuration options |
+| `options?` | `Omit<BuildOptions, "alias">` | Optional build configuration options |
 
 ###### Returns
 
-`Promise`\<`BuildInfo`\>
+`Promise<BuildInfo>`
 
 ###### Example
 
@@ -1236,7 +1236,7 @@ Build and deploy a template to E2B infrastructure.
 
 ###### Returns
 
-`Promise`\<`BuildInfo`\>
+`Promise<BuildInfo>`
 
 ###### Deprecated
 
@@ -1271,11 +1271,11 @@ Build and deploy a template to E2B infrastructure without waiting for completion
 | ------ | ------ | ------ |
 | `template` | `TemplateClass` | The template to build |
 | `name` | `string` | Template name in 'name' or 'name:tag' format |
-| `options`? | `Omit`\<`BuildOptions`, `"alias"`\> | Optional build configuration options |
+| `options?` | `Omit<BuildOptions, "alias">` | Optional build configuration options |
 
 ###### Returns
 
-`Promise`\<`BuildInfo`\>
+`Promise<BuildInfo>`
 
 ###### Example
 
@@ -1306,7 +1306,7 @@ Build and deploy a template to E2B infrastructure without waiting for completion
 
 ###### Returns
 
-`Promise`\<`BuildInfo`\>
+`Promise<BuildInfo>`
 
 ###### Deprecated
 
@@ -1335,11 +1335,11 @@ Check if a template with the given name exists.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `name` | `string` | Template name to check |
-| `options`? | `ConnectionOpts` | Authentication options |
+| `options?` | `ConnectionOpts` | Authentication options |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 True if the name exists, false otherwise
 
@@ -1364,12 +1364,12 @@ Get the status of a build.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `data` | `Pick`\<`BuildInfo`, `"buildId"` \| `"templateId"`\> | Build identifiers |
-| `options`? | `GetBuildStatusOptions` | Authentication options |
+| `data` | `Pick<BuildInfo, "buildId" \| "templateId">` | Build identifiers |
+| `options?` | `GetBuildStatusOptions` | Authentication options |
 
 ###### Returns
 
-`Promise`\<`TemplateBuildStatusResponse`\>
+`Promise<TemplateBuildStatusResponse>`
 
 ###### Example
 
@@ -1390,11 +1390,11 @@ Get all tags for a template.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `templateId` | `string` | Template ID or name |
-| `options`? | `ConnectionOpts` | Authentication options |
+| `options?` | `ConnectionOpts` | Authentication options |
 
 ###### Returns
 
-`Promise`\<`TemplateTag`[]\>
+`Promise<TemplateTag[]>`
 
 Array of tag details including tag name, buildId, and creation date
 
@@ -1423,12 +1423,12 @@ Remove tag(s) from a template.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `name` | `string` | Template name |
-| `tags` | `string` \| `string`[] | Tag or tags to remove |
-| `options`? | `ConnectionOpts` | Authentication options |
+| `tags` | `string \| string[]` | Tag or tags to remove |
+| `options?` | `ConnectionOpts` | Authentication options |
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ###### Example
 
@@ -1482,7 +1482,7 @@ Convert a template to JSON representation.
 
 ###### Returns
 
-`Promise`\<`string`\>
+`Promise<string>`
 
 JSON string representation of the template
 
@@ -1537,9 +1537,9 @@ Install Debian/Ubuntu packages using apt-get.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `packages` | `string` \| `string`[] | Package name(s) |
-| `options`? | `object` | - |
-| `options.noInstallRecommends`? | `boolean` | - |
+| `packages` | `string \| string[]` | Package name(s) |
+| `options?` | `object` | - |
+| `options.noInstallRecommends?` | `boolean` | - |
 
 ###### Returns
 
@@ -1624,10 +1624,10 @@ Install Bun packages using bun.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `packages`? | `string` \| `string`[] | Package name(s) or undefined for package.json |
-| `options`? | `object` | Install options |
-| `options.dev`? | `boolean` | - |
-| `options.g`? | `boolean` | - |
+| `packages?` | `string \| string[]` | Package name(s) or undefined for package.json |
+| `options?` | `object` | Install options |
+| `options.dev?` | `boolean` | - |
+| `options.g?` | `boolean` | - |
 
 ###### Returns
 
@@ -1658,13 +1658,13 @@ Copy files or directories into the template.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `src` | `PathLike` \| `PathLike`[] | Source path(s) |
+| `src` | `PathLike \| PathLike[]` | Source path(s) |
 | `dest` | `PathLike` | Destination path |
-| `options`? | `object` | Copy options |
-| `options.forceUpload`? | `true` | - |
-| `options.mode`? | `number` | - |
-| `options.resolveSymlinks`? | `boolean` | - |
-| `options.user`? | `string` | - |
+| `options?` | `object` | Copy options |
+| `options.forceUpload?` | `true` | - |
+| `options.mode?` | `number` | - |
+| `options.resolveSymlinks?` | `boolean` | - |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -1689,7 +1689,7 @@ Copy multiple items with individual options.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `items` | `CopyItem`[] | Array of copy items |
+| `items` | `CopyItem[]` | Array of copy items |
 
 ###### Returns
 
@@ -1720,11 +1720,11 @@ Clone a Git repository.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `url` | `string` | Repository URL |
-| `path`? | `PathLike` | Optional destination path |
-| `options`? | `object` | Clone options |
-| `options.branch`? | `string` | - |
-| `options.depth`? | `number` | - |
-| `options.user`? | `string` | - |
+| `path?` | `PathLike` | Optional destination path |
+| `options?` | `object` | Clone options |
+| `options.branch?` | `string` | - |
+| `options.depth?` | `number` | - |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -1755,10 +1755,10 @@ Create directories.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `path` | `PathLike` \| `PathLike`[] | Directory path(s) |
-| `options`? | `object` | Directory options |
-| `options.mode`? | `number` | - |
-| `options.user`? | `string` | - |
+| `path` | `PathLike \| PathLike[]` | Directory path(s) |
+| `options?` | `object` | Directory options |
+| `options.mode?` | `number` | - |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -1789,9 +1789,9 @@ Create a symbolic link.
 | ------ | ------ | ------ |
 | `src` | `PathLike` | Source path (target) |
 | `dest` | `PathLike` | Destination path (symlink location) |
-| `options`? | `object` | Symlink options |
-| `options.force`? | `boolean` | - |
-| `options.user`? | `string` | - |
+| `options?` | `object` | Symlink options |
+| `options.force?` | `boolean` | - |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -1817,10 +1817,10 @@ Install Node.js packages using npm.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `packages`? | `string` \| `string`[] | Package name(s) or undefined for package.json |
-| `options`? | `object` | Install options |
-| `options.dev`? | `boolean` | - |
-| `options.g`? | `boolean` | - |
+| `packages?` | `string \| string[]` | Package name(s) or undefined for package.json |
+| `options?` | `object` | Install options |
+| `options.dev?` | `boolean` | - |
+| `options.g?` | `boolean` | - |
 
 ###### Returns
 
@@ -1848,9 +1848,9 @@ Install Python packages using pip.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `packages`? | `string` \| `string`[] | Package name(s) or undefined for current directory |
-| `options`? | `object` | Install options |
-| `options.g`? | `boolean` | Install globally as root (default: true). Set to false for user-only installation with --user flag |
+| `packages?` | `string \| string[]` | Package name(s) or undefined for current directory |
+| `options?` | `object` | Install options |
+| `options.g?` | `boolean` | Install globally as root (default: true). Set to false for user-only installation with --user flag |
 
 ###### Returns
 
@@ -1877,11 +1877,11 @@ Remove files or directories.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `path` | `PathLike` \| `PathLike`[] | Path(s) to remove |
-| `options`? | `object` | Remove options |
-| `options.force`? | `boolean` | - |
-| `options.recursive`? | `boolean` | - |
-| `options.user`? | `string` | - |
+| `path` | `PathLike \| PathLike[]` | Path(s) to remove |
+| `options?` | `object` | Remove options |
+| `options.force?` | `boolean` | - |
+| `options.recursive?` | `boolean` | - |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -1911,9 +1911,9 @@ Rename or move a file or directory.
 | ------ | ------ | ------ |
 | `src` | `PathLike` | Source path |
 | `dest` | `PathLike` | Destination path |
-| `options`? | `object` | Rename options |
-| `options.force`? | `boolean` | - |
-| `options.user`? | `string` | - |
+| `options?` | `object` | Rename options |
+| `options.force?` | `boolean` | - |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -1941,8 +1941,8 @@ Run a shell command.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `command` | `string` | Command string |
-| `options`? | `object` | Command options |
-| `options.user`? | `string` | - |
+| `options?` | `object` | Command options |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -1968,9 +1968,9 @@ Run multiple shell commands.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `commands` | `string`[] | Array of command strings |
-| `options`? | `object` | Command options |
-| `options.user`? | `string` | - |
+| `commands` | `string[]` | Array of command strings |
+| `options?` | `object` | Command options |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -1988,9 +1988,9 @@ Run command(s).
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `commandOrCommands` | `string` \| `string`[] | Command or commands |
-| `options`? | `object` | Command options |
-| `options.user`? | `string` | - |
+| `commandOrCommands` | `string \| string[]` | Command or commands |
+| `options?` | `object` | Command options |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -2009,7 +2009,7 @@ Note: Environment variables defined here are available only during template buil
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `envs` | `Record`\<`string`, `string`\> | Environment variables |
+| `envs` | `Record<string, string>` | Environment variables |
 
 ###### Returns
 
@@ -2033,7 +2033,7 @@ Set or update the ready check command.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `readyCommand` | `string` \| `ReadyCmd` | Command to check readiness |
+| `readyCommand` | `string \| ReadyCmd` | Command to check readiness |
 
 ###### Returns
 
@@ -2068,7 +2068,7 @@ Set the start command and ready check.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `startCommand` | `string` | Command to run on startup |
-| `readyCommand` | `string` \| `ReadyCmd` | Command to check readiness |
+| `readyCommand` | `string \| ReadyCmd` | Command to check readiness |
 
 ###### Returns
 
@@ -2180,7 +2180,7 @@ Information about a built template.
 | `alias` | `string` | First alias from the build (for backward compatibility). **Deprecated** Use `name` instead. |
 | `buildId` | `string` | Build identifier. |
 | `name` | `string` | Name of the template. |
-| `tags` | `string`[] | Tags assigned to this build. |
+| `tags` | `string[]` | Tags assigned to this build. |
 | `templateId` | `string` | Template identifier. |
 
 ***
@@ -2207,9 +2207,9 @@ Reason for the current build status (typically for errors).
 
 | Name | Type | Description |
 | ------ | ------ | ------ |
-| `logEntries` | `LogEntry`[] | Log entries related to the status reason. |
+| `logEntries` | `LogEntry[]` | Log entries related to the status reason. |
 | `message` | `string` | Message with the status reason. |
-| `step`? | `string` | Step that failed. |
+| `step?` | `string` | Step that failed. |
 
 ***
 
@@ -2226,11 +2226,11 @@ Configuration for a single file/directory copy operation.
 | Name | Type |
 | ------ | ------ |
 | `dest` | `PathLike` |
-| `forceUpload`? | `true` |
-| `mode`? | `number` |
-| `resolveSymlinks`? | `boolean` |
-| `src` | `PathLike` \| `PathLike`[] |
-| `user`? | `string` |
+| `forceUpload?` | `true` |
+| `mode?` | `number` |
+| `resolveSymlinks?` | `boolean` |
+| `src` | `PathLike \| PathLike[]` |
+| `user?` | `string` |
 
 ***
 
@@ -2246,7 +2246,7 @@ Options for getting build status.
 
 | Name | Type |
 | ------ | ------ |
-| `logsOffset`? | `number` |
+| `logsOffset?` | `number` |
 
 ***
 
@@ -2283,9 +2283,9 @@ Response from getting build status.
 | Name | Type | Description |
 | ------ | ------ | ------ |
 | `buildID` | `string` | Build identifier. |
-| `logEntries` | `LogEntry`[] | Build log entries. |
-| `logs` | `string`[] | Build logs (raw strings). **Deprecated** Use `logEntries` instead. |
-| `reason`? | `BuildStatusReason` | Reason for the current status (typically for errors). |
+| `logEntries` | `LogEntry[]` | Build log entries. |
+| `logs` | `string[]` | Build logs (raw strings). **Deprecated** Use `logEntries` instead. |
+| `reason?` | `BuildStatusReason` | Reason for the current status (typically for errors). |
 | `status` | `TemplateBuildStatus` | Current status of the build. |
 | `templateID` | `string` | Template identifier. |
 
@@ -2332,7 +2332,7 @@ Information about assigned template tags.
 | Name | Type | Description |
 | ------ | ------ | ------ |
 | `buildId` | `string` | Build identifier associated with this tag. |
-| `tags` | `string`[] | Assigned tags of the template. |
+| `tags` | `string[]` | Assigned tags of the template. |
 
 ## Functions
 
@@ -2348,7 +2348,7 @@ Create a new E2B template builder instance.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `options`? | `TemplateOptions` | Optional configuration for the template builder |
+| `options?` | `TemplateOptions` | Optional configuration for the template builder |
 
 #### Returns
 

@@ -61,11 +61,11 @@ betaPause(opts?: ConnectionOpts): Promise<boolean>
 
 | Parameter | Type |
 | ------ | ------ |
-| `opts`? | `ConnectionOpts` |
+| `opts?` | `ConnectionOpts` |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 ###### Deprecated
 
@@ -86,11 +86,11 @@ With sandbox ID you can connect to the same sandbox from different places or env
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts`? | `SandboxConnectOpts` | connection options. |
+| `opts?` | `SandboxConnectOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`Sandbox`\>
+`Promise<Sandbox>`
 
 A running sandbox instance
 
@@ -122,11 +122,11 @@ Use the returned `snapshotId` with `Sandbox.create(snapshotId)` to create a new 
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts`? | `SandboxApiOpts` | connection options. |
+| `opts?` | `SandboxApiOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`SnapshotInfo`\>
+`Promise<SnapshotInfo>`
 
 snapshot information including the snapshot ID.
 
@@ -156,11 +156,11 @@ Get the URL to download a file from the sandbox.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `path` | `string` | path to the file in the sandbox. |
-| `opts`? | `SandboxUrlOpts` | download url options. |
+| `opts?` | `SandboxUrlOpts` | download url options. |
 
 ###### Returns
 
-`Promise`\<`string`\>
+`Promise<string>`
 
 URL for downloading file.
 
@@ -207,11 +207,11 @@ Get sandbox information like sandbox ID, template, metadata, started at/end at d
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts`? | `Pick`\<`SandboxOpts`, `"requestTimeoutMs"`\> | connection options. |
+| `opts?` | `Pick<SandboxOpts, "requestTimeoutMs">` | connection options. |
 
 ###### Returns
 
-`Promise`\<`SandboxInfo`\>
+`Promise<SandboxInfo>`
 
 information about the sandbox
 
@@ -225,7 +225,7 @@ Get the MCP token for the sandbox.
 
 ###### Returns
 
-`Promise`\<`undefined` \| `string`\>
+`Promise<undefined | string>`
 
 MCP token for the sandbox, or undefined if MCP is not enabled.
 
@@ -255,11 +255,11 @@ Get the metrics of the sandbox.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts`? | `SandboxMetricsOpts` | connection options. |
+| `opts?` | `SandboxMetricsOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`SandboxMetrics`[]\>
+`Promise<SandboxMetrics[]>`
 
 List of sandbox metrics containing CPU, memory and disk usage information.
 
@@ -275,11 +275,11 @@ Check if the sandbox is running.
 
 | Parameter | Type |
 | ------ | ------ |
-| `opts`? | `Pick`\<`ConnectionOpts`, `"requestTimeoutMs"`\> |
+| `opts?` | `Pick<ConnectionOpts, "requestTimeoutMs">` |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 `true` if the sandbox is running, `false` otherwise.
 
@@ -305,11 +305,11 @@ Kill the sandbox.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts`? | `Pick`\<`SandboxOpts`, `"requestTimeoutMs"`\> | connection options. |
+| `opts?` | `Pick<SandboxOpts, "requestTimeoutMs">` | connection options. |
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ### listSnapshots()
 
@@ -323,7 +323,7 @@ List all snapshots created from this sandbox.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts`? | `Omit`\<`SnapshotListOpts`, `"sandboxId"`\> | list options. |
+| `opts?` | `Omit<SnapshotListOpts, "sandboxId">` | list options. |
 
 ###### Returns
 
@@ -343,11 +343,11 @@ Pause a sandbox by its ID.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts`? | `ConnectionOpts` | connection options. |
+| `opts?` | `ConnectionOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 sandbox ID that can be used to resume the sandbox.
 
@@ -374,11 +374,11 @@ Maximum time a sandbox can be kept alive is 24 hours (86_400_000 milliseconds) f
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `timeoutMs` | `number` | timeout in **milliseconds**. |
-| `opts`? | `Pick`\<`SandboxOpts`, `"requestTimeoutMs"`\> | connection options. |
+| `opts?` | `Pick<SandboxOpts, "requestTimeoutMs">` | connection options. |
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ### uploadUrl()
 
@@ -394,12 +394,12 @@ You have to send a POST request to this URL with the file as multipart/form-data
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `path`? | `string` | path to the file in the sandbox. |
-| `opts`? | `SandboxUrlOpts` | download url options. |
+| `path?` | `string` | path to the file in the sandbox. |
+| `opts?` | `SandboxUrlOpts` | download url options. |
 
 ###### Returns
 
-`Promise`\<`string`\>
+`Promise<string>`
 
 URL for uploading file.
 
@@ -421,18 +421,18 @@ Create a new sandbox from the default `base` sandbox template.
 
 | Type Parameter |
 | ------ |
-| `S` *extends* *typeof* `Sandbox` |
+| `S extends typeof Sandbox` |
 
 ###### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `this` | `S` | - |
-| `opts`? | `SandboxBetaCreateOpts` | connection options. |
+| `opts?` | `SandboxBetaCreateOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`InstanceType`\<`S`\>\>
+`Promise<InstanceType<S>>`
 
 sandbox instance for the new sandbox.
 
@@ -441,10 +441,6 @@ sandbox instance for the new sandbox.
 ```ts
 const sandbox = await Sandbox.betaCreate()
 ```
-
-###### Constructs
-
-Sandbox
 
 ###### Call Signature
 
@@ -465,7 +461,7 @@ Create a new sandbox from the specified sandbox template.
 
 | Type Parameter |
 | ------ |
-| `S` *extends* *typeof* `Sandbox` |
+| `S extends typeof Sandbox` |
 
 ###### Parameters
 
@@ -473,11 +469,11 @@ Create a new sandbox from the specified sandbox template.
 | ------ | ------ | ------ |
 | `this` | `S` | - |
 | `template` | `string` | sandbox template name or ID. |
-| `opts`? | `SandboxBetaCreateOpts` | connection options. |
+| `opts?` | `SandboxBetaCreateOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`InstanceType`\<`S`\>\>
+`Promise<InstanceType<S>>`
 
 sandbox instance for the new sandbox.
 
@@ -486,10 +482,6 @@ sandbox instance for the new sandbox.
 ```ts
 const sandbox = await Sandbox.betaCreate('<template-name-or-id>')
 ```
-
-###### Constructs
-
-Sandbox
 
 ### ~~betaPause()~~
 
@@ -502,17 +494,16 @@ static betaPause(sandboxId: string, opts?: SandboxApiOpts): Promise<boolean>
 | Parameter | Type |
 | ------ | ------ |
 | `sandboxId` | `string` |
-| `opts`? | `SandboxApiOpts` |
+| `opts?` | `SandboxApiOpts` |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 ###### Deprecated
 
 Use SandboxApi.pause instead.
 
-```
 
 ### connect()
 
@@ -532,7 +523,7 @@ With sandbox ID you can connect to the same sandbox from different places or env
 
 | Type Parameter |
 | ------ |
-| `S` *extends* *typeof* `Sandbox` |
+| `S extends typeof Sandbox` |
 
 ###### Parameters
 
@@ -540,11 +531,11 @@ With sandbox ID you can connect to the same sandbox from different places or env
 | ------ | ------ | ------ |
 | `this` | `S` | - |
 | `sandboxId` | `string` | sandbox ID. |
-| `opts`? | `SandboxConnectOpts` | connection options. |
+| `opts?` | `SandboxConnectOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`InstanceType`\<`S`\>\>
+`Promise<InstanceType<S>>`
 
 A running sandbox instance
 
@@ -572,18 +563,18 @@ Create a new sandbox from the default `base` sandbox template.
 
 | Type Parameter |
 | ------ |
-| `S` *extends* *typeof* `Sandbox` |
+| `S extends typeof Sandbox` |
 
 ###### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `this` | `S` | - |
-| `opts`? | `SandboxOpts` | connection options. |
+| `opts?` | `SandboxOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`InstanceType`\<`S`\>\>
+`Promise<InstanceType<S>>`
 
 sandbox instance for the new sandbox.
 
@@ -592,10 +583,6 @@ sandbox instance for the new sandbox.
 ```ts
 const sandbox = await Sandbox.create()
 ```
-
-###### Constructs
-
-Sandbox
 
 ###### Call Signature
 
@@ -612,7 +599,7 @@ Create a new sandbox from the specified sandbox template.
 
 | Type Parameter |
 | ------ |
-| `S` *extends* *typeof* `Sandbox` |
+| `S extends typeof Sandbox` |
 
 ###### Parameters
 
@@ -620,11 +607,11 @@ Create a new sandbox from the specified sandbox template.
 | ------ | ------ | ------ |
 | `this` | `S` | - |
 | `template` | `string` | sandbox template name or ID. |
-| `opts`? | `SandboxOpts` | connection options. |
+| `opts?` | `SandboxOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`InstanceType`\<`S`\>\>
+`Promise<InstanceType<S>>`
 
 sandbox instance for the new sandbox.
 
@@ -633,10 +620,6 @@ sandbox instance for the new sandbox.
 ```ts
 const sandbox = await Sandbox.create('<template-name-or-id>')
 ```
-
-###### Constructs
-
-Sandbox
 
 ### createSnapshot()
 
@@ -655,15 +638,14 @@ The snapshot is a persistent image that survives sandbox deletion.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `sandboxId` | `string` | sandbox ID to create snapshot from. |
-| `opts`? | `SandboxApiOpts` | connection options. |
+| `opts?` | `SandboxApiOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`SnapshotInfo`\>
+`Promise<SnapshotInfo>`
 
 snapshot information including the snapshot name that can be used with Sandbox.create().
 
-```
 
 ### deleteSnapshot()
 
@@ -678,15 +660,14 @@ Delete a snapshot.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `snapshotId` | `string` | snapshot ID. |
-| `opts`? | `SandboxApiOpts` | connection options. |
+| `opts?` | `SandboxApiOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 `true` if the snapshot was deleted, `false` if it was not found.
 
-```
 
 ### getFullInfo()
 
@@ -712,7 +693,7 @@ static getFullInfo(sandboxId: string, opts?: SandboxApiOpts): Promise<{
 | Parameter | Type |
 | ------ | ------ |
 | `sandboxId` | `string` |
-| `opts`? | `SandboxApiOpts` |
+| `opts?` | `SandboxApiOpts` |
 
 ###### Returns
 
@@ -731,7 +712,6 @@ static getFullInfo(sandboxId: string, opts?: SandboxApiOpts): Promise<{
   `templateId`: `string`;
  \}\>
 
-```
 
 ### getInfo()
 
@@ -746,15 +726,14 @@ Get sandbox information like sandbox ID, template, metadata, started at/end at d
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `sandboxId` | `string` | sandbox ID. |
-| `opts`? | `SandboxApiOpts` | connection options. |
+| `opts?` | `SandboxApiOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`SandboxInfo`\>
+`Promise<SandboxInfo>`
 
 sandbox information.
 
-```
 
 ### getMetrics()
 
@@ -769,15 +748,14 @@ Get the metrics of the sandbox.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `sandboxId` | `string` | sandbox ID. |
-| `opts`? | `SandboxMetricsOpts` | sandbox metrics options. |
+| `opts?` | `SandboxMetricsOpts` | sandbox metrics options. |
 
 ###### Returns
 
-`Promise`\<`SandboxMetrics`[]\>
+`Promise<SandboxMetrics[]>`
 
 List of sandbox metrics containing CPU, memory and disk usage information.
 
-```
 
 ### kill()
 
@@ -792,15 +770,14 @@ Kill the sandbox specified by sandbox ID.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `sandboxId` | `string` | sandbox ID. |
-| `opts`? | `SandboxApiOpts` | connection options. |
+| `opts?` | `SandboxApiOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 `true` if the sandbox was found and killed, `false` otherwise.
 
-```
 
 ### list()
 
@@ -814,7 +791,7 @@ List all sandboxes.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts`? | `SandboxListOpts` | connection options. |
+| `opts?` | `SandboxListOpts` | connection options. |
 
 ###### Returns
 
@@ -834,7 +811,7 @@ List all snapshots.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts`? | `SnapshotListOpts` | list options including filters and pagination. |
+| `opts?` | `SnapshotListOpts` | list options including filters and pagination. |
 
 ###### Returns
 
@@ -842,7 +819,6 @@ List all snapshots.
 
 paginator for listing snapshots.
 
-```
 
 ### pause()
 
@@ -857,15 +833,14 @@ Pause the sandbox specified by sandbox ID.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `sandboxId` | `string` | sandbox ID. |
-| `opts`? | `SandboxApiOpts` | connection options. |
+| `opts?` | `SandboxApiOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 `true` if the sandbox got paused, `false` if the sandbox was already paused.
 
-```
 
 ### setTimeout()
 
@@ -889,13 +864,12 @@ Maximum time a sandbox can be kept alive is 24 hours (86_400_000 milliseconds) f
 | ------ | ------ | ------ |
 | `sandboxId` | `string` | sandbox ID. |
 | `timeoutMs` | `number` | timeout in **milliseconds**. |
-| `opts`? | `SandboxApiOpts` | connection options. |
+| `opts?` | `SandboxApiOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
-```
 
 ## Interfaces
 

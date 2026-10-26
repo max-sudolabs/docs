@@ -23,7 +23,7 @@ class SandboxApi(SandboxApiBase)
 ```
 
 
-#### list
+### list
 
 ```python
 @classmethod
@@ -78,7 +78,7 @@ sandbox = await AsyncSandbox.create()
 ```
 
 
-#### files
+### files
 
 ```python
 @property
@@ -88,7 +88,7 @@ def files() -> Filesystem
 Module for interacting with the sandbox filesystem.
 
 
-#### commands
+### commands
 
 ```python
 @property
@@ -98,7 +98,7 @@ def commands() -> Commands
 Module for running commands in the sandbox.
 
 
-#### pty
+### pty
 
 ```python
 @property
@@ -108,7 +108,7 @@ def pty() -> Pty
 Module for interacting with the sandbox pseudo-terminal.
 
 
-#### sandbox\_id
+### sandbox\_id
 
 ```python
 @property
@@ -118,7 +118,7 @@ def sandbox_id() -> str
 Unique identifier of the sandbox.
 
 
-#### \_\_init\_\_
+### \_\_init\_\_
 
 ```python
 def __init__(**opts: Unpack[AsyncSandboxOpts])
@@ -127,7 +127,7 @@ def __init__(**opts: Unpack[AsyncSandboxOpts])
 Use `AsyncSandbox.create()` to create a new sandbox instead.
 
 
-#### is\_running
+### is\_running
 
 ```python
 async def is_running(request_timeout: Optional[float] = None) -> bool
@@ -152,7 +152,7 @@ await sandbox.is_running() # Returns False
 ```
 
 
-#### create
+### create
 
 ```python
 @classmethod
@@ -186,7 +186,7 @@ sandbox instance for the new sandbox
 Use this method instead of using the constructor to create a new sandbox.
 
 
-#### connect
+### connect
 
 ```python
 @classmethod
@@ -215,9 +215,9 @@ sandbox = await AsyncSandbox.create()
 sandbox_id = sandbox.sandbox_id
 
 same_sandbox = await AsyncSandbox.connect(sandbox_id)
+```
 
-
-#### kill
+### kill
 
 ```python
 @overload
@@ -235,7 +235,7 @@ Kill the sandbox.
 `True` if the sandbox was killed, `False` if the sandbox was not found
 
 
-#### kill
+### kill
 
 ```python
 @overload
@@ -260,7 +260,7 @@ Kill the sandbox specified by sandbox ID.
 `True` if the sandbox was killed, `False` if the sandbox was not found
 
 
-#### set\_timeout
+### set\_timeout
 
 ```python
 @overload
@@ -281,7 +281,7 @@ Maximum time a sandbox can be kept alive is 24 hours (86_400 seconds) for Pro us
 - `request_timeout`: Timeout for the request in **seconds**
 
 
-#### set\_timeout
+### set\_timeout
 
 ```python
 @overload
@@ -321,7 +321,7 @@ Handle for watching a directory in the sandbox filesystem.
 Use `.stop()` to stop watching the directory.
 
 
-#### stop
+### stop
 
 ```python
 async def stop()
@@ -341,7 +341,7 @@ class Filesystem()
 Module for interacting with the filesystem in the sandbox.
 
 
-#### read
+### read
 
 ```python
 @overload
@@ -365,7 +365,7 @@ Read file content as a `str`.
 File content as a `str`
 
 
-#### read
+### read
 
 ```python
 @overload
@@ -389,7 +389,7 @@ Read file content as a `bytearray`.
 File content as a `bytearray`
 
 
-#### read
+### read
 
 ```python
 @overload
@@ -414,7 +414,7 @@ Read file content as a `AsyncIterator[bytes]`.
 File content as an `AsyncIterator[bytes]`
 
 
-#### write
+### write
 
 ```python
 async def write(path: str,
@@ -443,7 +443,7 @@ Writing to a file at path that doesn't exist creates the necessary directories.
 Information about the written file
 
 
-#### list
+### list
 
 ```python
 async def list(path: str,
@@ -464,7 +464,7 @@ List entries in a directory.
 List of entries in the directory
 
 
-#### exists
+### exists
 
 ```python
 async def exists(path: str,
@@ -485,7 +485,7 @@ Check if a file or a directory exists.
 `True` if the file or directory exists, `False` otherwise
 
 
-#### remove
+### remove
 
 ```python
 async def remove(path: str,
@@ -502,7 +502,7 @@ Remove a file or a directory.
 - `request_timeout`: Timeout for the request in **seconds**
 
 
-#### rename
+### rename
 
 ```python
 async def rename(old_path: str,
@@ -525,7 +525,7 @@ Rename a file or directory.
 Information about the renamed file or directory
 
 
-#### make\_dir
+### make\_dir
 
 ```python
 async def make_dir(path: str,
@@ -546,7 +546,7 @@ Create a new directory and all directories along the way if needed on the specif
 `True` if the directory was created, `False` if the directory already exists
 
 
-#### watch\_dir
+### watch\_dir
 
 ```python
 async def watch_dir(path: str,
@@ -584,7 +584,7 @@ class Pty()
 Module for interacting with PTYs (pseudo-terminals) in the sandbox.
 
 
-#### kill
+### kill
 
 ```python
 async def kill(pid: int, request_timeout: Optional[float] = None) -> bool
@@ -602,7 +602,7 @@ Kill PTY.
 `true` if the PTY was killed, `false` if the PTY was not found
 
 
-#### send\_stdin
+### send\_stdin
 
 ```python
 async def send_stdin(pid: int,
@@ -619,7 +619,7 @@ Send input to a PTY.
 - `request_timeout`: Timeout for the request in **seconds**
 
 
-#### create
+### create
 
 ```python
 async def create(
@@ -649,7 +649,7 @@ Start a new PTY (pseudo-terminal).
 Handle to interact with the PTY
 
 
-#### resize
+### resize
 
 ```python
 async def resize(pid: int,
@@ -679,7 +679,7 @@ class Commands()
 Module for executing commands in the sandbox.
 
 
-#### list
+### list
 
 ```python
 async def list(request_timeout: Optional[float] = None) -> List[ProcessInfo]
@@ -696,7 +696,7 @@ Lists all running commands and PTY sessions.
 List of running commands and PTY sessions
 
 
-#### kill
+### kill
 
 ```python
 async def kill(pid: int, request_timeout: Optional[float] = None) -> bool
@@ -716,7 +716,7 @@ It uses `SIGKILL` signal to kill the command.
 `True` if the command was killed, `False` if the command was not found
 
 
-#### send\_stdin
+### send\_stdin
 
 ```python
 async def send_stdin(pid: int,
@@ -726,13 +726,15 @@ async def send_stdin(pid: int,
 
 Send data to command stdin.
 
-:param pid Process ID of the command. You can get the list of processes using `sandbox.commands.list()`.
-:param data: Data to send to the command
-:param request_timeout: Timeout for the request in **seconds**
+**Arguments**:
+
+- `pid`: Process ID of the command. You can get the list of processes using `sandbox.commands.list()`.
+- `data`: Data to send to the command
+- `request_timeout`: Timeout for the request in **seconds**
 
 
 
-#### run
+### run
 
 ```python
 @overload
@@ -766,7 +768,7 @@ Start a new command and wait until it finishes executing.
 `CommandResult` result of the command execution
 
 
-#### run
+### run
 
 ```python
 @overload
@@ -800,7 +802,7 @@ Start a new command and return a handle to interact with it.
 `AsyncCommandHandle` handle to interact with the running command
 
 
-#### connect
+### connect
 
 ```python
 async def connect(
@@ -842,7 +844,7 @@ Command execution handle.
 It provides methods for waiting for the command to finish, retrieving stdout/stderr, and killing the command.
 
 
-#### pid
+### pid
 
 ```python
 @property
@@ -852,7 +854,7 @@ def pid()
 Command process ID.
 
 
-#### stdout
+### stdout
 
 ```python
 @property
@@ -862,7 +864,7 @@ def stdout()
 Command stdout output.
 
 
-#### stderr
+### stderr
 
 ```python
 @property
@@ -872,7 +874,7 @@ def stderr()
 Command stderr output.
 
 
-#### error
+### error
 
 ```python
 @property
@@ -882,7 +884,7 @@ def error()
 Command execution error message.
 
 
-#### exit\_code
+### exit\_code
 
 ```python
 @property
@@ -896,7 +898,7 @@ Command execution exit code.
 It is `None` if the command is still running.
 
 
-#### disconnect
+### disconnect
 
 ```python
 async def disconnect() -> None
@@ -908,7 +910,7 @@ The command is not killed, but SDK stops receiving events from the command.
 You can reconnect to the command using `sandbox.commands.connect` method.
 
 
-#### wait
+### wait
 
 ```python
 async def wait() -> CommandResult
@@ -923,7 +925,7 @@ If the command exits with a non-zero exit code, it throws a `CommandExitExceptio
 `CommandResult` result of command execution
 
 
-#### kill
+### kill
 
 ```python
 async def kill() -> bool

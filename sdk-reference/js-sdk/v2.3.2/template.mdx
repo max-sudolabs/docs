@@ -33,7 +33,7 @@ new TemplateBase(options?: TemplateOptions): TemplateBase
 
 | Parameter | Type |
 | ------ | ------ |
-| `options`? | `TemplateOptions` |
+| `options?` | `TemplateOptions` |
 
 ###### Returns
 
@@ -53,7 +53,7 @@ Install Debian/Ubuntu packages using apt-get.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `packages` | `string` \| `string`[] | Package name(s) |
+| `packages` | `string \| string[]` | Package name(s) |
 
 ###### Returns
 
@@ -85,13 +85,13 @@ Copy files or directories into the template.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `src` | `PathLike` \| `PathLike`[] | Source path(s) |
+| `src` | `PathLike \| PathLike[]` | Source path(s) |
 | `dest` | `PathLike` | Destination path |
-| `options`? | `object` | Copy options |
-| `options.forceUpload`? | `true` | - |
-| `options.mode`? | `number` | - |
-| `options.resolveSymlinks`? | `boolean` | - |
-| `options.user`? | `string` | - |
+| `options?` | `object` | Copy options |
+| `options.forceUpload?` | `true` | - |
+| `options.mode?` | `number` | - |
+| `options.resolveSymlinks?` | `boolean` | - |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -120,7 +120,7 @@ Copy multiple items with individual options.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `items` | `CopyItem`[] | Array of copy items |
+| `items` | `CopyItem[]` | Array of copy items |
 
 ###### Returns
 
@@ -271,7 +271,7 @@ Start from a Docker image in Google Container Registry.
 | ------ | ------ | ------ |
 | `image` | `string` | Full GCR/GAR image path |
 | `credentials` | `object` | GCP service account credentials |
-| `credentials.serviceAccountJSON` | `string` \| `object` | - |
+| `credentials.serviceAccountJSON` | `string \| object` | - |
 
 ###### Returns
 
@@ -303,9 +303,9 @@ Start from a custom Docker image.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `baseImage` | `string` | Docker image name |
-| `credentials`? | `object` | Optional credentials for private registries |
-| `credentials.password`? | `string` | - |
-| `credentials.username`? | `string` | - |
+| `credentials?` | `object` | Optional credentials for private registries |
+| `credentials.password?` | `string` | - |
+| `credentials.username?` | `string` | - |
 
 ###### Returns
 
@@ -455,10 +455,10 @@ Clone a Git repository.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `url` | `string` | Repository URL |
-| `path`? | `PathLike` | Optional destination path |
-| `options`? | `object` | Clone options |
-| `options.branch`? | `string` | - |
-| `options.depth`? | `number` | - |
+| `path?` | `PathLike` | Optional destination path |
+| `options?` | `object` | Clone options |
+| `options.branch?` | `string` | - |
+| `options.depth?` | `number` | - |
 
 ###### Returns
 
@@ -490,9 +490,9 @@ Create directories.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `path` | `PathLike` \| `PathLike`[] | Directory path(s) |
-| `options`? | `object` | Directory options |
-| `options.mode`? | `number` | - |
+| `path` | `PathLike \| PathLike[]` | Directory path(s) |
+| `options?` | `object` | Directory options |
+| `options.mode?` | `number` | - |
 
 ###### Returns
 
@@ -550,9 +550,9 @@ Install Node.js packages using npm.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `packages`? | `string` \| `string`[] | Package name(s) or undefined for package.json |
-| `options`? | `object` | Install options |
-| `options.g`? | `boolean` | - |
+| `packages?` | `string \| string[]` | Package name(s) or undefined for package.json |
+| `options?` | `object` | Install options |
+| `options.g?` | `boolean` | - |
 
 ###### Returns
 
@@ -583,9 +583,9 @@ Install Python packages using pip.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `packages`? | `string` \| `string`[] | Package name(s) or undefined for current directory |
-| `options`? | `object` | Install options |
-| `options.g`? | `boolean` | Install globally as root (default: true). Set to false for user-only installation with --user flag |
+| `packages?` | `string \| string[]` | Package name(s) or undefined for current directory |
+| `options?` | `object` | Install options |
+| `options.g?` | `boolean` | Install globally as root (default: true). Set to false for user-only installation with --user flag |
 
 ###### Returns
 
@@ -616,10 +616,10 @@ Remove files or directories.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `path` | `PathLike` \| `PathLike`[] | Path(s) to remove |
-| `options`? | `object` | Remove options |
-| `options.force`? | `boolean` | - |
-| `options.recursive`? | `boolean` | - |
+| `path` | `PathLike \| PathLike[]` | Path(s) to remove |
+| `options?` | `object` | Remove options |
+| `options.force?` | `boolean` | - |
+| `options.recursive?` | `boolean` | - |
 
 ###### Returns
 
@@ -652,8 +652,8 @@ Rename or move a file or directory.
 | ------ | ------ | ------ |
 | `src` | `PathLike` | Source path |
 | `dest` | `PathLike` | Destination path |
-| `options`? | `object` | Rename options |
-| `options.force`? | `boolean` | - |
+| `options?` | `object` | Rename options |
+| `options.force?` | `boolean` | - |
 
 ###### Returns
 
@@ -684,8 +684,8 @@ Run a shell command.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `command` | `string` | Command string |
-| `options`? | `object` | Command options |
-| `options.user`? | `string` | - |
+| `options?` | `object` | Command options |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -715,9 +715,9 @@ Run a shell command.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `commands` | `string`[] | - |
-| `options`? | `object` | Command options |
-| `options.user`? | `string` | - |
+| `commands` | `string[]` | - |
+| `options?` | `object` | Command options |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -747,7 +747,7 @@ Set environment variables.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `envs` | `Record`\<`string`, `string`\> | Environment variables |
+| `envs` | `Record<string, string>` | Environment variables |
 
 ###### Returns
 
@@ -775,7 +775,7 @@ Set or update the ready check command.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `readyCommand` | `string` \| `ReadyCmd` | Command to check readiness |
+| `readyCommand` | `string \| ReadyCmd` | Command to check readiness |
 
 ###### Returns
 
@@ -814,7 +814,7 @@ Set the start command and ready check.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `startCommand` | `string` | Command to run on startup |
-| `readyCommand` | `string` \| `ReadyCmd` | Command to check readiness |
+| `readyCommand` | `string \| ReadyCmd` | Command to check readiness |
 
 ###### Returns
 
@@ -942,7 +942,7 @@ Build and deploy a template to E2B infrastructure.
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ###### Example
 
@@ -997,7 +997,7 @@ Convert a template to JSON representation.
 
 ###### Returns
 
-`Promise`\<`string`\>
+`Promise<string>`
 
 JSON string representation of the template
 
@@ -1022,7 +1022,7 @@ Install Debian/Ubuntu packages using apt-get.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `packages` | `string` \| `string`[] | Package name(s) |
+| `packages` | `string \| string[]` | Package name(s) |
 
 ###### Returns
 
@@ -1050,13 +1050,13 @@ Copy files or directories into the template.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `src` | `PathLike` \| `PathLike`[] | Source path(s) |
+| `src` | `PathLike \| PathLike[]` | Source path(s) |
 | `dest` | `PathLike` | Destination path |
-| `options`? | `object` | Copy options |
-| `options.forceUpload`? | `true` | - |
-| `options.mode`? | `number` | - |
-| `options.resolveSymlinks`? | `boolean` | - |
-| `options.user`? | `string` | - |
+| `options?` | `object` | Copy options |
+| `options.forceUpload?` | `true` | - |
+| `options.mode?` | `number` | - |
+| `options.resolveSymlinks?` | `boolean` | - |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -1081,7 +1081,7 @@ Copy multiple items with individual options.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `items` | `CopyItem`[] | Array of copy items |
+| `items` | `CopyItem[]` | Array of copy items |
 
 ###### Returns
 
@@ -1112,10 +1112,10 @@ Clone a Git repository.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `url` | `string` | Repository URL |
-| `path`? | `PathLike` | Optional destination path |
-| `options`? | `object` | Clone options |
-| `options.branch`? | `string` | - |
-| `options.depth`? | `number` | - |
+| `path?` | `PathLike` | Optional destination path |
+| `options?` | `object` | Clone options |
+| `options.branch?` | `string` | - |
+| `options.depth?` | `number` | - |
 
 ###### Returns
 
@@ -1143,9 +1143,9 @@ Create directories.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `path` | `PathLike` \| `PathLike`[] | Directory path(s) |
-| `options`? | `object` | Directory options |
-| `options.mode`? | `number` | - |
+| `path` | `PathLike \| PathLike[]` | Directory path(s) |
+| `options?` | `object` | Directory options |
+| `options.mode?` | `number` | - |
 
 ###### Returns
 
@@ -1195,9 +1195,9 @@ Install Node.js packages using npm.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `packages`? | `string` \| `string`[] | Package name(s) or undefined for package.json |
-| `options`? | `object` | Install options |
-| `options.g`? | `boolean` | - |
+| `packages?` | `string \| string[]` | Package name(s) or undefined for package.json |
+| `options?` | `object` | Install options |
+| `options.g?` | `boolean` | - |
 
 ###### Returns
 
@@ -1224,9 +1224,9 @@ Install Python packages using pip.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `packages`? | `string` \| `string`[] | Package name(s) or undefined for current directory |
-| `options`? | `object` | Install options |
-| `options.g`? | `boolean` | Install globally as root (default: true). Set to false for user-only installation with --user flag |
+| `packages?` | `string \| string[]` | Package name(s) or undefined for current directory |
+| `options?` | `object` | Install options |
+| `options.g?` | `boolean` | Install globally as root (default: true). Set to false for user-only installation with --user flag |
 
 ###### Returns
 
@@ -1253,10 +1253,10 @@ Remove files or directories.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `path` | `PathLike` \| `PathLike`[] | Path(s) to remove |
-| `options`? | `object` | Remove options |
-| `options.force`? | `boolean` | - |
-| `options.recursive`? | `boolean` | - |
+| `path` | `PathLike \| PathLike[]` | Path(s) to remove |
+| `options?` | `object` | Remove options |
+| `options.force?` | `boolean` | - |
+| `options.recursive?` | `boolean` | - |
 
 ###### Returns
 
@@ -1285,8 +1285,8 @@ Rename or move a file or directory.
 | ------ | ------ | ------ |
 | `src` | `PathLike` | Source path |
 | `dest` | `PathLike` | Destination path |
-| `options`? | `object` | Rename options |
-| `options.force`? | `boolean` | - |
+| `options?` | `object` | Rename options |
+| `options.force?` | `boolean` | - |
 
 ###### Returns
 
@@ -1313,8 +1313,8 @@ Run a shell command.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `command` | `string` | Command string |
-| `options`? | `object` | Command options |
-| `options.user`? | `string` | - |
+| `options?` | `object` | Command options |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -1340,9 +1340,9 @@ Run multiple shell commands.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `commands` | `string`[] | Array of command strings |
-| `options`? | `object` | Command options |
-| `options.user`? | `string` | - |
+| `commands` | `string[]` | Array of command strings |
+| `options?` | `object` | Command options |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -1360,9 +1360,9 @@ Run command(s).
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `commandOrCommands` | `string` \| `string`[] | Command or commands |
-| `options`? | `object` | Command options |
-| `options.user`? | `string` | - |
+| `commandOrCommands` | `string \| string[]` | Command or commands |
+| `options?` | `object` | Command options |
+| `options.user?` | `string` | - |
 
 ###### Returns
 
@@ -1380,7 +1380,7 @@ Set environment variables.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `envs` | `Record`\<`string`, `string`\> | Environment variables |
+| `envs` | `Record<string, string>` | Environment variables |
 
 ###### Returns
 
@@ -1404,7 +1404,7 @@ Set or update the ready check command.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `readyCommand` | `string` \| `ReadyCmd` | Command to check readiness |
+| `readyCommand` | `string \| ReadyCmd` | Command to check readiness |
 
 ###### Returns
 
@@ -1439,7 +1439,7 @@ Set the start command and ready check.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `startCommand` | `string` | Command to run on startup |
-| `readyCommand` | `string` \| `ReadyCmd` | Command to check readiness |
+| `readyCommand` | `string \| ReadyCmd` | Command to check readiness |
 
 ###### Returns
 
@@ -1548,8 +1548,8 @@ Options for building a template with authentication.
 
 | Name | Type | Description |
 | ------ | ------ | ------ |
-| `apiKey`? | `string` | E2B API key for authentication. |
-| `domain`? | `string` | Domain of the E2B API. |
+| `apiKey?` | `string` | E2B API key for authentication. |
+| `domain?` | `string` | Domain of the E2B API. |
 
 ***
 
@@ -1566,11 +1566,11 @@ Configuration for a single file/directory copy operation.
 | Name | Type |
 | ------ | ------ |
 | `dest` | `PathLike` |
-| `forceUpload`? | `true` |
-| `mode`? | `number` |
-| `resolveSymlinks`? | `boolean` |
-| `src` | `PathLike` \| `PathLike`[] |
-| `user`? | `string` |
+| `forceUpload?` | `true` |
+| `mode?` | `number` |
+| `resolveSymlinks?` | `boolean` |
+| `src` | `PathLike \| PathLike[]` |
+| `user?` | `string` |
 
 ***
 
@@ -1596,7 +1596,7 @@ Create a new E2B template builder instance.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `options`? | `TemplateOptions` | Optional configuration for the template builder |
+| `options?` | `TemplateOptions` | Optional configuration for the template builder |
 
 #### Returns
 

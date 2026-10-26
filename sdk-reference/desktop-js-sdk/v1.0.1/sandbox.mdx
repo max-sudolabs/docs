@@ -27,7 +27,7 @@ Double left click on the current mouse position.
 
 ###### Returns
 
-`Promise`\<`CommandResult`\>
+`Promise<CommandResult>`
 
 ### getCursorPosition()
 
@@ -39,7 +39,7 @@ Get the current mouse position.
 
 ###### Returns
 
-`Promise`\<`object`\>
+`Promise<object>`
 
 An object with `x` and `y` coordinates.
 
@@ -58,7 +58,7 @@ Get the current screen size.
 
 ###### Returns
 
-`Promise`\<`object`\>
+`Promise<object>`
 
 An object with `width` and `height` properties.
 
@@ -75,7 +75,7 @@ getVideoStreamUrl(): Promise<string>
 
 ###### Returns
 
-`Promise`\<`string`\>
+`Promise<string>`
 
 ### hotkey()
 
@@ -89,11 +89,11 @@ Press a hotkey.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| ...`keys` | `string`[] | The keys to press (e.g. `hotkey("ctrl", "c")` will press Ctrl+C). |
+| ...`keys` | `string[]` | The keys to press (e.g. `hotkey("ctrl", "c")` will press Ctrl+C). |
 
 ###### Returns
 
-`Promise`\<`CommandResult`\>
+`Promise<CommandResult>`
 
 ### leftClick()
 
@@ -105,7 +105,7 @@ Left click on the current mouse position.
 
 ###### Returns
 
-`Promise`\<`CommandResult`\>
+`Promise<CommandResult>`
 
 ### middleClick()
 
@@ -117,7 +117,7 @@ Middle click on the current mouse position.
 
 ###### Returns
 
-`Promise`\<`CommandResult`\>
+`Promise<CommandResult>`
 
 ### moveMouse()
 
@@ -136,7 +136,7 @@ Move the mouse to the given coordinates.
 
 ###### Returns
 
-`Promise`\<`CommandResult`\>
+`Promise<CommandResult>`
 
 ### open()
 
@@ -155,7 +155,7 @@ Note that you'll need to wait for the application to be opened.
 
 ###### Returns
 
-`Promise`\<`CommandHandle`\>
+`Promise<CommandHandle>`
 
 ### press()
 
@@ -173,7 +173,7 @@ Press a key.
 
 ###### Returns
 
-`Promise`\<`CommandResult`\>
+`Promise<CommandResult>`
 
 ### rightClick()
 
@@ -185,7 +185,7 @@ Right click on the current mouse position.
 
 ###### Returns
 
-`Promise`\<`CommandResult`\>
+`Promise<CommandResult>`
 
 ### runPyautoguiCode()
 
@@ -201,12 +201,12 @@ Run the given Python code that uses pyautogui.
 | ------ | ------ |
 | `code` | `string` |
 | `opts` | `object` |
-| `opts.onStderr`? | (`data`: `string`) => `void` |
-| `opts.onStdout`? | (`data`: `string`) => `void` |
+| `opts.onStderr?` | `(data: string) => void` |
+| `opts.onStdout?` | `(data: string) => void` |
 
 ###### Returns
 
-`Promise`\<`CommandResult`\>
+`Promise<CommandResult>`
 
 ### scroll()
 
@@ -224,7 +224,7 @@ Scroll the mouse wheel by the given amount.
 
 ###### Returns
 
-`Promise`\<`CommandResult`\>
+`Promise<CommandResult>`
 
 ### takeScreenshot()
 
@@ -238,7 +238,7 @@ Take a screenshot and save it to the given name.
 
 ###### Returns
 
-`Promise`\<`Uint8Array`\>
+`Promise<Uint8Array>`
 
 A Uint8Array bytes representation of the screenshot.
 
@@ -258,7 +258,7 @@ Take a screenshot and save it to the given name.
 
 ###### Returns
 
-`Promise`\<`Uint8Array`\>
+`Promise<Uint8Array>`
 
 A Uint8Array bytes representation of the screenshot.
 
@@ -278,7 +278,7 @@ Take a screenshot and save it to the given name.
 
 ###### Returns
 
-`Promise`\<`Blob`\>
+`Promise<Blob>`
 
 A Blob representation of the screenshot.
 
@@ -298,7 +298,7 @@ Take a screenshot and save it to the given name.
 
 ###### Returns
 
-`Promise`\<`ReadableStream`\<`Uint8Array`\>\>
+`Promise<ReadableStream<Uint8Array>>`
 
 A ReadableStream of bytes representation of the screenshot.
 
@@ -318,7 +318,7 @@ Write the given text at the current cursor position.
 
 ###### Returns
 
-`Promise`\<`CommandResult`\>
+`Promise<CommandResult>`
 
 ### create()
 
@@ -334,18 +334,18 @@ Create a new sandbox from the default `desktop` sandbox template.
 
 | Type Parameter |
 | ------ |
-| `S` *extends* *typeof* `Sandbox` |
+| `S extends typeof Sandbox` |
 
 ###### Parameters
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `this` | `S` | - |
-| `opts`? | `SandboxOpts` | connection options. |
+| `opts?` | `SandboxOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`InstanceType`\<`S`\>\>
+`Promise<InstanceType<S>>`
 
 sandbox instance for the new sandbox.
 
@@ -354,10 +354,6 @@ sandbox instance for the new sandbox.
 ```ts
 const sandbox = await Sandbox.create()
 ```
-
-###### Constructs
-
-Sandbox
 
 ###### create(this, template, opts)
 
@@ -374,7 +370,7 @@ Create a new sandbox from the specified sandbox template.
 
 | Type Parameter |
 | ------ |
-| `S` *extends* *typeof* `Sandbox` |
+| `S extends typeof Sandbox` |
 
 ###### Parameters
 
@@ -382,11 +378,11 @@ Create a new sandbox from the specified sandbox template.
 | ------ | ------ | ------ |
 | `this` | `S` | - |
 | `template` | `string` | sandbox template name or ID. |
-| `opts`? | `SandboxOpts` | connection options. |
+| `opts?` | `SandboxOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`InstanceType`\<`S`\>\>
+`Promise<InstanceType<S>>`
 
 sandbox instance for the new sandbox.
 
@@ -395,10 +391,6 @@ sandbox instance for the new sandbox.
 ```ts
 const sandbox = await Sandbox.create('<template-name-or-id>')
 ```
-
-###### Constructs
-
-Sandbox
 
 ## Interfaces
 

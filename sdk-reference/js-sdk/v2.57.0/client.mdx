@@ -51,7 +51,7 @@ Create a new client with the connection options bound to it.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts`? | `E2BClientOpts` | connection options used as the defaults for every call made through this client's resource classes. |
+| `opts?` | `E2BClientOpts` | connection options used as the defaults for every call made through this client's resource classes. |
 
 ###### Returns
 
@@ -61,10 +61,10 @@ Create a new client with the connection options bound to it.
 
 | Property | Modifier | Type | Description |
 | ------ | ------ | ------ | ------ |
-| <a id="sandbox"></a> `Sandbox` | `readonly` | *typeof* `Sandbox` | `Sandbox` class bound to this client's connection configuration. |
-| <a id="secret"></a> `Secret` | `readonly` | *typeof* `Secret` | `Secret` class bound to this client's connection configuration. |
-| <a id="template"></a> `Template` | `readonly` | `CallableTemplate`\<*typeof* `TemplateBase`\> | `Template` bound to this client's connection configuration. Both the builder (`client.Template()`) and the statics (`client.Template.build(...)`, `client.Template.exists(...)`, …) work like the top-level `Template`. |
-| <a id="volume"></a> `Volume` | `readonly` | *typeof* `Volume` | `Volume` class bound to this client's connection configuration. |
+| <a id="sandbox"></a> `Sandbox` | `readonly` | `typeof Sandbox` | `Sandbox` class bound to this client's connection configuration. |
+| <a id="secret"></a> `Secret` | `readonly` | `typeof Secret` | `Secret` class bound to this client's connection configuration. |
+| <a id="template"></a> `Template` | `readonly` | `CallableTemplate<typeof TemplateBase>` | `Template` bound to this client's connection configuration. Both the builder (`client.Template()`) and the statics (`client.Template.build(...)`, `client.Template.exists(...)`, …) work like the top-level `Template`. |
+| <a id="volume"></a> `Volume` | `readonly` | `typeof Volume` | `Volume` class bound to this client's connection configuration. |
 
 ## Type Aliases
 

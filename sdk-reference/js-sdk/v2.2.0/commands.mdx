@@ -55,11 +55,11 @@ You can use CommandHandle.wait to wait for the command to finish and get executi
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `pid` | `number` | process ID of the command to connect to. You can get the list of running commands using Commands.list. |
-| `opts`? | `CommandConnectOpts` | connection options. |
+| `opts?` | `CommandConnectOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`CommandHandle`\>
+`Promise<CommandHandle>`
 
 `CommandHandle` handle to interact with the running command.
 
@@ -77,11 +77,11 @@ It uses `SIGKILL` signal to kill the command.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `pid` | `number` | process ID of the command. You can get the list of running commands using Commands.list. |
-| `opts`? | `CommandRequestOpts` | connection options. |
+| `opts?` | `CommandRequestOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 `true` if the command was killed, `false` if the command was not found.
 
@@ -97,11 +97,11 @@ List all running commands and PTY sessions.
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `opts`? | `CommandRequestOpts` | connection options. |
+| `opts?` | `CommandRequestOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`ProcessInfo`[]\>
+`Promise<ProcessInfo[]>`
 
 list of running commands and PTY sessions.
 
@@ -120,11 +120,11 @@ Start a new command and wait until it finishes executing.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `cmd` | `string` | command to execute. |
-| `opts`? | `CommandStartOpts` & `object` | options for starting the command. |
+| `opts?` | `CommandStartOpts` & `object` | options for starting the command. |
 
 ###### Returns
 
-`Promise`\<`CommandResult`\>
+`Promise<CommandResult>`
 
 `CommandResult` result of the command execution.
 
@@ -146,7 +146,7 @@ You can use CommandHandle.wait to wait for the command to finish and get its res
 
 ###### Returns
 
-`Promise`\<`CommandHandle`\>
+`Promise<CommandHandle>`
 
 `CommandHandle` handle to interact with the running command.
 
@@ -163,11 +163,11 @@ Start a new command.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `cmd` | `string` | command to execute. |
-| `opts`? | `CommandStartOpts` & `object` | options for starting the command. - `opts.background: true` - runs in background, returns `CommandHandle` - `opts.background: false | undefined` - waits for completion, returns `CommandResult` |
+| `opts?` | `CommandStartOpts` & `object` | options for starting the command. - `opts.background: true` - runs in background, returns `CommandHandle` - `opts.background: false | undefined` - waits for completion, returns `CommandResult` |
 
 ###### Returns
 
-`Promise`\<`CommandResult` \| `CommandHandle`\>
+`Promise<CommandResult | CommandHandle>`
 
 Either a `CommandHandle` or a `CommandResult` (depending on `opts.background`).
 
@@ -188,11 +188,11 @@ Send data to command stdin.
 | ------ | ------ | ------ |
 | `pid` | `number` | process ID of the command. You can get the list of running commands using Commands.list. |
 | `data` | `string` | data to send to the command. |
-| `opts`? | `CommandRequestOpts` | connection options. |
+| `opts?` | `CommandRequestOpts` | connection options. |
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ***
 
@@ -235,7 +235,7 @@ Create a new PTY (pseudo-terminal).
 
 ###### Returns
 
-`Promise`\<`CommandHandle`\>
+`Promise<CommandHandle>`
 
 handle to interact with the PTY.
 
@@ -253,11 +253,11 @@ It uses `SIGKILL` signal to kill the PTY.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `pid` | `number` | process ID of the PTY. |
-| `opts`? | `Pick`\<`ConnectionOpts`, `"requestTimeoutMs"`\> | connection options. |
+| `opts?` | `Pick<ConnectionOpts, "requestTimeoutMs">` | connection options. |
 
 ###### Returns
 
-`Promise`\<`boolean`\>
+`Promise<boolean>`
 
 `true` if the PTY was killed, `false` if the PTY was not found.
 
@@ -280,12 +280,12 @@ Call this when the terminal window is resized and the number of columns and rows
 | `pid` | `number` | process ID of the PTY. |
 | `size` | `object` | new size of the PTY. |
 | `size.cols` | `number` | - |
-| `size.rows`? | `number` | - |
-| `opts`? | `Pick`\<`ConnectionOpts`, `"requestTimeoutMs"`\> | connection options. |
+| `size.rows?` | `number` | - |
+| `opts?` | `Pick<ConnectionOpts, "requestTimeoutMs">` | connection options. |
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ### sendInput()
 
@@ -304,11 +304,11 @@ Send input to a PTY.
 | ------ | ------ | ------ |
 | `pid` | `number` | process ID of the PTY. |
 | `data` | `Uint8Array` | input data to send to the PTY. |
-| `opts`? | `Pick`\<`ConnectionOpts`, `"requestTimeoutMs"`\> | connection options. |
+| `opts?` | `Pick<ConnectionOpts, "requestTimeoutMs">` | connection options. |
 
 ###### Returns
 
-`Promise`\<`void`\>
+`Promise<void>`
 
 ## Interfaces
 
@@ -397,7 +397,7 @@ Callback for command stderr output.
 
 ###### Returns
 
-`void` \| `Promise`\<`void`\>
+`void | Promise<void>`
 
 ### onStdout()?
 
@@ -415,7 +415,7 @@ Callback for command stdout output.
 
 ###### Returns
 
-`void` \| `Promise`\<`void`\>
+`void | Promise<void>`
 
 ### requestTimeoutMs?
 

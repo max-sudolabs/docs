@@ -495,7 +495,7 @@ sandbox = Sandbox.create()
 sandbox.beta_pause()
 
 same_sandbox = sandbox.connect()
-
+```
 
 ### connect
 
@@ -1149,9 +1149,11 @@ def send_stdin(pid: int, data: str, request_timeout: Optional[float] = None)
 
 Send data to command stdin.
 
-:param pid Process ID of the command. You can get the list of processes using `sandbox.commands.list()`.
-:param data: Data to send to the command
-:param request_timeout: Timeout for the request in **seconds**
+**Arguments**:
+
+- `pid`: Process ID of the command. You can get the list of processes using `sandbox.commands.list()`.
+- `data`: Data to send to the command
+- `request_timeout`: Timeout for the request in **seconds**
 
 
 
