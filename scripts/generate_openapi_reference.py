@@ -1333,15 +1333,17 @@ def _is_admin_only_op(op: dict[str, Any]) -> bool:
 def filter_paths(spec: dict[str, Any]) -> None:
     """Clean up paths that should not appear in the public spec.
 
-    - Removes access-token, api-key endpoints
+    - Removes access-token, api-key and /unstable/ endpoints
     - Removes operations that REQUIRE admin auth (no public option); a path is
       dropped entirely only when it has no public operations left
     - Strips internal auth options (Supabase, AuthProvider, Admin) from the
       remaining operations, keeping public auth (ApiKeyAuth, AccessTokenAuth)
     - Removes the internal securityScheme definitions
     """
-    # Remove explicitly excluded paths
-    excluded_prefixes = ("/access-tokens", "/api-keys")
+    # Remove explicitly excluded paths. /unstable/ routes are for E2B's own
+    # clients and may change or disappear without notice, so they stay out of
+    # the public reference even when a regular API key can call them.
+    excluded_prefixes = ("/access-tokens", "/api-keys", "/unstable/")
     # Internal-only envd endpoints that leak in from the upstream spec. The SDKs
     # never call these - they are envd/orchestrator internals for the pause and
     # resume path (cgroup + filesystem freeze/thaw, heap collapse, zero-copy file

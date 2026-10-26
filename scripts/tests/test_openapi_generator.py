@@ -62,6 +62,14 @@ class GeneratorTests(unittest.TestCase):
         self.assertEqual([], spec["paths"]["/public"]["get"]["security"])
         self.assertEqual([{"ApiKeyAuth": []}], spec["paths"]["/mixed"]["get"]["security"])
 
+    def test_unstable_paths_are_excluded(self):
+        spec = {"paths": {
+            "/unstable/templates/search": {"get": {"security": [{"ApiKeyAuth": []}]}},
+            "/templates": {"get": {"security": [{"ApiKeyAuth": []}]}}},
+            "components": {"securitySchemes": {"ApiKeyAuth": {}}}}
+        generator.filter_paths(spec)
+        self.assertEqual(["/templates"], list(spec["paths"]))
+
 
     def test_nullable_is_replaced_everywhere(self):
         spec = {"components": {"schemas": {

@@ -93,6 +93,18 @@ HANDLER_STATUSES = {
     ('delete', '/templates/tags'): ('400', '401', '403', '404', '500'),
     # packages/api/internal/handlers/template_tags.go:300
     ('get', '/templates/{templateID}/tags'): ('400', '401', '403', '404', '500'),
+    # Template tag and default-template routes below: handler lines are
+    # at infra 9ff6a2e2ad18d2a942e42a5f337f826ca818a411, packages/api/internal/handlers/.
+    # template_tag_groups.go:24-94,169-190
+    ('get', '/templates/{templateID}/tags/groups'): ('400', '401', '403', '404', '429', '500'),
+    # template_tag_groups.go:96-122,169-190
+    ('get', '/templates/{templateID}/tags/count'): ('401', '403', '404', '429', '500'),
+    # template_tag_groups.go:124-190
+    ('get', '/templates/{templateID}/tags/exists'): ('400', '401', '403', '404', '429', '500'),
+    # template_tag_assignments.go:17-86; template_tag_groups.go:169-190
+    ('get', '/templates/{templateID}/tags/{tag}/assignments'): ('400', '401', '403', '404', '429', '500'),
+    # templates_defaults.go:16-40
+    ('get', '/default-templates'): ('401', '403', '429', '500'),
     # packages/api/internal/handlers/volumes_list.go:12
     ('get', '/volumes'): ('401', '403', '500'),
     # packages/api/internal/handlers/volume_create.go:26
@@ -457,6 +469,32 @@ def _remaining_handler_examples(spec: dict) -> None:
             ("422", "idempotencyOutcomeUnknown", "The original request has no recorded response and its outcome is unknown. This request was not executed again.", "idempotency_outcome_unknown", "A matching original request with this Idempotency-Key has no recorded response and its outcome is unknown"),
         ):
             _example(spec, op, status, name, message, condition, {"error_code": semantic})
+
+    # Template tag and default-template routes. Source for these messages:
+    # https://github.com/e2b-dev/infra/blob/9ff6a2e2ad18d2a942e42a5f337f826ca818a411/packages/api/internal/handlers/
+    # 401, 403 and 429 come from the shared middleware examples in _shared_errors.
+    # The OpenAPI validator rejects an out-of-enum sort and an out-of-pattern search
+    # first, so the handler's invalid sort and search branches are not listed.
+    for suffix in ("groups", "count", "exists", "{tag}/assignments"):
+        # template_tag_groups.go:169-190 (requireTeamTemplate runs first on every tag route).
+        _add(spec, "get", "/templates/{templateID}/tags/" + suffix, "404", "templateNotFound", "Template not found", "The template is missing, deleted or owned by another team")
+    for suffix, message, condition, source in (
+        ("groups", "Error when getting template tag groups", "Listing template tag groups fails", "template_tag_groups.go:74-85"),
+        ("count", "Error when counting template tags", "Counting template tags fails", "template_tag_groups.go:107-118"),
+        ("exists", "Error when checking template tag existence", "Checking the template tag fails", "template_tag_groups.go:147-157"),
+        ("{tag}/assignments", "Error when getting template tag assignments", "Listing template tag assignments fails", "template_tag_assignments.go:52-56"),
+    ):
+        _add(spec, "get", "/templates/{templateID}/tags/" + suffix, "500", "operationFailed", message, condition)
+    # template_tag_groups.go:49-59.
+    _add(spec, "get", "/templates/{templateID}/tags/groups", "400", "invalidCursor", "Invalid cursor", "The pagination cursor cannot be parsed")
+    _add(spec, "get", "/templates/{templateID}/tags/groups", "400", "cursorSortMismatch", "Cursor was issued for a different sort; clear the cursor and restart", "The cursor was issued for a different sort")
+    # template_tag_groups.go:135-140; template_tag_assignments.go:28-33; shared/pkg/id/id.go:50-78.
+    for suffix in ("exists", "{tag}/assignments"):
+        _add(spec, "get", "/templates/{templateID}/tags/" + suffix, "400", "invalidTag", "Invalid tag", "The tag contains an unsupported character")
+    # template_tag_assignments.go:37-43.
+    _add(spec, "get", "/templates/{templateID}/tags/{tag}/assignments", "400", "invalidCursor", "Invalid cursor", "The pagination cursor cannot be parsed")
+    # templates_defaults.go:20-26.
+    _add(spec, "get", "/default-templates", "500", "operationFailed", "Error when listing default templates", "The default-template query fails")
 
     # Template parsing: handlers below call shared/pkg/id/id.go:41-45,94-136.
     for path in ("/templates/{templateID}", "/v2/templates/{templateID}"):

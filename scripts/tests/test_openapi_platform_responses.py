@@ -145,7 +145,11 @@ class PlatformResponsesTest(unittest.TestCase):
         apply_platform_response_fixes(self.spec)
         missing = set()
         for method, path in HANDLER_STATUSES:
-            for status, response in self.spec["paths"][path][method]["responses"].items():
+            # The overlay may list operations the committed spec predates.
+            op = self.spec["paths"].get(path, {}).get(method)
+            if op is None:
+                continue
+            for status, response in op["responses"].items():
                 if not status.isdigit() or int(status) < 400:
                     continue
                 media = response.get("content", {}).get("application/json")
