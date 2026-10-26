@@ -67,6 +67,8 @@
     --e2b-weight-regular: 440;
     --e2b-weight-medium: 520;
     --e2b-weight-semibold: 580;
+    --e2b-weight-mono: 400; /* Commit Mono's regular; its other face is 700 */
+    --e2b-weight-bold: 700; /* SDK reference class and method headings; Commit Mono's bold */
     /* Inter tracking per docs role, exact values from the spec's type.css. Commit Mono is never tracked. */
     --e2b-tracking-h1: -0.022em; /* 32px */
     --e2b-tracking-h2: -0.019em; /* 24px */
@@ -88,6 +90,31 @@
     --e2b-opsz-lead: 16;
     --e2b-opsz-body: 15;
     --e2b-opsz-ui: 14;
+    /* Size and line height per docs role (type system, docs medium); chrome is Mintlify's 14 px interface text. */
+    --e2b-size-h1: 2rem; /* 32px */
+    --e2b-leading-h1: 2.5rem; /* 40px */
+    --e2b-size-h2: 1.5rem; /* 24px */
+    --e2b-leading-h2: 2rem; /* 32px */
+    --e2b-size-h3: 1.25rem; /* 20px */
+    --e2b-leading-h3: 1.75rem; /* 28px */
+    --e2b-size-h2-sm: 1.25rem; /* 20px, h2 below 768px */
+    --e2b-leading-h2-sm: 1.75rem; /* 28px */
+    --e2b-size-h3-sm: 1.125rem; /* 18px, h3 below 768px */
+    --e2b-leading-h3-sm: 1.5rem; /* 24px */
+    --e2b-size-lead: 1rem; /* 16px */
+    --e2b-leading-lead: 1.5rem; /* 24px */
+    --e2b-size-body: 0.9375rem; /* 15px */
+    --e2b-leading-body: 1.5rem; /* 24px */
+    --e2b-size-chrome: 0.875rem; /* 14px */
+    --e2b-leading-chrome: 1.25rem; /* 20px */
+    --e2b-size-ui: 0.8125rem; /* 13px */
+    --e2b-leading-ui: 1.25rem; /* 20px */
+    --e2b-size-code: 0.8125rem; /* 13px, Commit Mono */
+    --e2b-leading-code: 1.25rem; /* 20px */
+    --e2b-size-label: 0.75rem; /* 12px, Commit Mono labels and Inter tooltips */
+    --e2b-leading-label: 1rem; /* 16px */
+    --e2b-size-deprecated: 0.625rem; /* 10px, Commit Mono pills */
+    --e2b-leading-deprecated: 0.75rem; /* 12px */
     /* Colours are E2B colour system roles (colors/color.css), themed through Mintlify's html.dark / html.light. */
     --e2b-link: var(--color-link);
     --e2b-link-underline: currentColor; /* in the link's own colour, as on the blog (was Interface Orange) */
@@ -140,7 +167,7 @@ body {
 /* Commit Mono has only 400 and 700; keep its medium and semibold utilities on 400 as before. */
 :is(code, pre, kbd, #page-context-menu) :is(.font-medium, .font-semibold),
 :is(code, pre, kbd):is(.font-medium, .font-semibold) {
-    font-weight: 400;
+    font-weight: var(--e2b-weight-body);
 }
 
 /* E2B type system, docs scale. Headings are Inter semibold; Supply Sans is never used in docs. */
@@ -159,23 +186,23 @@ main :is(h1, h2, h3, h4) {
 /* docs-h1 */
 #page-title,
 .mdx-content h1 {
-    font-size: 2rem;
-    line-height: 2.5rem;
+    font-size: var(--e2b-size-h1);
+    line-height: var(--e2b-leading-h1);
     letter-spacing: var(--e2b-tracking-h1);
     font-variation-settings: "opsz" var(--e2b-opsz-h1);
 }
 
 /* docs-body */
 .mdx-content {
-    font-size: 0.9375rem;
+    font-size: var(--e2b-size-body);
     font-weight: var(--e2b-weight-body);
-    line-height: 1.5rem;
+    line-height: var(--e2b-leading-body);
     letter-spacing: var(--e2b-tracking-body);
     font-variation-settings: "opsz" var(--e2b-opsz-body);
 }
 
 .mdx-content :is(p, li) {
-    line-height: 1.5rem;
+    line-height: var(--e2b-leading-body);
 }
 
 /* Running text breaks with text-wrap: pretty; headings balance. */
@@ -186,8 +213,8 @@ main :is(h1, h2, h3, h4) {
 
 /* Steps, tabs, accordions and callouts nest their own .prose, which resets to 16/28; keep them on docs-body. */
 .mdx-content .prose {
-    font-size: 0.9375rem;
-    line-height: 1.5rem;
+    font-size: var(--e2b-size-body);
+    line-height: var(--e2b-leading-body);
 }
 
 /* 16px between paragraphs and around lists, 8px between list items. The paragraph selector
@@ -275,8 +302,8 @@ main :is(h1, h2, h3, h4) {
 .mdx-content h2 {
     margin-top: 3.5rem;
     margin-bottom: 0.5rem;
-    font-size: 1.5rem;
-    line-height: 2rem;
+    font-size: var(--e2b-size-h2);
+    line-height: var(--e2b-leading-h2);
     letter-spacing: var(--e2b-tracking-h2);
     font-variation-settings: "opsz" var(--e2b-opsz-h2);
 }
@@ -289,8 +316,8 @@ main :is(h1, h2, h3, h4) {
 .mdx-content h3 {
     margin-top: 3rem;
     margin-bottom: 0.5rem;
-    font-size: 1.25rem;
-    line-height: 1.75rem;
+    font-size: var(--e2b-size-h3);
+    line-height: var(--e2b-leading-h3);
     letter-spacing: var(--e2b-tracking-h3);
     font-variation-settings: "opsz" var(--e2b-opsz-h3);
 }
@@ -313,16 +340,16 @@ main :is(h1, h2, h3, h4) {
 @media (max-width: 767px) {
     .mdx-content h2 {
         margin-top: 3rem;
-        font-size: 1.25rem;
-        line-height: 1.75rem;
+        font-size: var(--e2b-size-h2-sm);
+        line-height: var(--e2b-leading-h2-sm);
         letter-spacing: var(--e2b-tracking-h2-sm);
         font-variation-settings: "opsz" var(--e2b-opsz-h2-sm);
     }
 
     .mdx-content h3 {
         margin-top: 2.5rem;
-        font-size: 1.125rem;
-        line-height: 1.5rem;
+        font-size: var(--e2b-size-h3-sm);
+        line-height: var(--e2b-leading-h3-sm);
         letter-spacing: var(--e2b-tracking-h3-sm);
         font-variation-settings: "opsz" var(--e2b-opsz-h3-sm);
     }
@@ -337,15 +364,15 @@ main :is(h1, h2, h3, h4) {
 .mdx-content :is(h4, h5, h6) {
     margin-top: 1.5rem;
     margin-bottom: 0.5rem;
-    font-size: 0.9375rem;
-    line-height: 1.5rem;
+    font-size: var(--e2b-size-body);
+    line-height: var(--e2b-leading-body);
     letter-spacing: var(--e2b-tracking-body);
     font-variation-settings: "opsz" var(--e2b-opsz-body);
 }
 
 .mdx-content [data-component-part="card-title"] {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
+    font-size: var(--e2b-size-h3);
+    line-height: var(--e2b-leading-h3);
     letter-spacing: var(--e2b-tracking-h3);
     font-variation-settings: "opsz" var(--e2b-opsz-h3);
 }
@@ -356,13 +383,13 @@ main :is(h1, h2, h3, h4) {
 
 /* Diagram labels keep a compact line so Mermaid node boxes do not grow. */
 .mdx-content .mermaid :is(p, li) {
-    line-height: 1.5rem;
+    line-height: var(--e2b-leading-body);
 }
 
 /* docs-ui: tables. */
 .mdx-content table {
-    font-size: 0.8125rem;
-    line-height: 1.25rem;
+    font-size: var(--e2b-size-ui);
+    line-height: var(--e2b-leading-ui);
     font-weight: var(--e2b-weight-regular);
     letter-spacing: var(--e2b-tracking-ui);
     font-variation-settings: "opsz" var(--e2b-opsz-ui);
@@ -462,9 +489,9 @@ html[data-current-path^="/sdk-reference/"] .mdx-content > hr + h2 {
    and an h6 sits tight on the table or block under it. */
 html[data-current-path^="/sdk-reference/"] .mdx-content > h3 {
     margin-top: 5rem;
-    font-size: 1.5rem;
-    font-weight: 700;
-    line-height: 2rem;
+    font-size: var(--e2b-size-h2);
+    font-weight: var(--e2b-weight-bold);
+    line-height: var(--e2b-leading-h2);
     letter-spacing: var(--e2b-tracking-h2);
     font-variation-settings: "opsz" var(--e2b-opsz-h2);
 }
@@ -539,11 +566,11 @@ html .nav-tag-pill-text {
     background-color: var(--e2b-warning-bg);
     color: var(--e2b-warning-highlight);
     font-family: var(--e2b-font-mono);
-    font-size: 0.625rem;
-    font-weight: 400;
-    line-height: 0.75rem;
+    font-size: var(--e2b-size-deprecated);
+    font-weight: var(--e2b-weight-mono);
+    line-height: var(--e2b-leading-deprecated);
     text-shadow: none; /* the active sidebar row's faux-bold shadow is inherited; the tag has no active state */
-    letter-spacing: 0;
+    letter-spacing: var(--e2b-tracking-mono);
     text-decoration: none;
     text-transform: uppercase;
     white-space: nowrap;
@@ -627,7 +654,7 @@ html[data-current-path^="/sdk-reference/"] .mdx-content > h6 + * thead th {
    alternates (smart kerning) on (v1.34), so ligatures are never switched off. */
 code {
     font-family: var(--e2b-font-mono);
-    font-weight: 400;
+    font-weight: var(--e2b-weight-mono);
     font-feature-settings: var(--e2b-font-mono-features);
     letter-spacing: var(--e2b-tracking-mono);
 }
@@ -640,12 +667,12 @@ code {
 
 pre,
 pre code {
-    font-size: 0.8125rem;
-    line-height: 1.25rem;
+    font-size: var(--e2b-size-ui);
+    line-height: var(--e2b-leading-ui);
 }
 
 .mdx-content :not(pre) > code {
-    font-size: 0.9em;
+    font-size: 0.9em; /* type-check: allow (inline code follows the text around it, in any role) */
 }
 
 /* Inline code in running text and tables is one size, the docs code size 13 px (0.9em gave 11.7 px in tables and
@@ -658,8 +685,8 @@ pre code {
 #content-area :is(.primitive-param-field, .object-param-field) code:not(pre code) {
     padding: var(--e2b-code-chip-padding);
     border-radius: 2px;
-    font-size: 0.8125rem;
-    line-height: 1.25rem;
+    font-size: var(--e2b-size-ui);
+    line-height: var(--e2b-leading-ui);
 }
 
 /* In 15/24 text the chip sits 1 px up (the blog's value for that line, type v1.81): on the baseline it ran low beside
@@ -717,8 +744,8 @@ html #content-area .mdx-content :is(p, [data-as="p"], li, td, th) :is(a.link, a:
 #header .prose,
 #header .prose p {
     color: var(--e2b-text-secondary);
-    font-size: 1rem;
-    line-height: 1.5rem;
+    font-size: var(--e2b-size-lead);
+    line-height: var(--e2b-leading-lead);
     font-weight: var(--e2b-weight-regular);
     letter-spacing: var(--e2b-tracking-lead);
     font-variation-settings: "opsz" var(--e2b-opsz-lead);
@@ -731,14 +758,14 @@ html #content-area .mdx-content :is(p, [data-as="p"], li, td, th) :is(a.link, a:
 
 /* docs-ui: table of contents. */
 #table-of-contents a {
-    font-size: 0.8125rem;
+    font-size: var(--e2b-size-ui);
     letter-spacing: var(--e2b-tracking-ui);
     font-variation-settings: "opsz" var(--e2b-opsz-ui);
 }
 
 /* Left sidebar (v1.37): one step up to 14px (as web ui since v1.13), rows stay 32px. */
 nav[aria-label="Pages"] li > :is(a, button) {
-    font-size: 0.875rem;
+    font-size: var(--e2b-size-chrome);
     letter-spacing: var(--e2b-tracking-chrome);
     font-variation-settings: "opsz" var(--e2b-opsz-ui);
 }
@@ -753,7 +780,7 @@ nav[aria-label="Pages"] li > :is(a, button) {
 }
 
 #table-of-contents a {
-    line-height: 1.25rem;
+    line-height: var(--e2b-leading-ui);
     font-weight: var(--e2b-weight-regular);
 }
 
@@ -784,9 +811,9 @@ nav[aria-label="Pages"] a[aria-current="page"] {
     margin-bottom: 1rem !important;
     color: var(--e2b-text-secondary) !important;
     font-family: var(--e2b-font-mono);
-    font-size: 0.75rem;
-    font-weight: 400;
-    line-height: 1rem;
+    font-size: var(--e2b-size-label);
+    font-weight: var(--e2b-weight-mono);
+    line-height: var(--e2b-leading-label);
     letter-spacing: var(--e2b-tracking-mono);
     text-transform: uppercase;
     font-feature-settings: var(--e2b-font-mono-features);
@@ -810,9 +837,9 @@ nav[aria-label="Pages"] a[aria-current="page"] {
 
 #page-context-menu-button > div {
     gap: calc(0.75rem - 1rem / 18);
-    font-size: 0.75rem;
-    font-weight: 400;
-    line-height: 1rem;
+    font-size: var(--e2b-size-label);
+    font-weight: var(--e2b-weight-body);
+    line-height: var(--e2b-leading-label);
     text-transform: uppercase;
 }
 
@@ -860,7 +887,7 @@ nav[aria-label="Pages"] a[aria-current="page"] {
    the slide grows by COPIED's shift.
    Visual spacing, both labels: border line · 12 · icon strokes · 12 · text · 12. */
 #page-context-menu-button {
-    font-size: 0.75rem; /* so ch here is the label's ch */
+    font-size: var(--e2b-size-label); /* so ch here is the label's ch */
     transition: transform 300ms cubic-bezier(0.2, 0, 0, 1);
 }
 
@@ -1035,7 +1062,7 @@ nav[aria-label="Pages"] a[aria-current="page"] {
     #sidebar .sidebar-title,
     #header .eyebrow,
     #table-of-contents h2 > button {
-        line-height: 1.25rem;
+        line-height: var(--e2b-leading-ui);
     }
 
     #table-of-contents > [data-component-part="scroll-area-viewport"] {
@@ -1302,10 +1329,10 @@ header .nav-logo {
     background-color: var(--color-inverted);
     color: var(--color-on-inverted);
     font-family: var(--e2b-font-sans);
-    font-size: 0.75rem;
+    font-size: var(--e2b-size-label);
     font-weight: var(--e2b-weight-regular);
-    line-height: 1rem;
-    letter-spacing: 0; /* the Inter tracking curve gives +0.0005 em at 12 px */
+    line-height: var(--e2b-leading-label);
+    letter-spacing: 0; /* type-check: allow (the Inter tracking curve gives +0.0005 em at 12 px) */
     font-variation-settings: "opsz" var(--e2b-opsz-ui);
 }
 
@@ -1396,11 +1423,11 @@ html[data-current-path^="/api-reference/"]
 }
 
 html:not(.dark) :is(.code-block, .code-group, .codeblock-dark) button svg[class*="text-white/40"] {
-    color: rgb(0 0 0 / 0.4);
+    color: rgb(0 0 0 / 0.4); /* colour-check: allow (Mintlify's white/40, inverted) */
 }
 
 html:not(.dark) :is(.code-block, .code-group, .codeblock-dark) button:hover svg[class*="text-white/40"] {
-    color: rgb(0 0 0 / 0.6);
+    color: rgb(0 0 0 / 0.6); /* colour-check: allow (Mintlify's white/60, inverted) */
 }
 
 :is(code-block, code-group, .code-block, .code-group) :is(
@@ -1513,9 +1540,9 @@ html:not(.dark) :is(.code-block, .code-group, .codeblock-dark) button:hover svg[
     color: var(--color-on-accent);
     border-radius: 0;
     font-family: var(--e2b-font-mono);
-    font-size: 0.8125rem;
-    font-weight: 400;
-    line-height: 1rem;
+    font-size: var(--e2b-size-code);
+    font-weight: var(--e2b-weight-mono);
+    line-height: var(--e2b-leading-label);
     letter-spacing: var(--e2b-tracking-mono);
     font-feature-settings: var(--e2b-font-mono-features);
     text-transform: uppercase;
@@ -1559,8 +1586,8 @@ nav[aria-label="Main"] a[href^="https://console.e2b.dev"] {
     background-color: var(--color-accent-solid);
     color: var(--color-on-accent) !important;
     font-family: var(--e2b-font-mono);
-    font-size: 0.875rem;
-    font-weight: 400;
+    font-size: var(--e2b-size-chrome);
+    font-weight: var(--e2b-weight-mono);
     letter-spacing: var(--e2b-tracking-mono);
     text-transform: uppercase;
     font-feature-settings: var(--e2b-font-mono-features);
@@ -1646,8 +1673,8 @@ nav[aria-label="Main"] a[href^="https://console.e2b.dev"]:focus-visible {
     nav[aria-label="Main"] a[href="https://github.com/e2b-dev/e2b"] > div > div:nth-child(2)::after,
     nav[aria-label="Main"] a[href="https://github.com/e2b-dev/e2b"] > div:not(:has(> div:nth-child(2)))::after {
         content: var(--e2b-github-stars, "13.6K");
-        font-size: 0.875rem;
-        line-height: 1.25rem;
+        font-size: var(--e2b-size-chrome);
+        line-height: var(--e2b-leading-chrome);
         font-variant-numeric: tabular-nums;
     }
 }
@@ -1806,9 +1833,9 @@ a[href*="auth/sign-in"].whitespace-nowrap.font-medium:hover {
     content: attr(data-callout-type);
     color: var(--callout-foreground, currentColor);
     font-family: var(--e2b-font-mono);
-    font-size: 0.75rem;
-    font-weight: 400;
-    line-height: 1rem;
+    font-size: var(--e2b-size-label);
+    font-weight: var(--e2b-weight-mono);
+    line-height: var(--e2b-leading-label);
     letter-spacing: var(--e2b-tracking-mono);
     text-transform: uppercase;
     font-feature-settings: var(--e2b-font-mono-features);
@@ -1898,9 +1925,9 @@ button[data-component-part="update-label"] {
     padding: 0;
     min-height: 2rem;
     font-family: var(--e2b-font-mono);
-    font-size: 0.75rem;
-    font-weight: 400;
-    line-height: 1rem;
+    font-size: var(--e2b-size-label);
+    font-weight: var(--e2b-weight-mono);
+    line-height: var(--e2b-leading-label);
     letter-spacing: var(--e2b-tracking-mono);
     text-transform: uppercase;
 }
@@ -1925,7 +1952,7 @@ nav[aria-label="Pages"] li > :is(a, button) {
     padding: 0.375rem 0.5rem 0.375rem 0.75rem !important;
     column-gap: 0.75rem;
     align-items: center !important;
-    line-height: 20px !important;
+    line-height: var(--e2b-leading-chrome) !important;
 }
 
 /* Sidebar 256 px wide to give the nested rail and labels room; rows
@@ -2061,16 +2088,16 @@ body:has(#changelog-filters) #sidebar {
 
 /* Changelog articles use the docs body. */
 body:has(#changelog-filters) #content .update .prose-sm {
-    font-size: 0.9375rem;
+    font-size: var(--e2b-size-body);
     font-weight: var(--e2b-weight-body);
-    line-height: 1.5rem;
+    line-height: var(--e2b-leading-body);
     letter-spacing: var(--e2b-tracking-body);
     font-variation-settings: "opsz" var(--e2b-opsz-body);
 }
 
 body:has(#changelog-filters) #content .update .prose-sm :not(pre) > code {
-    font-size: 0.8125rem;
-    line-height: 1.25rem;
+    font-size: var(--e2b-size-ui);
+    line-height: var(--e2b-leading-ui);
 }
 
 /* Entry headings open their own article; they must not inherit section spacing. */
@@ -2081,8 +2108,8 @@ body:has(#changelog-filters) #content .update .prose-sm :not(pre) > code {
 #content .update [data-component-part="update-content"] > :is(p, [data-as="p"]) {
     margin-top: 1rem;
     margin-bottom: 1rem;
-    font-size: 0.9375rem;
-    line-height: 1.5rem;
+    font-size: var(--e2b-size-body);
+    line-height: var(--e2b-leading-body);
 }
 
 #content .update [data-component-part="update-content"] > :is(h2, h3, h4) + :is(p, [data-as="p"]) {
@@ -2094,8 +2121,8 @@ body:has(#changelog-filters) #content .update .prose-sm :not(pre) > code {
    20 px sections: entry titles repeat every week, and at 32 px most would run three or four lines. */
 #content .update [data-component-part="update-content"] > h2,
 #content .update [data-component-part="update-content"] > h2 * {
-    font-size: 2rem;
-    line-height: 2.5rem;
+    font-size: var(--e2b-size-h1);
+    line-height: var(--e2b-leading-h1);
     letter-spacing: var(--e2b-tracking-h1);
     font-variation-settings: "opsz" var(--e2b-opsz-h1);
 }
@@ -2107,8 +2134,8 @@ body:has(#changelog-filters) #content .update .prose-sm :not(pre) > code {
 @media (max-width: 767px) {
     #content .update [data-component-part="update-content"] > h2,
     #content .update [data-component-part="update-content"] > h2 * {
-        font-size: 1.5rem;
-        line-height: 2rem;
+        font-size: var(--e2b-size-h2);
+        line-height: var(--e2b-leading-h2);
         letter-spacing: var(--e2b-tracking-h2);
         font-variation-settings: "opsz" var(--e2b-opsz-h2);
     }
@@ -2122,8 +2149,8 @@ body:has(#changelog-filters) #content .update .prose-sm :not(pre) > code {
    an entry scans by its sections; they keep the h3 spacing (48 px above, 40 on phones, 8 to the text). */
 #content .update [data-component-part="update-content"] > h3,
 #content .update [data-component-part="update-content"] > h3 * {
-    font-size: 1.5rem;
-    line-height: 2rem;
+    font-size: var(--e2b-size-h2);
+    line-height: var(--e2b-leading-h2);
     letter-spacing: var(--e2b-tracking-h2);
     font-variation-settings: "opsz" var(--e2b-opsz-h2);
 }
@@ -2131,8 +2158,8 @@ body:has(#changelog-filters) #content .update .prose-sm :not(pre) > code {
 @media (max-width: 767px) {
     #content .update [data-component-part="update-content"] > h3,
     #content .update [data-component-part="update-content"] > h3 * {
-        font-size: 1.25rem;
-        line-height: 1.75rem;
+        font-size: var(--e2b-size-h2-sm);
+        line-height: var(--e2b-leading-h2-sm);
         letter-spacing: var(--e2b-tracking-h2-sm);
         font-variation-settings: "opsz" var(--e2b-opsz-h2-sm);
     }
@@ -2156,23 +2183,23 @@ body:has(#changelog-filters) #content .update .prose-sm :not(pre) > code {
 
 #content .update :is([data-component-part="update-tag-list"], [data-component-part="update-description"]) {
     padding-inline: 0;
-    font-size: 0.8125rem;
-    line-height: 1.25rem;
+    font-size: var(--e2b-size-ui);
+    line-height: var(--e2b-leading-ui);
 }
 
 /* Tags take the same tiny mono tag as the date, as on the website. */
 #content .update [data-component-part="update-tag-list"] {
     gap: 0.25rem 0.75rem;
     font-family: var(--e2b-font-mono);
-    font-size: 0.75rem;
-    line-height: 1rem;
+    font-size: var(--e2b-size-label);
+    line-height: var(--e2b-leading-label);
     letter-spacing: var(--e2b-tracking-mono);
     text-transform: uppercase;
 }
 
 #content .update [data-component-part="update-tag"] {
     font-size: inherit;
-    font-weight: 400;
+    font-weight: var(--e2b-weight-body);
     line-height: inherit;
 }
 
@@ -2199,9 +2226,9 @@ nav[aria-label="Pages"]:has(li[data-title="Sandbox"] > button) li:is(
 ) > button {
     color: var(--color-description) !important;
     font-family: var(--e2b-font-sans);
-    font-size: 0.875rem;
+    font-size: var(--e2b-size-chrome);
     font-weight: var(--e2b-weight-medium);
-    line-height: 1.25rem;
+    line-height: var(--e2b-leading-chrome);
     letter-spacing: var(--e2b-tracking-chrome);
     font-variation-settings: "opsz" var(--e2b-opsz-ui);
     text-shadow: none !important;
@@ -2251,7 +2278,7 @@ table td button {
     --e2b-diagram-text: var(--color-body); /* #2C2C2C */
     --e2b-diagram-muted: var(--color-muted); /* #585858 */
     --e2b-diagram-line: var(--color-dim); /* #8A8A8A */
-    --e2b-diagram-grid: rgb(166 166 166 / 0.35);
+    --e2b-diagram-grid: rgb(166 166 166 / 0.35); /* colour-check: allow (dot grid, no role yet) */
 
     margin-block: 1.5rem 2rem;
     padding: clamp(1.25rem, 4vw, 2.25rem);
@@ -2269,7 +2296,7 @@ table td button {
     --e2b-diagram-text: var(--color-heading); /* #F4F4F4 */
     --e2b-diagram-muted: var(--color-subheading); /* #E6E6E6 */
     --e2b-diagram-line: var(--color-body); /* #A6A6A6 */
-    --e2b-diagram-grid: rgb(44 44 44 / 0.85);
+    --e2b-diagram-grid: rgb(44 44 44 / 0.85); /* colour-check: allow (dot grid, no role yet) */
 
     border-color: var(--color-line);
 }
@@ -2310,8 +2337,8 @@ table td button {
 
 .mermaid .nodeLabel :is(b, strong) {
     font-family: var(--e2b-font-mono);
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: var(--e2b-size-label);
+    font-weight: var(--e2b-weight-bold);
     letter-spacing: var(--e2b-tracking-mono);
     text-transform: uppercase;
 }
@@ -2344,11 +2371,11 @@ table td button {
 /* API schema labels follow the SDK's original inline-code treatment. */
 html [data-component-part="field-info-pill"] {
     font-family: var(--e2b-font-mono);
-    font-size: 0.8125rem;
-    font-weight: 400;
-    line-height: 1.25rem;
+    font-size: var(--e2b-size-code);
+    font-weight: var(--e2b-weight-mono);
+    line-height: var(--e2b-leading-code);
     font-feature-settings: var(--e2b-font-mono-features);
-    letter-spacing: 0;
+    letter-spacing: var(--e2b-tracking-mono);
     padding: var(--e2b-code-chip-padding);
     border: 0;
     border-radius: 2px;
@@ -2464,9 +2491,9 @@ html[data-current-path^="/api-reference/"] [role="dialog"] :is(.code-block, .cod
     border: 1px solid transparent;
     border-radius: 0;
     font-family: var(--e2b-font-mono);
-    font-size: 0.875rem;
-    font-weight: 400;
-    line-height: 1rem;
+    font-size: var(--e2b-size-chrome);
+    font-weight: var(--e2b-weight-mono);
+    line-height: var(--e2b-leading-label);
     letter-spacing: var(--e2b-tracking-mono);
     text-transform: uppercase;
 }
@@ -2503,8 +2530,8 @@ html[data-current-path="/faq"] .mdx-content > h3 {
    the only large type and the questions stand clear of answers in full body ink. */
 html[data-current-path="/faq"] .mdx-content > h3,
 html[data-current-path="/faq"] .mdx-content > h3 * {
-    font-size: 1rem;
-    line-height: 1.5rem;
+    font-size: var(--e2b-size-lead);
+    line-height: var(--e2b-leading-lead);
     font-weight: var(--e2b-weight-semibold);
     letter-spacing: var(--e2b-tracking-lead);
     font-variation-settings: "opsz" var(--e2b-opsz-lead);
@@ -2561,10 +2588,10 @@ html:root {
     border: 1px solid transparent;
     border-radius: 0;
     font-family: var(--e2b-font-mono);
-    font-size: 0.625rem;
-    font-weight: 400;
-    line-height: 0.75rem;
-    letter-spacing: 0;
+    font-size: var(--e2b-size-deprecated);
+    font-weight: var(--e2b-weight-mono);
+    line-height: var(--e2b-leading-deprecated);
+    letter-spacing: var(--e2b-tracking-mono);
     text-transform: uppercase;
     font-feature-settings: var(--e2b-font-mono-features);
 }
@@ -2591,10 +2618,10 @@ html:root {
     background-color: var(--color-chip);
     color: var(--color-code-variable);
     font-family: var(--e2b-font-mono);
-    font-size: 0.8125rem;
-    font-weight: 400;
-    line-height: 0.875rem; /* a block in the bar: the inline code chip's 14 px content box, so 18 px with its padding */
-    letter-spacing: 0;
+    font-size: var(--e2b-size-code);
+    font-weight: var(--e2b-weight-mono);
+    line-height: 0.875rem; /* type-check: allow (a block in the bar: the inline code chip's 14 px content box, so 18 px with its padding) */
+    letter-spacing: var(--e2b-tracking-mono);
 }
 
 /* Code panel pickers and their tab labels are square, as the menus they open and every other control. */
@@ -2975,7 +3002,7 @@ nav[aria-label="Pages"] li > :is(a, button) svg[class~="size-3"] {
    gray-800, helper text gray-600, separators gray-400. They take the surface, heading (field names the code-variable
    blue, as in the article), description and muted. */
 [role="dialog"] [data-component-part="field-info-pill"] {
-    line-height: 0.875rem;
+    line-height: 0.875rem; /* type-check: allow (the code chip's 14 px content box, above) */
 }
 
 :root [role="dialog"] [class~="bg-gray-50"] {

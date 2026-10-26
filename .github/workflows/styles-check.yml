@@ -1,0 +1,28 @@
+name: Check colour and type
+
+on:
+  pull_request:
+    paths:
+      - "style.css"
+      - "colors/**"
+      - "docs.json"
+      - "**/*.mdx"
+      - "**/*.jsx"
+      - "*.js"
+      - "scripts/check-styles.mjs"
+      - ".github/workflows/styles-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      # No setup or install: the runner's Node runs the script, which has no dependencies.
+      - name: Docs use the colour and type systems
+        run: node scripts/check-styles.mjs
