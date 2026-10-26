@@ -12,6 +12,7 @@ If the LLM doesn't support tool use, you can, for example, prompt the LLM to out
 - [Anthropic](#anthropic)
 - [Mistral](#mistral)
 - [Groq](#groq)
+- [Fireworks AI](#fireworks-ai)
 - [Vercel AI SDK](#vercel-ai-sdk)
 - [CrewAI](#crewai)
 - [LangChain](#langchain)
@@ -52,7 +53,7 @@ code = response.choices[0].message.content
 if code:
     with Sandbox.create() as sandbox:
         execution = sandbox.run_code(code)
-        result = execution.text
+        result = execution.text or "".join(execution.logs.stdout)
 
     print(result)
 ```
@@ -117,7 +118,7 @@ if response_message.tool_calls:
             with Sandbox.create() as sandbox:
                 code = json.loads(tool_call.function.arguments)['code']
                 execution = sandbox.run_code(code)
-                result = execution.text
+                result = execution.text or "".join(execution.logs.stdout)
 
             # Send the result back to the model
             messages.append({
@@ -170,7 +171,7 @@ code = response.content[0].text
 # Execute code in E2B Sandbox
 with Sandbox.create() as sandbox:
     execution = sandbox.run_code(code)
-    result = execution.logs.stdout
+    result = execution.text or "".join(execution.logs.stdout)
 
 print(result)
 ```
@@ -236,7 +237,7 @@ if message.stop_reason == "tool_use":
         with Sandbox.create() as sandbox:
             code = tool_input['code']
             execution = sandbox.run_code(code)
-            result = execution.text
+            result = execution.text or "".join(execution.logs.stdout)
 
         # Append the tool result to the messages list
         messages.append({
@@ -295,7 +296,7 @@ code = response.choices[0].message.content
 # Execute code in E2B Sandbox
 with Sandbox.create() as sandbox:
     execution = sandbox.run_code(code)
-    result = execution.text
+    result = execution.text or "".join(execution.logs.stdout)
 
 print(result)
 ```
@@ -359,7 +360,7 @@ if response_message.tool_calls:
             with Sandbox.create() as sandbox:
                 code = json.loads(tool_call.function.arguments)['code']
                 execution = sandbox.run_code(code)
-                result = execution.text
+                result = execution.text or "".join(execution.logs.stdout)
 
             # Send the result back to the model
             messages.append({
@@ -412,10 +413,128 @@ code = response.choices[0].message.content
 # Execute code in E2B Sandbox
 with Sandbox.create() as sandbox:
     execution = sandbox.run_code(code)
-    result = execution.text
+    result = execution.text or "".join(execution.logs.stdout)
 
 print(result)
 
+```
+</CodeGroup>
+
+---
+
+## Fireworks AI
+[Fireworks AI](https://fireworks.ai/) serves open-source models through a fast inference API. The examples use the [Fireworks Python SDK](https://pypi.org/project/fireworks-ai/), which reads your key from the `FIREWORKS_API_KEY` environment variable. Any [serverless model](https://fireworks.ai/models) with function calling support works.
+
+### Simple
+
+<CodeGroup>
+```python Python
+# pip install fireworks-ai e2b-code-interpreter
+from fireworks import Fireworks
+from e2b_code_interpreter import Sandbox
+
+# Create Fireworks client
+client = Fireworks()
+system_prompt = "You are a helpful assistant that can execute python code in a Jupyter notebook. Only respond with the code to be executed and nothing else. Strip backticks in code blocks."
+prompt = "Calculate how many r's are in the word 'strawberry'"
+
+# Send the prompt to the model
+response = client.chat.completions.create(
+    model="accounts/fireworks/models/gpt-oss-120b",
+    messages=[
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": prompt}
+    ]
+)
+
+# Extract the code from the response
+code = response.choices[0].message.content
+
+# Execute code in E2B Sandbox
+with Sandbox.create() as sandbox:
+    execution = sandbox.run_code(code)
+    result = execution.text or "".join(execution.logs.stdout)
+
+print(result)
+```
+</CodeGroup>
+
+### Function calling
+
+<CodeGroup>
+```python Python
+# pip install fireworks-ai e2b-code-interpreter
+import json
+from fireworks import Fireworks
+from e2b_code_interpreter import Sandbox
+
+# Create Fireworks client
+client = Fireworks()
+model = "accounts/fireworks/models/gpt-oss-120b"
+messages = [
+    {
+        "role": "user",
+        "content": "Calculate how many r's are in the word 'strawberry'"
+    }
+]
+
+# Define the tools
+tools = [{
+    "type": "function",
+    "function": {
+        "name": "execute_python",
+        "description": "Execute python code in a Jupyter notebook cell and return result",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "description": "The python code to execute in a single cell"
+                }
+            },
+            "required": ["code"]
+        }
+    }
+}]
+
+# Send the prompt to the model
+response = client.chat.completions.create(
+    model=model,
+    messages=messages,
+    tools=tools,
+    tool_choice="required",
+    temperature=0
+)
+
+# Append the response message to the messages list
+response_message = response.choices[0].message
+messages.append(response_message.model_dump(exclude_none=True))
+
+# Execute the tool if it's called by the model
+if response_message.tool_calls:
+    for tool_call in response_message.tool_calls:
+        if tool_call.function.name == "execute_python":
+            # Create a sandbox and execute the code
+            with Sandbox.create() as sandbox:
+                code = json.loads(tool_call.function.arguments)['code']
+                execution = sandbox.run_code(code)
+                result = execution.text or "".join(execution.logs.stdout)
+
+            # Send the result back to the model
+            messages.append({
+                "role": "tool",
+                "content": result,
+                "tool_call_id": tool_call.id,
+            })
+
+# Generate the final response
+final_response = client.chat.completions.create(
+    model=model,
+    messages=messages,
+    tools=tools
+)
+
+print(final_response.choices[0].message.content)
 ```
 </CodeGroup>
 
@@ -515,7 +634,7 @@ def execute_python(code: str) -> str:
     """
     with Sandbox.create() as sandbox:
         execution = sandbox.run_code(code)
-        return execution.text
+        return execution.text or "".join(execution.logs.stdout)
 
 # Define the agent
 python_executor = Agent(
@@ -582,7 +701,7 @@ code = chain.invoke({"input": prompt})
 # Execute code in E2B Sandbox
 with Sandbox.create() as sandbox:
     execution = sandbox.run_code(code)
-    result = execution.text
+    result = execution.text or "".join(execution.logs.stdout)
 
 print(result)
 ```
@@ -610,7 +729,7 @@ def execute_python(code: str):
     """
     with Sandbox.create() as sandbox:
         execution = sandbox.run_code(code)
-        return execution.text
+        return execution.text or "".join(execution.logs.stdout)
 
 # Define LangChain components
 prompt_template = ChatPromptTemplate.from_messages([
@@ -643,7 +762,7 @@ from e2b_code_interpreter import Sandbox
 def execute_python(code: str):
     with Sandbox.create() as sandbox:
         execution = sandbox.run_code(code)
-        return execution.text
+        return execution.text or "".join(execution.logs.stdout)
 
 # Define a tool that uses the E2B Sandbox
 e2b_sandbox_tool = Tool(
@@ -697,7 +816,7 @@ from e2b_code_interpreter import Sandbox
 def execute_python(code: str):
     with Sandbox.create() as sandbox:
         execution = sandbox.run_code(code)
-        return execution.text
+        return execution.text or "".join(execution.logs.stdout)
 
 e2b_sandbox_tool = FunctionTool.from_defaults(
     name="execute_python",
@@ -741,7 +860,7 @@ code = response['message']['content']
 # Execute code in E2B Sandbox
 with Sandbox.create() as sandbox:
     execution = sandbox.run_code(code)
-    result = execution.logs.stdout
+    result = execution.text or "".join(execution.logs.stdout)
 
 print(result)
 ```
