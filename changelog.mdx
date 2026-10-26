@@ -5,6 +5,53 @@ rss: true
 "og:image": "/images/og/changelog.png"
 ---
 
+<Update label="October 26, 2026" description="DNS server allowlists, streaming input, retry hints" tags={["SDK", "API", "Dashboard", "Self-hosted"]} rss={{ title: "DNS Server Allowlists, Streaming Input & Retry Hints", description: "This week you can choose which DNS servers your sandboxes reach, stream input to running commands, and tell when a failed sandbox create is worth retrying." }}>
+
+## DNS Server Allowlists, Streaming Input & Retry Hints
+
+This week you can choose which DNS servers your sandboxes reach, stream input to running commands, and tell when a failed sandbox create is worth retrying.
+
+### DNS server allowlist
+
+When you limit a sandbox's internet access to specific domains, E2B also opens `8.8.8.8` so that names resolve. You can now pick [other DNS servers](/network/internet-access#dns-when-you-filter-by-domain) with `dnsServers` (`dns_servers` in Python), or open none. Shipped in the JavaScript and Python SDKs 2.59.0. [#2013](https://github.com/e2b-dev/E2B/pull/2013)
+
+### Streaming input for commands and terminals
+
+You can now [stream input](/commands/streaming#stream-input) to a running command or terminal with `streamInput()` (`stream_input()` in Python). All input goes over one connection in order, so sending many small chunks, like keystrokes, is faster than one request per chunk. The CLI 2.22.3 uses it for interactive terminal sessions. Shipped in the JavaScript and Python SDKs 2.58.0. [#1997](https://github.com/e2b-dev/E2B/pull/1997), [#2005](https://github.com/e2b-dev/E2B/pull/2005)
+
+### Retry hints on sandbox creation errors
+
+When creating a sandbox fails, the `POST /v2/sandboxes` response can now include a `Should-Retry` header. `true` means the problem is temporary, like no free capacity or a rate limit, so try again. `false` means don't retry. [`716e0eb`](https://github.com/e2b-dev/runtime/commit/716e0eb8a1a72e85a376dfa2b67090e6a3f8559e)
+
+### SDK connection changes
+
+- You can now [encrypt the connection to your own proxy](/network/byop#encrypting-the-connection-to-your-proxy) by setting `tls` in the egress proxy options. Shipped in the SDKs 2.57.0.
+- The `apiUrl` and `sandboxUrl` options and the `E2B_API_URL` and `E2B_SANDBOX_URL` environment variables are deprecated. They keep working until the next major version. Shipped in the SDKs 2.59.0.
+- In the us-west-2, eu-west-1 and ap-southeast-1 [regions](/client#multiple-regions), the SDKs send sandbox traffic to one host, `sandbox.<domain>`, instead of a separate host for each sandbox port. Shipped in the SDKs 2.59.0.
+
+[#1958](https://github.com/e2b-dev/E2B/pull/1958), [#2018](https://github.com/e2b-dev/E2B/pull/2018), [#2020](https://github.com/e2b-dev/E2B/pull/2020)
+
+### Project moves with paid plans
+
+You can now move a project on Pro, or one with paid concurrency packs, to another workspace without ending its plan first. The plan moves with the project, and the new workspace starts paying at its next monthly renewal.
+
+### Self-hosted network interface names and CA roots
+
+If you self-host E2B, sandbox network interfaces on the host are now named `e2b-<n>` instead of `veth-<n>`. Set `NETWORK_VETH_PREFIX` to use a different prefix. You can also give sandboxes extra public CA certificates to trust with `E2B_INTERCEPTION_ROOTS_FILE`. It applies to sandboxes from newly built templates. [`89da5b6`](https://github.com/e2b-dev/runtime/commit/89da5b65c85b8c6cd22303607ff6a1deeb4c17b5), [`d84959f`](https://github.com/e2b-dev/runtime/commit/d84959f4bb150683d030c0f781b58eb482e4e88e)
+
+### Fixes
+
+- Fixed requests to sandbox port 0, or to ports above 65535, returning `500` instead of `400`. [`eb2b03f`](https://github.com/e2b-dev/runtime/commit/eb2b03f2d699335c585250bba2bb8511e76681c4)
+- Fixed port forwarding in a sandbox dropping every forwarded port when a port scan failed. Rebuild templates built before October 20 to get the fix. [`3172e41`](https://github.com/e2b-dev/runtime/commit/3172e41266d408b462b0b5e8dc764d80f6dc2675)
+- Fixed UDP connections that were already open staying open after a network update blocked their destination. [`e266e2a`](https://github.com/e2b-dev/runtime/commit/e266e2af25ce6f0fd6b14a2b7bc9f9570a7a45fc)
+- Fixed the Python SDK hiding the real template build error behind a `ValueError`. Shipped in the Python SDK 2.59.0. [#1816](https://github.com/e2b-dev/E2B/pull/1816)
+- Fixed changing your password in the dashboard not signing out the CLI.
+- Fixed the usage page showing $0 for bring-your-own-cloud projects. It now shows vCPU and RAM hours.
+- Fixed workspace usage counting a project's hours from before it moved into the workspace.
+- Reliability and security hardening across platform services, including dependency and base image CVE patches.
+
+</Update>
+
 <Update label="October 19, 2026" tags={["SDK", "API", "Dashboard", "Self-hosted"]} rss={{ title: "Pause Mode Reporting, SDK Runtime Requirements & Project Deletion", description: "This week improves sandboxes, the SDKs, and the dashboard with pause mode reporting, new minimum Node.js and Python versions, and project deletion." }}>
 
 ## Pause Mode Reporting, SDK Runtime Requirements & Project Deletion
