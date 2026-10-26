@@ -311,8 +311,24 @@
             "icon": "square-js",
             "versions": [
               {
-                "version": "v2.59.0 (JS)",
+                "version": "v2.60.0 (JS)",
                 "default": true,
+                "pages": [
+                  "sdk-reference/js-sdk/v2.60.0/client",
+                  "sdk-reference/js-sdk/v2.60.0/errors",
+                  "sdk-reference/js-sdk/v2.60.0/sandbox",
+                  "sdk-reference/js-sdk/v2.60.0/sandbox-commands",
+                  "sdk-reference/js-sdk/v2.60.0/sandbox-filesystem",
+                  "sdk-reference/js-sdk/v2.60.0/secret",
+                  "sdk-reference/js-sdk/v2.60.0/template",
+                  "sdk-reference/js-sdk/v2.60.0/template-logger",
+                  "sdk-reference/js-sdk/v2.60.0/template-readycmd",
+                  "sdk-reference/js-sdk/v2.60.0/volume"
+                ]
+              },
+              {
+                "version": "v2.59.0 (JS)",
+                "default": false,
                 "pages": [
                   "sdk-reference/js-sdk/v2.59.0/client",
                   "sdk-reference/js-sdk/v2.59.0/errors",
@@ -2223,8 +2239,26 @@
             "icon": "python",
             "versions": [
               {
-                "version": "v2.59.0 (Python)",
+                "version": "v2.60.0 (Python)",
                 "default": true,
+                "pages": [
+                  "sdk-reference/python-sdk/v2.60.0/client",
+                  "sdk-reference/python-sdk/v2.60.0/exceptions",
+                  "sdk-reference/python-sdk/v2.60.0/logger",
+                  "sdk-reference/python-sdk/v2.60.0/readycmd",
+                  "sdk-reference/python-sdk/v2.60.0/sandbox_async",
+                  "sdk-reference/python-sdk/v2.60.0/sandbox_sync",
+                  "sdk-reference/python-sdk/v2.60.0/secret",
+                  "sdk-reference/python-sdk/v2.60.0/template",
+                  "sdk-reference/python-sdk/v2.60.0/template_async",
+                  "sdk-reference/python-sdk/v2.60.0/template_sync",
+                  "sdk-reference/python-sdk/v2.60.0/volume_async",
+                  "sdk-reference/python-sdk/v2.60.0/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.59.0 (Python)",
+                "default": false,
                 "pages": [
                   "sdk-reference/python-sdk/v2.59.0/client",
                   "sdk-reference/python-sdk/v2.59.0/exceptions",
@@ -6605,12 +6639,12 @@
     },
     {
       "source": "/sdk-reference/js-sdk/latest/:slug*",
-      "destination": "/sdk-reference/js-sdk/v2.59.0/:slug*",
+      "destination": "/sdk-reference/js-sdk/v2.60.0/:slug*",
       "permanent": false
     },
     {
       "source": "/sdk-reference/python-sdk/latest/:slug*",
-      "destination": "/sdk-reference/python-sdk/v2.59.0/:slug*",
+      "destination": "/sdk-reference/python-sdk/v2.60.0/:slug*",
       "permanent": false
     },
     {
