@@ -592,10 +592,11 @@ paths:
         description: 'Optional team-scoped key for retrying sandbox creation. Use
           1 to 255 lowercase ASCII
 
-          letters or digits (a-z, 0-9). When idempotency is enabled, matching retries
-          replay the original
+          letters, digits, or hyphens (a-z, 0-9, -), such as a lowercase UUID. When
+          idempotency is enabled,
 
-          status and body, including errors, for the retention period.
+          matching retries replay the original status and body, including errors,
+          for the retention period.
 
           Different request parameters return 409 with error_code idempotency_request_mismatch.
 
@@ -613,7 +614,7 @@ paths:
           type: string
           minLength: 1
           maxLength: 255
-          pattern: ^[a-z0-9]+$
+          pattern: ^[a-z0-9-]+$
       tags:
       - Sandboxes
       security:
@@ -668,6 +669,9 @@ paths:
                     message: authorization header is missing
         '400':
           description: Bad request
+          headers:
+            Should-Retry:
+              $ref: '#/components/headers/ShouldRetry'
           content:
             application/json:
               schema:
@@ -703,11 +707,103 @@ paths:
                     code: 400
                     message: autoPauseMemory=false only applies when autoPause is
                       true.
+        '403':
+          description: Forbidden
+          headers:
+            Should-Retry:
+              $ref: '#/components/headers/ShouldRetry'
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 403
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                teamBanned:
+                  summary: The team is banned at authentication
+                  value:
+                    code: 403
+                    message: team is banned
+                teamBlocked:
+                  summary: The authenticated team is blocked. The message may append
+                    a reason
+                  value:
+                    code: 403
+                    message: team is blocked
+                egressProxyDisabled:
+                  summary: Egress proxy configuration was supplied without feature
+                    access
+                  value:
+                    code: 403
+                    message: Egress proxy (network.egressProxy) is not enabled for
+                      this team.
+        '404':
+          description: Not found
+          headers:
+            Should-Retry:
+              $ref: '#/components/headers/ShouldRetry'
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 404
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                templateNotFound:
+                  summary: The template reference cannot be resolved
+                  value:
+                    code: 404
+                    message: template 'my-template' not found
         '409':
           description: The Idempotency-Key conflicts with a different request (error_code
             idempotency_request_mismatch), or the matching original request has no
             recorded response yet and is within its expected response window (error_code
             idempotency_in_progress); this request was not executed again
+          headers:
+            Should-Retry:
+              $ref: '#/components/headers/ShouldRetry'
           content:
             application/json:
               schema:
@@ -756,6 +852,9 @@ paths:
           description: The matching original request has no recorded response and
             its expected response deadline has passed or is unknown (error_code idempotency_outcome_unknown);
             this request was not executed again
+          headers:
+            Should-Retry:
+              $ref: '#/components/headers/ShouldRetry'
           content:
             application/json:
               schema:
@@ -795,6 +894,8 @@ paths:
         '429':
           description: Too many requests
           headers:
+            Should-Retry:
+              $ref: '#/components/headers/ShouldRetry'
             Retry-After:
               description: When present, the number of seconds to wait before retrying
                 the request.
@@ -850,6 +951,9 @@ paths:
                     message: Rate limit exceeded
         '500':
           description: Server error
+          headers:
+            Should-Retry:
+              $ref: '#/components/headers/ShouldRetry'
           content:
             application/json:
               schema:
@@ -885,6 +989,9 @@ paths:
                     message: failed to convert volume mounts
         '503':
           description: Service unavailable
+          headers:
+            Should-Retry:
+              $ref: '#/components/headers/ShouldRetry'
           content:
             application/json:
               schema:
@@ -922,6 +1029,9 @@ paths:
                     error_code: sandbox_capacity_unavailable
         '504':
           description: Backend timeout
+          headers:
+            Should-Retry:
+              $ref: '#/components/headers/ShouldRetry'
           content:
             application/json:
               schema:
@@ -957,89 +1067,6 @@ paths:
                     message: 'Failed to place sandbox: placement timed out, please
                       retry'
                     error_code: sandbox_placement_timeout
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                required:
-                - code
-                - message
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                    description: Error code
-                    example: 403
-                  error_code:
-                    type: string
-                    description: 'Machine-readable semantic error code. Not a closed
-                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
-                      sandbox_no_compatible_node, sandbox_create_failed (a node could
-                      not create the sandbox this time; retry), sandbox_create_refused
-                      (a node refused the sandbox for a reason no retry changes, such
-                      as a vcpu count out of bounds in the stored build; a server
-                      error, since no request field reaches that check), internal_server_error,
-                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
-                      idempotency_outcome_unknown.'
-                  message:
-                    type: string
-                    description: Error
-                type: object
-              examples:
-                teamBanned:
-                  summary: The team is banned at authentication
-                  value:
-                    code: 403
-                    message: team is banned
-                teamBlocked:
-                  summary: The authenticated team is blocked. The message may append
-                    a reason
-                  value:
-                    code: 403
-                    message: team is blocked
-                egressProxyDisabled:
-                  summary: Egress proxy configuration was supplied without feature
-                    access
-                  value:
-                    code: 403
-                    message: Egress proxy (network.egressProxy) is not enabled for
-                      this team.
-        '404':
-          description: Not found
-          content:
-            application/json:
-              schema:
-                required:
-                - code
-                - message
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                    description: Error code
-                    example: 404
-                  error_code:
-                    type: string
-                    description: 'Machine-readable semantic error code. Not a closed
-                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
-                      sandbox_no_compatible_node, sandbox_create_failed (a node could
-                      not create the sandbox this time; retry), sandbox_create_refused
-                      (a node refused the sandbox for a reason no retry changes, such
-                      as a vcpu count out of bounds in the stored build; a server
-                      error, since no request field reaches that check), internal_server_error,
-                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
-                      idempotency_outcome_unknown.'
-                  message:
-                    type: string
-                    description: Error
-                type: object
-              examples:
-                templateNotFound:
-                  summary: The template reference cannot be resolved
-                  value:
-                    code: 404
-                    message: template 'my-template' not found
       operationId: postSandboxesV2
     get:
       summary: List sandboxes (v2)
@@ -7088,6 +7115,196 @@ paths:
       operationId: listTemplates
     servers:
     - *id001
+  /default-templates:
+    get:
+      summary: List default templates
+      description: 'Lists the platform''s default templates, ordered by template ID.
+        Deleted templates are left out. Templates that are not public are listed only
+        to their own team and to admin callers. The build, resources and envd version
+        are those of the newest ready build tagged `default`, the one a sandbox started
+        from the template runs, and are zero or empty when there is none; `buildStatus`
+        describes the newest build tagged `default` in any state. Usage fields (`spawnCount`,
+        `buildCount`, `lastSpawnedAt`, `createdBy`) are reported only for the caller''s
+        own templates and to admin callers.
+
+        '
+      tags:
+      - Templates
+      security:
+      - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Successfully returned the default templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Template'
+        '401':
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 401
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                missingAuthentication:
+                  summary: No supported authentication header was supplied
+                  value:
+                    code: 401
+                    message: authorization header is missing
+        '429':
+          description: Too many requests
+          headers:
+            Retry-After:
+              description: When present, the number of seconds to wait before retrying
+                the request.
+              required: false
+              schema:
+                type: integer
+                minimum: 0
+              example: 30
+            RateLimit-Limit:
+              description: Configured rate-limit burst size.
+              schema:
+                type: integer
+            RateLimit-Remaining:
+              description: Requests remaining in the rate-limit window.
+              schema:
+                type: integer
+            RateLimit-Reset:
+              description: Seconds until the rate-limit window resets.
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 429
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                rateLimitExceeded:
+                  summary: A configured API rate limit was exceeded
+                  value:
+                    code: 429
+                    message: Rate limit exceeded
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 500
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                operationFailed:
+                  summary: The default-template query fails
+                  value:
+                    code: 500
+                    message: Error when listing default templates
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 403
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                teamBanned:
+                  summary: The team is banned at authentication
+                  value:
+                    code: 403
+                    message: team is banned
+      operationId: listDefault-templates
+    servers:
+    - *id001
   /templates/{templateID}:
     get:
       summary: Get template
@@ -9984,6 +10201,1011 @@ paths:
                     code: 400
                     message: 'Invalid template reference: invalid template ID: invalid!'
       operationId: getTemplateTags
+    servers:
+    - *id001
+  /templates/{templateID}/tags/groups:
+    get:
+      summary: List template tag groups
+      description: 'Lists the template''s tags that have at least one ready build,
+        each with its most recent ready assignments, paginated over tags with a keyset
+        cursor. Returns 404 when the template does not exist or belongs to another
+        team.
+
+        '
+      tags:
+      - Tags
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/templateID'
+      - $ref: '#/components/parameters/tagAssignmentLimit'
+      - $ref: '#/components/parameters/tagGroupsLimit'
+      - $ref: '#/components/parameters/tagGroupsCursor'
+      - $ref: '#/components/parameters/tagGroupsSearch'
+      - $ref: '#/components/parameters/tagGroupsSort'
+      responses:
+        '200':
+          description: Successfully returned template tag groups
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateTagGroupsResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 400
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                invalidCursor:
+                  summary: The pagination cursor cannot be parsed
+                  value:
+                    code: 400
+                    message: Invalid cursor
+                cursorSortMismatch:
+                  summary: The cursor was issued for a different sort
+                  value:
+                    code: 400
+                    message: Cursor was issued for a different sort; clear the cursor
+                      and restart
+        '401':
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 401
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                missingAuthentication:
+                  summary: No supported authentication header was supplied
+                  value:
+                    code: 401
+                    message: authorization header is missing
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 403
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                teamBanned:
+                  summary: The team is banned at authentication
+                  value:
+                    code: 403
+                    message: team is banned
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 404
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                templateNotFound:
+                  summary: The template is missing, deleted or owned by another team
+                  value:
+                    code: 404
+                    message: Template not found
+        '429':
+          description: Too many requests
+          headers:
+            Retry-After:
+              description: When present, the number of seconds to wait before retrying
+                the request.
+              required: false
+              schema:
+                type: integer
+                minimum: 0
+              example: 30
+            RateLimit-Limit:
+              description: Configured rate-limit burst size.
+              schema:
+                type: integer
+            RateLimit-Remaining:
+              description: Requests remaining in the rate-limit window.
+              schema:
+                type: integer
+            RateLimit-Reset:
+              description: Seconds until the rate-limit window resets.
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 429
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                rateLimitExceeded:
+                  summary: A configured API rate limit was exceeded
+                  value:
+                    code: 429
+                    message: Rate limit exceeded
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 500
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                operationFailed:
+                  summary: Listing template tag groups fails
+                  value:
+                    code: 500
+                    message: Error when getting template tag groups
+      operationId: getTemplateTagsGroups
+    servers:
+    - *id001
+  /templates/{templateID}/tags/count:
+    get:
+      summary: Count template tags
+      description: 'Returns the number of distinct tags of the template that have
+        at least one ready build. Returns 404 when the template does not exist or
+        belongs to another team.
+
+        '
+      tags:
+      - Tags
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/templateID'
+      responses:
+        '200':
+          description: Successfully returned the tag count
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateTagsCountResponse'
+        '401':
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 401
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                missingAuthentication:
+                  summary: No supported authentication header was supplied
+                  value:
+                    code: 401
+                    message: authorization header is missing
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 403
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                teamBanned:
+                  summary: The team is banned at authentication
+                  value:
+                    code: 403
+                    message: team is banned
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 404
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                templateNotFound:
+                  summary: The template is missing, deleted or owned by another team
+                  value:
+                    code: 404
+                    message: Template not found
+        '429':
+          description: Too many requests
+          headers:
+            Retry-After:
+              description: When present, the number of seconds to wait before retrying
+                the request.
+              required: false
+              schema:
+                type: integer
+                minimum: 0
+              example: 30
+            RateLimit-Limit:
+              description: Configured rate-limit burst size.
+              schema:
+                type: integer
+            RateLimit-Remaining:
+              description: Requests remaining in the rate-limit window.
+              schema:
+                type: integer
+            RateLimit-Reset:
+              description: Seconds until the rate-limit window resets.
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 429
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                rateLimitExceeded:
+                  summary: A configured API rate limit was exceeded
+                  value:
+                    code: 429
+                    message: Rate limit exceeded
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 500
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                operationFailed:
+                  summary: Counting template tags fails
+                  value:
+                    code: 500
+                    message: Error when counting template tags
+      operationId: getTemplateTagsCount
+    servers:
+    - *id001
+  /templates/{templateID}/tags/exists:
+    get:
+      summary: Check template tag
+      description: 'Checks whether a tag of the template has at least one ready build.
+        Returns 404 when the template does not exist or belongs to another team.
+
+        '
+      tags:
+      - Tags
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/templateID'
+      - $ref: '#/components/parameters/tagQuery'
+      responses:
+        '200':
+          description: Successfully checked the tag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateTagExistsResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 400
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                invalidTag:
+                  summary: The tag contains an unsupported character
+                  value:
+                    code: 400
+                    message: Invalid tag
+        '401':
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 401
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                missingAuthentication:
+                  summary: No supported authentication header was supplied
+                  value:
+                    code: 401
+                    message: authorization header is missing
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 403
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                teamBanned:
+                  summary: The team is banned at authentication
+                  value:
+                    code: 403
+                    message: team is banned
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 404
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                templateNotFound:
+                  summary: The template is missing, deleted or owned by another team
+                  value:
+                    code: 404
+                    message: Template not found
+        '429':
+          description: Too many requests
+          headers:
+            Retry-After:
+              description: When present, the number of seconds to wait before retrying
+                the request.
+              required: false
+              schema:
+                type: integer
+                minimum: 0
+              example: 30
+            RateLimit-Limit:
+              description: Configured rate-limit burst size.
+              schema:
+                type: integer
+            RateLimit-Remaining:
+              description: Requests remaining in the rate-limit window.
+              schema:
+                type: integer
+            RateLimit-Reset:
+              description: Seconds until the rate-limit window resets.
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 429
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                rateLimitExceeded:
+                  summary: A configured API rate limit was exceeded
+                  value:
+                    code: 429
+                    message: Rate limit exceeded
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 500
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                operationFailed:
+                  summary: Checking the template tag fails
+                  value:
+                    code: 500
+                    message: Error when checking template tag existence
+      operationId: getTemplateTagsExists
+    servers:
+    - *id001
+  /templates/{templateID}/tags/{tag}/assignments:
+    get:
+      summary: List template tag assignments
+      description: 'Lists the ready assignments of one tag of the template, newest
+        first, with keyset cursor pagination. Returns 404 when the template does not
+        exist or belongs to another team.
+
+        '
+      tags:
+      - Tags
+      security:
+      - ApiKeyAuth: []
+      parameters:
+      - $ref: '#/components/parameters/templateID'
+      - $ref: '#/components/parameters/tag'
+      - $ref: '#/components/parameters/tagAssignmentsCursor'
+      - $ref: '#/components/parameters/tagAssignmentsLimit'
+      responses:
+        '200':
+          description: Successfully returned the tag assignments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateTagAssignmentsResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 400
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                invalidTag:
+                  summary: The tag contains an unsupported character
+                  value:
+                    code: 400
+                    message: Invalid tag
+                invalidCursor:
+                  summary: The pagination cursor cannot be parsed
+                  value:
+                    code: 400
+                    message: Invalid cursor
+        '401':
+          description: Authentication error
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 401
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                missingAuthentication:
+                  summary: No supported authentication header was supplied
+                  value:
+                    code: 401
+                    message: authorization header is missing
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 403
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                teamBanned:
+                  summary: The team is banned at authentication
+                  value:
+                    code: 403
+                    message: team is banned
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 404
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                templateNotFound:
+                  summary: The template is missing, deleted or owned by another team
+                  value:
+                    code: 404
+                    message: Template not found
+        '429':
+          description: Too many requests
+          headers:
+            Retry-After:
+              description: When present, the number of seconds to wait before retrying
+                the request.
+              required: false
+              schema:
+                type: integer
+                minimum: 0
+              example: 30
+            RateLimit-Limit:
+              description: Configured rate-limit burst size.
+              schema:
+                type: integer
+            RateLimit-Remaining:
+              description: Requests remaining in the rate-limit window.
+              schema:
+                type: integer
+            RateLimit-Reset:
+              description: Seconds until the rate-limit window resets.
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 429
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                rateLimitExceeded:
+                  summary: A configured API rate limit was exceeded
+                  value:
+                    code: 429
+                    message: Rate limit exceeded
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 500
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                operationFailed:
+                  summary: Listing template tag assignments fails
+                  value:
+                    code: 500
+                    message: Error when getting template tag assignments
+      operationId: getTemplateTagAssignments
     servers:
     - *id001
   /volumes:
@@ -19366,6 +20588,14 @@ components:
       required: true
       schema:
         type: string
+    aliasID:
+      name: aliasID
+      in: path
+      required: true
+      description: Identifier of the alias
+      schema:
+        type: string
+        format: uuid
     snapshotID:
       name: snapshotID
       in: path
@@ -19380,6 +20610,86 @@ components:
       schema:
         type: string
         description: Tag name
+    tagQuery:
+      name: tag
+      in: query
+      required: true
+      description: Template tag name to check.
+      schema:
+        type: string
+        minLength: 1
+    tagAssignmentLimit:
+      name: assignmentLimit
+      in: query
+      required: false
+      description: Maximum number of ready assignment rows to return per tag.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 25
+        default: 6
+    tagGroupsLimit:
+      name: tagsLimit
+      in: query
+      required: false
+      description: Maximum number of distinct tags to return per page.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 100
+        default: 25
+    tagGroupsCursor:
+      name: tagsCursor
+      in: query
+      required: false
+      description: Cursor returned by the previous list response in `{sort}|{latest_assigned_at}|{tag}`
+        format (sort-tagged, RFC3339Nano).
+      schema:
+        type: string
+    tagGroupsSearch:
+      name: search
+      in: query
+      required: false
+      description: Substring filter on tag name. Allowed characters are `a-z`, `0-9`,
+        `.`, `_`, `-`.
+      schema:
+        type: string
+        maxLength: 64
+        pattern: ^[a-z0-9._-]*$
+    tagGroupsSort:
+      name: sort
+      in: query
+      required: false
+      description: Sort order for the returned tag groups.
+      schema:
+        type: string
+        enum:
+        - latest_desc
+        - latest_asc
+        - name_asc
+        - name_desc
+        default: latest_desc
+    tagAssignmentsLimit:
+      name: limit
+      in: query
+      required: false
+      description: Maximum number of assignment rows to return per page.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 100
+        default: 50
+    tagAssignmentsCursor:
+      name: cursor
+      in: query
+      required: false
+      description: Cursor returned by the previous list response in `assigned_at|assignment_id`
+        format.
+      schema:
+        type: string
     paginationLimit:
       name: limit
       in: query
@@ -19398,6 +20708,56 @@ components:
       required: false
       schema:
         type: string
+    templatesSearch:
+      name: search
+      in: query
+      required: false
+      description: Case-insensitive substring match on the template ID, its aliases
+        and its names.
+      schema:
+        type: string
+        maxLength: 256
+    templatesSort:
+      name: sort
+      in: query
+      required: false
+      description: Sort column and direction.
+      schema:
+        type: string
+        enum:
+        - created_at_desc
+        - created_at_asc
+        - updated_at_desc
+        - updated_at_asc
+        default: created_at_desc
+    templatesPublic:
+      name: public
+      in: query
+      required: false
+      description: Only list public (true) or only non-public (false) templates.
+      schema:
+        type: boolean
+    templatesCursor:
+      name: cursor
+      in: query
+      required: false
+      description: 'Cursor returned by the previous page in `{sort}|{value}|{templateID}`
+        format. Rejected if its sort does not match the request.
+
+        '
+      schema:
+        type: string
+    templatesLimit:
+      name: limit
+      in: query
+      required: false
+      description: Maximum number of templates to return per page.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 100
+        default: 50
     volumeID:
       name: volumeID
       in: path
@@ -19652,7 +21012,22 @@ components:
           description: Unix timestamp in UTC for current sandbox time
         cpu_count:
           type: integer
-          description: Number of CPU cores
+          description: Number of CPU cores online
+        cpu_possible:
+          type: integer
+          description: Number of CPUs the guest can bring online
+        cpu_target:
+          type: integer
+          description: Online count last requested, 0 when none was
+        cpu_target_attempts:
+          type: integer
+          description: Attempts at reaching cpu_target since it was set
+        cpu_write_pending_ms:
+          type: integer
+          format: int64
+          description: How long a CPU online or offline write has been running in
+            the guest kernel, 0 when none is. A value that keeps growing means CPU
+            hotplug is stuck.
         cpu_used_pct:
           type: number
           format: float
@@ -20609,22 +21984,34 @@ components:
       type: object
       properties:
         allowPublicTraffic:
-          type: boolean
-          default: true
-          description: Specify if the sandbox URLs should be accessible only with
-            authentication.
+          type:
+          - boolean
+          - 'null'
+          description: Whether sandbox URLs accept traffic without the sandbox's traffic
+            access token. When omitted or null on create, the project's default applies,
+            which is true unless the project changed it.
         allowOut:
           type: array
           description: List of allowed destinations for egress traffic. Each entry
             can be a CIDR block (e.g. "8.8.8.8/32"), a bare IP address (e.g. "8.8.8.8"),
             or a domain name (e.g. "example.com", "*.example.com"). Allowed entries
-            always take precedence over denied entries.
+            always take precedence over denied entries. When allowOut contains a domain,
+            the servers in dnsServers (8.8.8.8 by default) are also allowed.
           items:
             type: string
         denyOut:
           type: array
           description: List of denied CIDR blocks or IP addresses for egress traffic.
             Domain names are not supported for deny rules.
+          items:
+            type: string
+        dnsServers:
+          type: array
+          maxItems: 10
+          description: DNS servers the sandbox can reach when allowOut contains a
+            domain. Each entry must be an IPv4 address, and all traffic to it is allowed.
+            Omit it to allow the default nameserver 8.8.8.8, or pass an empty list
+            to allow none. This does not change the sandbox's /etc/resolv.conf.
           items:
             type: string
         egressProxy:
@@ -20674,13 +22061,23 @@ components:
           description: List of allowed destinations for egress traffic. Each entry
             can be a CIDR block (e.g. "8.8.8.8/32"), a bare IP address (e.g. "8.8.8.8"),
             or a domain name (e.g. "example.com", "*.example.com"). Allowed entries
-            always take precedence over denied entries.
+            always take precedence over denied entries. When allowOut contains a domain,
+            the servers in dnsServers (8.8.8.8 by default) are also allowed.
           items:
             type: string
         denyOut:
           type: array
           description: List of denied CIDR blocks or IP addresses for egress traffic.
             Domain names are not supported for deny rules.
+          items:
+            type: string
+        dnsServers:
+          type: array
+          maxItems: 10
+          description: DNS servers the sandbox can reach when allowOut contains a
+            domain. Each entry must be an IPv4 address, and all traffic to it is allowed.
+            Omit it to reset to the default nameserver 8.8.8.8, or pass an empty list
+            to allow none. This does not change the sandbox's /etc/resolv.conf.
           items:
             type: string
         egressProxy:
@@ -21506,6 +22903,16 @@ components:
           $ref: '#/components/schemas/EnvdVersion'
         buildStatus:
           $ref: '#/components/schemas/TemplateBuildStatus'
+        isDefault:
+          type: boolean
+          description: 'Whether the template is one of the platform''s default templates.
+            A default template owned by another team carries zero or null usage fields
+            (`spawnCount`, `buildCount`, `lastSpawnedAt`, `createdBy`).
+
+            '
+        description:
+          type: string
+          description: Description of the template
       type: object
     TemplateRequestResponseV3:
       required:
@@ -21579,58 +22986,17 @@ components:
           $ref: '#/components/schemas/EnvdVersion'
       type: object
     TemplateWithBuilds:
-      required:
-      - templateID
-      - public
-      - aliases
-      - names
-      - createdAt
-      - updatedAt
-      - lastSpawnedAt
-      - spawnCount
-      - builds
-      properties:
-        templateID:
-          type: string
-          description: Identifier of the template
-        public:
-          type: boolean
-          description: Whether the template is public or only accessible by the team
-        aliases:
-          type: array
-          description: Aliases of the template
-          deprecated: true
-          items:
-            type: string
-        names:
-          type: array
-          description: Names of the template (namespace/alias format when namespaced)
-          items:
-            type: string
-        createdAt:
-          type: string
-          format: date-time
-          description: Time when the template was created
-        updatedAt:
-          type: string
-          format: date-time
-          description: Time when the template was last updated
-        lastSpawnedAt:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: Time when the template was last used
-        spawnCount:
-          type: integer
-          format: int64
-          description: Number of times the template was used
-        builds:
-          type: array
-          description: List of builds for the template
-          items:
-            $ref: '#/components/schemas/TemplateBuild'
-      type: object
+      allOf:
+      - $ref: '#/components/schemas/Template'
+      - type: object
+        required:
+        - builds
+        properties:
+          builds:
+            type: array
+            description: List of builds for the template
+            items:
+              $ref: '#/components/schemas/TemplateBuild'
     TemplateAliasResponse:
       required:
       - templateID
@@ -21953,6 +23319,110 @@ components:
           format: date-time
           description: Time when the tag was assigned
       type: object
+    TemplateTagAssignment:
+      type: object
+      required:
+      - assignmentId
+      - buildId
+      - assignedAt
+      - buildCreatedAt
+      - buildFinishedAt
+      properties:
+        assignmentId:
+          type: string
+          format: uuid
+          description: Identifier of the tag assignment event.
+        buildId:
+          type: string
+          format: uuid
+          description: Identifier of the assigned build.
+        assignedAt:
+          type: string
+          format: date-time
+          description: Time when the tag was assigned to the build.
+        buildCreatedAt:
+          type: string
+          format: date-time
+          description: Time when the assigned build was created.
+        buildFinishedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Time when the assigned build finished.
+    TemplateTagGroup:
+      type: object
+      required:
+      - tag
+      - assignments
+      - hasMore
+      properties:
+        tag:
+          type: string
+          description: Template tag name.
+        assignments:
+          type: array
+          description: Ready assignment events for this tag, sorted latest first.
+          items:
+            $ref: '#/components/schemas/TemplateTagAssignment'
+        hasMore:
+          type: boolean
+          description: Whether more ready assignment events exist beyond the requested
+            assignment limit.
+    TemplateTagGroupsResponse:
+      type: object
+      required:
+      - tags
+      - nextCursor
+      properties:
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateTagGroup'
+        nextCursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor to pass as `tagsCursor` for the next page, or `null`
+            if there is no next page.
+    TemplateTagsCountResponse:
+      type: object
+      required:
+      - total
+      properties:
+        total:
+          type: integer
+          format: int64
+          description: Total distinct ready tags for the template.
+    TemplateTagExistsResponse:
+      type: object
+      required:
+      - exists
+      - normalizedTag
+      properties:
+        exists:
+          type: boolean
+          description: Whether the template tag has at least one ready assignment.
+        normalizedTag:
+          type: string
+          description: Normalized template tag name.
+    TemplateTagAssignmentsResponse:
+      type: object
+      required:
+      - data
+      - nextCursor
+      properties:
+        data:
+          type: array
+          description: Ready assignment events for the tag, sorted latest first.
+          items:
+            $ref: '#/components/schemas/TemplateTagAssignment'
+        nextCursor:
+          type:
+          - string
+          - 'null'
+          description: Cursor to pass to the next list request, or `null` if there
+            is no next page.
     AssignTemplateTagsRequest:
       required:
       - target
@@ -22554,6 +24024,31 @@ components:
         code:
           type: integer
   headers:
+    ShouldRetry:
+      description: 'Whether the condition behind this error may clear, so that retrying
+        the request could
+
+        succeed. true marks a transient failure such as missing capacity, a rate limit,
+        or a
+
+        creation still in progress: retry after Retry-After when present, otherwise
+        with
+
+        exponential backoff. false marks a failure a retry cannot fix, such as a malformed
+        request
+
+        or a configuration fault, or an outcome that is unknown, where a retry could
+        create a
+
+        second sandbox. Successful responses and errors without an explicit classification
+        omit
+
+        the header.
+
+        '
+      required: false
+      schema:
+        type: boolean
     XNextToken:
       description: Cursor to fetch the next page of results, if more exist
       schema:
