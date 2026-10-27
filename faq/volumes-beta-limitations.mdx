@@ -15,5 +15,4 @@ During the private beta, you may run into the limitations below. We aim to addre
 - **Volumes can be deleted while mounted.** Deleting a mounted volume can cause filesystem errors and prevent paused sandboxes from resuming. Save needed data and kill all sandboxes using the volume before deleting it.
 - **File watchers miss external changes.** Watching requires an [explicit opt-in](/filesystem/watch#watching-network-filesystem-mounts) and envd `0.6.4` or later. Changes from other sandboxes or standalone volume writes do not trigger events.
 - **`df` does not show real usage.** Its reported capacity and used space do not reflect your volume's storage.
-- **US and EU only on managed cloud.** Volumes are not available in APAC.
 - **Missing features.** The API and SDKs do not support snapshots, server-side copies, or read-only mounts. To [migrate data](/volumes/migrate), mount both volumes in a sandbox and copy between them.
