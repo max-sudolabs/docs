@@ -32,6 +32,67 @@ with open("path/to/local/file", "rb") as file:
 ```
 </CodeGroup>
 
+## Stream an upload
+
+Instead of reading a whole file into memory first, pass a stream (or an iterable of byte chunks) to `files.write()`. Chunks are uploaded as they arrive, so the size of the data doesn't matter.
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import fs from 'fs'
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create()
+
+// Any AsyncIterable<Uint8Array>, like a Node.js Readable...
+await sandbox.files.write('/path/in/sandbox', fs.createReadStream('/local/path'))
+
+// ...or a ReadableStream, like a fetch response body
+const response = await fetch('https://example.com/large-file.zip')
+await sandbox.files.write('/path/in/sandbox/large-file.zip', response.body)
+```
+```python Python
+import requests
+from e2b import Sandbox
+
+sandbox = Sandbox.create()
+
+# Any iterable of bytes chunks, like a streamed HTTP response...
+with requests.get("https://example.com/large-file.zip", stream=True) as response:
+    sandbox.files.write("/path/in/sandbox/large-file.zip", response.iter_content(chunk_size=1024 * 1024))
+
+# ...or a generator
+def chunks():
+    for part in range(3):
+        yield f"part {part}\n".encode()
+
+sandbox.files.write("/path/in/sandbox/parts.txt", chunks())
+```
+```python Python (async)
+import httpx
+from e2b import AsyncSandbox
+
+sandbox = await AsyncSandbox.create()
+
+# Any async iterable of bytes chunks, like a streamed HTTP response...
+async with httpx.AsyncClient() as client:
+    async with client.stream("GET", "https://example.com/large-file.zip") as response:
+        await sandbox.files.write("/path/in/sandbox/large-file.zip", response.aiter_bytes())
+
+# ...or an async generator
+async def chunks():
+    for part in range(3):
+        yield f"part {part}\n".encode()
+
+await sandbox.files.write("/path/in/sandbox/parts.txt", chunks())
+```
+</CodeGroup>
+
+Streams are always uploaded as `application/octet-stream` and are never buffered, so `useOctetStream: false` (`use_octet_stream=False` in Python) raises an error for them. `gzip: true` compresses the stream on the fly.
+
+<Note>
+`Sandbox` accepts sync iterables and `AsyncSandbox` accepts async iterables. In browsers that can't stream request bodies (Firefox, Safari), convert the stream to a `Blob` first, for example `await new Response(stream).blob()`.
+</Note>
+
 ## Upload with pre-signed URL
 
 Sometimes, you may want to let users from unauthorized environments, like a browser, upload files to the sandbox.
