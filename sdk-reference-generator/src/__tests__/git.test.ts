@@ -15,7 +15,7 @@ vi.mock('simple-git', () => ({
 vi.useFakeTimers();
 
 // now import our module after mocking
-const { cloneAtTag } = await import('../lib/git.js');
+const { cloneAtTag, fetchRemoteTags } = await import('../lib/git.js');
 
 describe('cloneAtTag', () => {
   beforeEach(() => {
@@ -141,3 +141,35 @@ describe('cloneAtTag', () => {
   });
 });
 
+describe('fetchRemoteTags', () => {
+  beforeEach(() => {
+    mockListRemote.mockReset();
+  });
+
+  it('returns only the versions of its own package from monorepo tags', async () => {
+    mockListRemote.mockResolvedValue(
+      [
+        'aaa\trefs/tags/@e2b/code-interpreter@2.9.0',
+        'bbb\trefs/tags/@e2b/code-interpreter-python@2.11.6',
+        'ccc\trefs/tags/@e2b/desktop@2.5.0',
+        'ddd\trefs/tags/@e2b/desktop-python@2.7.2',
+        'eee\trefs/tags/e2b@2.20.0',
+        'fff\trefs/tags/@e2b/code-interpreter@2.8.3',
+      ].join('\n')
+    );
+
+    const cases: [string, string[]][] = [
+      ['@e2b/code-interpreter@', ['v2.9.0', 'v2.8.3']],
+      ['@e2b/code-interpreter-python@', ['v2.11.6']],
+      ['@e2b/desktop@', ['v2.5.0']],
+      ['@e2b/desktop-python@', ['v2.7.2']],
+      ['e2b@', ['v2.20.0']],
+    ];
+
+    for (const [tagPattern, expected] of cases) {
+      await expect(
+        fetchRemoteTags('https://github.com/e2b-dev/e2b.git', tagPattern)
+      ).resolves.toEqual(expected);
+    }
+  });
+});

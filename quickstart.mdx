@@ -31,6 +31,10 @@ npm i @e2b/code-interpreter dotenv
 pip install e2b-code-interpreter python-dotenv
 ```
 </CodeGroup>
+
+<Note>
+This guide uses the Code Interpreter SDK because the next step calls `runCode()` (Python: `run_code()`). Its `Sandbox` also supports shell commands and files. If your project only needs shell commands and files, the core `e2b` package is enough.
+</Note>
 </Step>
 <Step title="Write code for starting sandbox">
 We'll write the minimal code for starting Sandbox, executing Python inside it and listing all files inside the root directory.

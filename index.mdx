@@ -49,6 +49,10 @@ print(result.stdout)
 ```
 </CodeGroup>
 
+<Note>
+The example above uses `e2b` for sandboxes, shell commands, and files. To run code that keeps variables between calls and returns results like charts, install the Code Interpreter SDK (`npm i @e2b/code-interpreter` or `pip install e2b-code-interpreter`) and import `Sandbox` from it (Python: `e2b_code_interpreter`). It adds `runCode()` (Python: `run_code()`) and still supports shell commands and files.
+</Note>
+
 ## E2B building blocks
 
 A quick overview of the core building blocks you'll interact with when using E2B.

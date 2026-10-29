@@ -46,7 +46,7 @@ def run_python(code: str, runtime: ToolRuntime[Context]) -> str:
     execution = runtime.context.sandbox.run_code(code)
     if execution.error:
         return f"{execution.error.name}: {execution.error.value}"
-    return "\n".join(execution.logs.stdout) + (execution.text or "")
+    return "".join(execution.logs.stdout) + (execution.text or "")
 
 
 agent = create_agent(
@@ -93,7 +93,7 @@ class State(TypedDict, total=False):
 def run_step(state: State, runtime: Runtime[Context]) -> State:
     sandbox = runtime.context.sandbox
     execution = sandbox.run_code("import platform; print(platform.python_version())")
-    return {"sandbox_id": sandbox.sandbox_id, "output": execution.logs.stdout[0]}
+    return {"sandbox_id": sandbox.sandbox_id, "output": "".join(execution.logs.stdout).strip()}
 
 
 graph = (
@@ -170,7 +170,7 @@ The example ships with unit tests that run the graph against a fake sandbox, so 
 
 `run_code()` returns an `Execution`:
 
-- `logs.stdout` / `logs.stderr` — lists of output lines;
+- `logs.stdout` / `logs.stderr` — lists of raw output chunks with newlines kept; join them with `""` to get the full output;
 - `results` — rich outputs such as text, charts (`png`), HTML or JSON; `execution.text` is the text of the last one;
 - `error` — `None`, or an object with `name`, `value` and `traceback` when the cell raised.
 
