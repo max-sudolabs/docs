@@ -38,8 +38,8 @@ HANDLER_STATUSES = {
     ('get', '/v2/sandboxes/{sandboxID}/logs'): ('400', '500'),
     # packages/api/internal/handlers/sandbox_get.go:97-270
     ('get', '/sandboxes/{sandboxID}'): ('400', '404', '500'),
-    # packages/api/internal/handlers/sandbox_kill.go:39-104
-    ('delete', '/sandboxes/{sandboxID}'): ('400', '404', '500'),
+    # packages/api/internal/handlers/sandbox_kill.go:40-109 (409 at infra d1207dde, line 71)
+    ('delete', '/sandboxes/{sandboxID}'): ('400', '404', '409', '500'),
     # packages/api/internal/handlers/sandbox_metrics.go:16-47
     ('get', '/sandboxes/{sandboxID}/metrics'): ('400', '500'),
     # packages/api/internal/handlers/sandbox_pause.go:45-174
@@ -326,6 +326,7 @@ def _specific_errors(spec: dict) -> None:
     for path in ("/sandboxes/{sandboxID}/timeout", "/sandboxes/{sandboxID}/refreshes"):
         _add(spec, "post", path, "409", "sandboxChangingState", 'Sandbox "sandboxid" is being paused', "The sandbox is changing state")
         _add(spec, "post", path, "400", "maxInstanceLengthExceeded", "Max instance length exceeded", "The requested timeout exceeds the sandbox lifetime limit")
+    _add(spec, "delete", "/sandboxes/{sandboxID}", "409", "sandboxStillResuming", "Sandbox sandboxid is still resuming; retry the delete", "The sandbox is still resuming")
     _add(spec, "post", "/sandboxes/{sandboxID}/snapshots", "409", "snapshotStateConflict", "Sandbox 'sandboxid' cannot be snapshotted while in 'pausing' state", "The current sandbox state does not allow a snapshot")
     _add(spec, "post", "/sandboxes/{sandboxID}/snapshots", "503", "snapshotNodeBusy", "Sandbox 'sandboxid' cannot be snapshotted right now because its node is busy, please retry", "The node cannot accept snapshot work")
     _add(spec, "post", "/v3/templates", "404", "templateDeleted", "Template 'my-template' has been deleted and cannot be rebuilt", "The template was deleted while registering the build")
