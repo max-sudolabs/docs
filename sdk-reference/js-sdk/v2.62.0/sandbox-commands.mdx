@@ -1,0 +1,825 @@
+---
+sidebarTitle: "Commands"
+"og:image": "/images/og/sdk-reference.png"
+"twitter:image": "/images/og/sdk-reference.png"
+---
+
+### CommandInputHandle
+
+An ordered, long-lived input handle for a command or PTY.
+
+#### Methods
+
+### close()
+
+```ts
+close(): Promise<void>
+```
+
+Finish the input stream and wait for envd to acknowledge it.
+
+###### Returns
+
+`Promise<void>`
+
+A promise that resolves when envd acknowledges the end of the input stream.
+
+###### Throws
+
+If the command or PTY does not exist.
+
+###### Throws
+
+If the input stream times out.
+
+### send()
+
+```ts
+send(data: string | Uint8Array<ArrayBufferLike>): Promise<void>
+```
+
+Enqueue input for transmission in call order.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `data` | `string \| Uint8Array<ArrayBufferLike>` | Input data to send. |
+
+###### Returns
+
+`Promise<void>`
+
+A promise that resolves when the input is queued for ordered transmission.
+
+###### Throws
+
+If the command or PTY does not exist.
+
+###### Throws
+
+If the input stream times out.
+
+###### Throws
+
+If this handle is closed.
+
+***
+
+### Commands
+
+Module for starting and interacting with commands in the sandbox.
+
+#### Constructors
+
+```ts
+new Commands(
+   transport: Transport, 
+   envdApi: EnvdApiClient, 
+   connectionConfig: ConnectionConfig, 
+   streamingTransport: Transport): Commands
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `transport` | `Transport` |
+| `envdApi` | `EnvdApiClient` |
+| `connectionConfig` | `ConnectionConfig` |
+| `streamingTransport` | `Transport` |
+
+###### Returns
+
+`Commands`
+
+#### Methods
+
+### closeStdin()
+
+```ts
+closeStdin(pid: number, opts?: CommandRequestOpts): Promise<void>
+```
+
+Close command stdin.
+
+This signals EOF to the command. The command must have been started with `stdin: true`.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `pid` | `number` | process ID of the command. You can get the list of running commands using Commands.list. |
+| `opts?` | `CommandRequestOpts` | connection options. |
+
+###### Returns
+
+`Promise<void>`
+
+### connect()
+
+```ts
+connect<RetainOutput>(pid: number, opts?: Pick<CommandStartOpts, "onStdout" | "onStderr" | "timeoutMs" | "retainOutput"> & CommandRequestOpts & object): Promise<CommandHandle<CommandOutput<RetainOutput>>>
+```
+
+Connect to a running command.
+You can use CommandHandle.wait to wait for the command to finish and get execution results.
+
+###### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `RetainOutput extends undefined \| boolean` | `undefined` |
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `pid` | `number` | process ID of the command to connect to. You can get the list of running commands using Commands.list. |
+| `opts?` | `Pick`\<`CommandStartOpts`, `"onStdout"` \| `"onStderr"` \| `"timeoutMs"` \| `"retainOutput"`\> & `CommandRequestOpts` & `object` | connection options. |
+
+###### Returns
+
+`Promise<CommandHandle<CommandOutput<RetainOutput>>>`
+
+`CommandHandle` handle to interact with the running command.
+
+### kill()
+
+```ts
+kill(pid: number, opts?: CommandRequestOpts): Promise<boolean>
+```
+
+Kill a running command specified by its process ID.
+It uses `SIGKILL` signal to kill the command.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `pid` | `number` | process ID of the command. You can get the list of running commands using Commands.list. |
+| `opts?` | `CommandRequestOpts` | connection options. |
+
+###### Returns
+
+`Promise<boolean>`
+
+`true` if the command was killed, `false` if the command was not found.
+
+### list()
+
+```ts
+list(opts?: CommandRequestOpts): Promise<ProcessInfo[]>
+```
+
+List all running commands and PTY sessions.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts?` | `CommandRequestOpts` | connection options. |
+
+###### Returns
+
+`Promise<ProcessInfo[]>`
+
+list of running commands and PTY sessions.
+
+### run()
+
+###### Call Signature
+
+```ts
+run<RetainOutput>(cmd: string, opts?: CommandStartOpts & object): Promise<CommandResult<CommandOutput<RetainOutput>>>
+```
+
+Start a new command and wait until it finishes executing.
+
+###### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `RetainOutput extends undefined \| boolean` | `undefined` |
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `cmd` | `string` | command to execute. |
+| `opts?` | `CommandStartOpts` & `object` | options for starting the command. |
+
+###### Returns
+
+`Promise<CommandResult<CommandOutput<RetainOutput>>>`
+
+`CommandResult` result of the command execution.
+
+###### Call Signature
+
+```ts
+run<RetainOutput>(cmd: string, opts: CommandStartOpts & object): Promise<CommandHandle<CommandOutput<RetainOutput>>>
+```
+
+Start a new command in the background.
+You can use CommandHandle.wait to wait for the command to finish and get its result.
+
+###### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `RetainOutput extends undefined \| boolean` | `undefined` |
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `cmd` | `string` | command to execute. |
+| `opts` | `CommandStartOpts` & `object` | options for starting the command |
+
+###### Returns
+
+`Promise<CommandHandle<CommandOutput<RetainOutput>>>`
+
+`CommandHandle` handle to interact with the running command.
+
+###### Call Signature
+
+```ts
+run<RetainOutput>(cmd: string, opts?: CommandStartOpts & object): Promise<
+  | CommandHandle<CommandOutput<RetainOutput>>
+| CommandResult<CommandOutput<RetainOutput>>>
+```
+
+Start a new command.
+
+###### Type Parameters
+
+| Type Parameter | Default type |
+| ------ | ------ |
+| `RetainOutput extends undefined \| boolean` | `undefined` |
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `cmd` | `string` | command to execute. |
+| `opts?` | `CommandStartOpts` & `object` | options for starting the command. - `opts.background: true` - runs in background, returns `CommandHandle` - `opts.background: false | undefined` - waits for completion, returns `CommandResult` |
+
+###### Returns
+
+`Promise<`
+  `CommandHandle<CommandOutput<RetainOutput>>`
+  `CommandResult<CommandOutput<RetainOutput>>>`
+
+Either a `CommandHandle` or a `CommandResult` (depending on `opts.background`).
+
+### sendStdin()
+
+```ts
+sendStdin(
+   pid: number, 
+   data: string | Uint8Array<ArrayBufferLike>, 
+opts?: CommandRequestOpts): Promise<void>
+```
+
+Send data to command stdin.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `pid` | `number` | process ID of the command. You can get the list of running commands using Commands.list. |
+| `data` | `string \| Uint8Array<ArrayBufferLike>` | data to send to the command. |
+| `opts?` | `CommandRequestOpts` | connection options. |
+
+###### Returns
+
+`Promise<void>`
+
+### streamInput()
+
+```ts
+streamInput(pid: number, opts: CommandStreamInputOpts): CommandInputHandle
+```
+
+Open a persistent input stream to a command.
+
+Input sent through this stream is ordered relative to other `send` calls.
+Use this instead of Commands.sendStdin when ordering matters; each
+`sendStdin` call is a separate request. The stream sends keepalive messages
+while idle.
+
+In browsers, this requires fetch request-body streaming support (Chromium
+over HTTP/2).
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `pid` | `number` | Process ID of the command. |
+| `opts` | `CommandStreamInputOpts` | Optional stream timeout and abort signal. `timeoutMs` defaults to `STREAM_INPUT_TIMEOUT_MS` (60_000 milliseconds). |
+
+###### Returns
+
+`CommandInputHandle`
+
+A handle whose `send()` method queues input in order and whose `close()` method ends the stream and waits for envd.
+
+###### Throws
+
+If the command does not exist, surfaced from `send()` or `close()`.
+
+###### Throws
+
+If the stream timeout expires, surfaced from `send()` or `close()`.
+
+###### Example
+
+```ts
+const input = sandbox.commands.streamInput(pid)
+await input.send('hello\n')
+await input.close()
+```
+
+***
+
+### Pty
+
+Module for interacting with PTYs (pseudo-terminals) in the sandbox.
+
+#### Constructors
+
+```ts
+new Pty(
+   transport: Transport, 
+   envdApi: EnvdApiClient, 
+   connectionConfig: ConnectionConfig, 
+   streamingTransport: Transport): Pty
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `transport` | `Transport` |
+| `envdApi` | `EnvdApiClient` |
+| `connectionConfig` | `ConnectionConfig` |
+| `streamingTransport` | `Transport` |
+
+###### Returns
+
+`Pty`
+
+#### Methods
+
+### connect()
+
+```ts
+connect(pid: number, opts?: PtyConnectOpts): Promise<CommandHandle<string>>
+```
+
+Connect to a running PTY.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `pid` | `number` | process ID of the PTY to connect to. You can get the list of running PTYs using Commands.list. |
+| `opts?` | `PtyConnectOpts` | connection options. |
+
+###### Returns
+
+`Promise<CommandHandle<string>>`
+
+handle to interact with the PTY.
+
+### create()
+
+```ts
+create(opts: PtyCreateOpts): Promise<CommandHandle<string>>
+```
+
+Create a new PTY (pseudo-terminal).
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts` | `PtyCreateOpts` | options for creating the PTY. |
+
+###### Returns
+
+`Promise<CommandHandle<string>>`
+
+handle to interact with the PTY.
+
+### kill()
+
+```ts
+kill(pid: number, opts?: Pick<ConnectionOpts, "requestTimeoutMs" | "signal">): Promise<boolean>
+```
+
+Kill a running PTY specified by process ID.
+It uses `SIGKILL` signal to kill the PTY.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `pid` | `number` | process ID of the PTY. |
+| `opts?` | `Pick<ConnectionOpts, "requestTimeoutMs" \| "signal">` | connection options. |
+
+###### Returns
+
+`Promise<boolean>`
+
+`true` if the PTY was killed, `false` if the PTY was not found.
+
+### resize()
+
+```ts
+resize(
+   pid: number, 
+   size: object, 
+opts?: Pick<ConnectionOpts, "requestTimeoutMs" | "signal">): Promise<void>
+```
+
+Resize PTY.
+Call this when the terminal window is resized and the number of columns and rows has changed.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `pid` | `number` | process ID of the PTY. |
+| `size` | \{ `cols`: `number`; `rows`: `number`; \} | new size of the PTY. |
+| `size.cols` | `number` | - |
+| `size.rows?` | `number` | - |
+| `opts?` | `Pick<ConnectionOpts, "requestTimeoutMs" \| "signal">` | connection options. |
+
+###### Returns
+
+`Promise<void>`
+
+### sendInput()
+
+```ts
+sendInput(
+   pid: number, 
+   data: Uint8Array, 
+opts?: Pick<ConnectionOpts, "requestTimeoutMs" | "signal">): Promise<void>
+```
+
+Send input to a PTY.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `pid` | `number` | process ID of the PTY. |
+| `data` | `Uint8Array` | input data to send to the PTY. |
+| `opts?` | `Pick<ConnectionOpts, "requestTimeoutMs" \| "signal">` | connection options. |
+
+###### Returns
+
+`Promise<void>`
+
+### streamInput()
+
+```ts
+streamInput(pid: number, opts: CommandStreamInputOpts): CommandInputHandle
+```
+
+Open a persistent input stream to a PTY.
+
+Input sent through this stream is ordered relative to other `send` calls.
+Use this instead of Pty.sendInput when ordering matters; each
+`sendInput` call is a separate request. The stream sends keepalive messages
+while idle.
+
+In browsers, this requires fetch request-body streaming support (Chromium
+over HTTP/2).
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `pid` | `number` | Process ID of the PTY. |
+| `opts` | `CommandStreamInputOpts` | Optional stream timeout and abort signal. `timeoutMs` defaults to `STREAM_INPUT_TIMEOUT_MS` (60_000 milliseconds). |
+
+###### Returns
+
+`CommandInputHandle`
+
+A handle whose `send()` method queues input in order and whose `close()` method ends the stream and waits for envd.
+
+###### Throws
+
+If the PTY does not exist, surfaced from `send()` or `close()`.
+
+###### Throws
+
+If the stream timeout expires, surfaced from `send()` or `close()`.
+
+###### Example
+
+```ts
+const input = sandbox.pty.streamInput(pid)
+await input.send('echo hello\n')
+await input.close()
+```
+
+## Interfaces
+
+### CommandRequestOpts
+
+Options for sending a command request.
+
+#### Extended by
+
+- `CommandStartOpts`
+
+#### Properties
+
+### requestTimeoutMs?
+
+```ts
+optional requestTimeoutMs: number;
+```
+
+Timeout for requests to the API in **milliseconds**.
+
+###### Default
+
+```ts
+60_000 // 60 seconds
+```
+
+### signal?
+
+```ts
+optional signal: AbortSignal;
+```
+
+An optional `AbortSignal` that can be used to cancel the in-flight request.
+When the signal is aborted, the underlying `fetch` is aborted and the
+returned promise rejects with an `AbortError`.
+
+***
+
+### CommandStartOpts
+
+Options for starting a new command.
+
+#### Properties
+
+### background?
+
+```ts
+optional background: boolean;
+```
+
+If true, starts command in the background and the method returns immediately.
+You can use CommandHandle.wait to wait for the command to finish.
+
+### cwd?
+
+```ts
+optional cwd: string;
+```
+
+Working directory for the command.
+
+###### Default
+
+```ts
+// home directory of the user used to start the command
+```
+
+### envs?
+
+```ts
+optional envs: Record<string, string>;
+```
+
+Environment variables used for the command.
+
+This overrides the default environment variables from `Sandbox` constructor.
+
+###### Default
+
+`{}`
+
+### onStderr()?
+
+```ts
+optional onStderr: (data: string) => void | Promise<void>;
+```
+
+Callback for command stderr output.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `data` | `string` |
+
+###### Returns
+
+`void | Promise<void>`
+
+### onStdout()?
+
+```ts
+optional onStdout: (data: string) => void | Promise<void>;
+```
+
+Callback for command stdout output.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `data` | `string` |
+
+###### Returns
+
+`void | Promise<void>`
+
+### requestTimeoutMs?
+
+```ts
+optional requestTimeoutMs: number;
+```
+
+Timeout for requests to the API in **milliseconds**.
+
+###### Default
+
+```ts
+60_000 // 60 seconds
+```
+
+### retainOutput?
+
+```ts
+optional retainOutput: boolean;
+```
+
+If false, stdout and stderr are not accumulated in memory and are
+`undefined` on the CommandHandle and CommandResult.
+Use `onStdout`/`onStderr` to consume the output instead.
+
+###### Default
+
+```ts
+true
+```
+
+### signal?
+
+```ts
+optional signal: AbortSignal;
+```
+
+An optional `AbortSignal` that can be used to cancel the in-flight request.
+When the signal is aborted, the underlying `fetch` is aborted and the
+returned promise rejects with an `AbortError`.
+
+### stdin?
+
+```ts
+optional stdin: boolean;
+```
+
+If true, command stdin is kept open and you can send data to it using Commands.sendStdin or CommandHandle.sendStdin.
+
+###### Default
+
+```ts
+false
+```
+
+### timeoutMs?
+
+```ts
+optional timeoutMs: number;
+```
+
+Timeout for the command in **milliseconds**.
+
+###### Default
+
+```ts
+60_000 // 60 seconds
+```
+
+### user?
+
+```ts
+optional user: string;
+```
+
+User to run the command as.
+
+###### Default
+
+`default Sandbox user (as specified in the template)`
+
+***
+
+### CommandStreamInputOpts
+
+Options for streaming input to a command or PTY.
+
+#### Properties
+
+### signal?
+
+```ts
+optional signal: AbortSignal;
+```
+
+Abort signal for the input stream.
+
+### timeoutMs?
+
+```ts
+optional timeoutMs: number;
+```
+
+Maximum duration of the input stream in milliseconds.
+`0` disables the timeout.
+
+###### Default
+
+```ts
+STREAM_INPUT_TIMEOUT_MS (60_000 milliseconds)
+```
+
+***
+
+### ProcessInfo
+
+Information about a command, PTY session or start command running in the sandbox as process.
+
+#### Properties
+
+### args
+
+```ts
+args: string[];
+```
+
+Command arguments.
+
+### cmd
+
+```ts
+cmd: string;
+```
+
+Command that was executed.
+
+### cwd?
+
+```ts
+optional cwd: string;
+```
+
+Executed command working directory.
+
+### envs
+
+```ts
+envs: Record<string, string>;
+```
+
+Environment variables used for the command.
+
+### pid
+
+```ts
+pid: number;
+```
+
+Process ID.
+
+### tag?
+
+```ts
+optional tag: string;
+```
+
+Custom tag used for identifying special commands like start command in the custom template.
+
+## Type Aliases
+
+### CommandConnectOpts
+
+```ts
+type CommandConnectOpts = Pick<CommandStartOpts, "onStderr" | "onStdout" | "retainOutput" | "timeoutMs"> & CommandRequestOpts;
+```
+
+Options for connecting to a command.

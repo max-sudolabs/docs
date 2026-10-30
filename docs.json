@@ -311,8 +311,24 @@
             "icon": "square-js",
             "versions": [
               {
-                "version": "v2.61.0 (JS)",
+                "version": "v2.62.0 (JS)",
                 "default": true,
+                "pages": [
+                  "sdk-reference/js-sdk/v2.62.0/client",
+                  "sdk-reference/js-sdk/v2.62.0/errors",
+                  "sdk-reference/js-sdk/v2.62.0/sandbox",
+                  "sdk-reference/js-sdk/v2.62.0/sandbox-commands",
+                  "sdk-reference/js-sdk/v2.62.0/sandbox-filesystem",
+                  "sdk-reference/js-sdk/v2.62.0/secret",
+                  "sdk-reference/js-sdk/v2.62.0/template",
+                  "sdk-reference/js-sdk/v2.62.0/template-logger",
+                  "sdk-reference/js-sdk/v2.62.0/template-readycmd",
+                  "sdk-reference/js-sdk/v2.62.0/volume"
+                ]
+              },
+              {
+                "version": "v2.61.0 (JS)",
+                "default": false,
                 "pages": [
                   "sdk-reference/js-sdk/v2.61.0/client",
                   "sdk-reference/js-sdk/v2.61.0/errors",
@@ -2255,8 +2271,26 @@
             "icon": "python",
             "versions": [
               {
-                "version": "v2.61.0 (Python)",
+                "version": "v2.62.0 (Python)",
                 "default": true,
+                "pages": [
+                  "sdk-reference/python-sdk/v2.62.0/client",
+                  "sdk-reference/python-sdk/v2.62.0/exceptions",
+                  "sdk-reference/python-sdk/v2.62.0/logger",
+                  "sdk-reference/python-sdk/v2.62.0/readycmd",
+                  "sdk-reference/python-sdk/v2.62.0/sandbox_async",
+                  "sdk-reference/python-sdk/v2.62.0/sandbox_sync",
+                  "sdk-reference/python-sdk/v2.62.0/secret",
+                  "sdk-reference/python-sdk/v2.62.0/template",
+                  "sdk-reference/python-sdk/v2.62.0/template_async",
+                  "sdk-reference/python-sdk/v2.62.0/template_sync",
+                  "sdk-reference/python-sdk/v2.62.0/volume_async",
+                  "sdk-reference/python-sdk/v2.62.0/volume_sync"
+                ]
+              },
+              {
+                "version": "v2.61.0 (Python)",
+                "default": false,
                 "pages": [
                   "sdk-reference/python-sdk/v2.61.0/client",
                   "sdk-reference/python-sdk/v2.61.0/exceptions",
@@ -4184,8 +4218,38 @@
             "icon": "square-js",
             "versions": [
               {
-                "version": "v2.7.1 (Code Interpreter JS)",
+                "version": "v2.9.0 (Code Interpreter JS)",
                 "default": true,
+                "pages": [
+                  "sdk-reference/code-interpreter-js-sdk/v2.9.0/charts",
+                  "sdk-reference/code-interpreter-js-sdk/v2.9.0/consts",
+                  "sdk-reference/code-interpreter-js-sdk/v2.9.0/messaging",
+                  "sdk-reference/code-interpreter-js-sdk/v2.9.0/sandbox"
+                ]
+              },
+              {
+                "version": "v2.8.3 (Code Interpreter JS)",
+                "default": false,
+                "pages": [
+                  "sdk-reference/code-interpreter-js-sdk/v2.8.3/charts",
+                  "sdk-reference/code-interpreter-js-sdk/v2.8.3/consts",
+                  "sdk-reference/code-interpreter-js-sdk/v2.8.3/messaging",
+                  "sdk-reference/code-interpreter-js-sdk/v2.8.3/sandbox"
+                ]
+              },
+              {
+                "version": "v2.8.2 (Code Interpreter JS)",
+                "default": false,
+                "pages": [
+                  "sdk-reference/code-interpreter-js-sdk/v2.8.2/charts",
+                  "sdk-reference/code-interpreter-js-sdk/v2.8.2/consts",
+                  "sdk-reference/code-interpreter-js-sdk/v2.8.2/messaging",
+                  "sdk-reference/code-interpreter-js-sdk/v2.8.2/sandbox"
+                ]
+              },
+              {
+                "version": "v2.7.1 (Code Interpreter JS)",
+                "default": false,
                 "pages": [
                   "sdk-reference/code-interpreter-js-sdk/v2.7.1/charts",
                   "sdk-reference/code-interpreter-js-sdk/v2.7.1/consts",
@@ -4440,8 +4504,29 @@
             "icon": "python",
             "versions": [
               {
-                "version": "v2.9.1 (Code Interpreter Python)",
+                "version": "v2.11.6 (Code Interpreter Python)",
                 "default": true,
+                "pages": [
+                  "sdk-reference/code-interpreter-python-sdk/v2.11.6/code_interpreter"
+                ]
+              },
+              {
+                "version": "v2.11.5 (Code Interpreter Python)",
+                "default": false,
+                "pages": [
+                  "sdk-reference/code-interpreter-python-sdk/v2.11.5/code_interpreter"
+                ]
+              },
+              {
+                "version": "v2.11.4 (Code Interpreter Python)",
+                "default": false,
+                "pages": [
+                  "sdk-reference/code-interpreter-python-sdk/v2.11.4/code_interpreter"
+                ]
+              },
+              {
+                "version": "v2.9.1 (Code Interpreter Python)",
+                "default": false,
                 "pages": [
                   "sdk-reference/code-interpreter-python-sdk/v2.9.1/code_interpreter"
                 ]
@@ -4656,8 +4741,22 @@
             "icon": "square-js",
             "versions": [
               {
-                "version": "v2.3.1 (Desktop JS)",
+                "version": "v2.5.0 (Desktop JS)",
                 "default": true,
+                "pages": [
+                  "sdk-reference/desktop-js-sdk/v2.5.0/sandbox"
+                ]
+              },
+              {
+                "version": "v2.4.0 (Desktop JS)",
+                "default": false,
+                "pages": [
+                  "sdk-reference/desktop-js-sdk/v2.4.0/sandbox"
+                ]
+              },
+              {
+                "version": "v2.3.1 (Desktop JS)",
+                "default": false,
                 "pages": [
                   "sdk-reference/desktop-js-sdk/v2.3.1/sandbox"
                 ]
@@ -4872,8 +4971,29 @@
             "icon": "python",
             "versions": [
               {
-                "version": "v2.4.2 (Desktop Python)",
+                "version": "v2.7.2 (Desktop Python)",
                 "default": true,
+                "pages": [
+                  "sdk-reference/desktop-python-sdk/v2.7.2/desktop"
+                ]
+              },
+              {
+                "version": "v2.7.1 (Desktop Python)",
+                "default": false,
+                "pages": [
+                  "sdk-reference/desktop-python-sdk/v2.7.1/desktop"
+                ]
+              },
+              {
+                "version": "v2.7.0 (Desktop Python)",
+                "default": false,
+                "pages": [
+                  "sdk-reference/desktop-python-sdk/v2.7.0/desktop"
+                ]
+              },
+              {
+                "version": "v2.4.2 (Desktop Python)",
+                "default": false,
                 "pages": [
                   "sdk-reference/desktop-python-sdk/v2.4.2/desktop"
                 ]
@@ -5088,8 +5208,17 @@
             "icon": "terminal",
             "versions": [
               {
-                "version": "v2.22.3 (CLI)",
+                "version": "v2.23.0 (CLI)",
                 "default": true,
+                "pages": [
+                  "sdk-reference/cli/v2.23.0/auth",
+                  "sdk-reference/cli/v2.23.0/sandbox",
+                  "sdk-reference/cli/v2.23.0/template"
+                ]
+              },
+              {
+                "version": "v2.22.3 (CLI)",
+                "default": false,
                 "pages": [
                   "sdk-reference/cli/v2.22.3/auth",
                   "sdk-reference/cli/v2.22.3/sandbox",
@@ -6673,37 +6802,37 @@
     },
     {
       "source": "/sdk-reference/js-sdk/latest/:slug*",
-      "destination": "/sdk-reference/js-sdk/v2.61.0/:slug*",
+      "destination": "/sdk-reference/js-sdk/v2.62.0/:slug*",
       "permanent": false
     },
     {
       "source": "/sdk-reference/python-sdk/latest/:slug*",
-      "destination": "/sdk-reference/python-sdk/v2.61.0/:slug*",
+      "destination": "/sdk-reference/python-sdk/v2.62.0/:slug*",
       "permanent": false
     },
     {
       "source": "/sdk-reference/code-interpreter-js-sdk/latest/:slug*",
-      "destination": "/sdk-reference/code-interpreter-js-sdk/v2.7.1/:slug*",
+      "destination": "/sdk-reference/code-interpreter-js-sdk/v2.9.0/:slug*",
       "permanent": false
     },
     {
       "source": "/sdk-reference/code-interpreter-python-sdk/latest/:slug*",
-      "destination": "/sdk-reference/code-interpreter-python-sdk/v2.9.1/:slug*",
+      "destination": "/sdk-reference/code-interpreter-python-sdk/v2.11.6/:slug*",
       "permanent": false
     },
     {
       "source": "/sdk-reference/desktop-js-sdk/latest/:slug*",
-      "destination": "/sdk-reference/desktop-js-sdk/v2.3.1/:slug*",
+      "destination": "/sdk-reference/desktop-js-sdk/v2.5.0/:slug*",
       "permanent": false
     },
     {
       "source": "/sdk-reference/desktop-python-sdk/latest/:slug*",
-      "destination": "/sdk-reference/desktop-python-sdk/v2.4.2/:slug*",
+      "destination": "/sdk-reference/desktop-python-sdk/v2.7.2/:slug*",
       "permanent": false
     },
     {
       "source": "/sdk-reference/cli/latest/:slug*",
-      "destination": "/sdk-reference/cli/v2.22.3/:slug*",
+      "destination": "/sdk-reference/cli/v2.23.0/:slug*",
       "permanent": false
     }
   ]

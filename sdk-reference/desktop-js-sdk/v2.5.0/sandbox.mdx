@@ -1,0 +1,1698 @@
+---
+sidebarTitle: "Sandbox"
+"og:image": "/images/og/sdk-reference.png"
+"twitter:image": "/images/og/sdk-reference.png"
+---
+
+### Sandbox
+
+#### Properties
+
+| Property | Modifier | Type | Default value | Description | Inherited from |
+| ------ | ------ | ------ | ------ | ------ | ------ |
+| <a id="commands"></a> `commands` | `readonly` | `Commands` | `undefined` | Module for running commands in the sandbox | `SandboxBase.commands` |
+| <a id="display"></a> `display` | `public` | `string` | `':0'` | - | - |
+| <a id="files"></a> `files` | `readonly` | `Filesystem` | `undefined` | Module for interacting with the sandbox filesystem | `SandboxBase.files` |
+| <a id="git"></a> ~~`git`~~ | `readonly` | `Git` | `undefined` | Module for running git operations in the sandbox **Deprecated** Run git with `sandbox.commands.run()` instead. The git module will be removed in the next major version. | `SandboxBase.git` |
+| <a id="pty"></a> `pty` | `readonly` | `Pty` | `undefined` | Module for interacting with the sandbox pseudo-terminals | `SandboxBase.pty` |
+| <a id="sandboxdomain"></a> `sandboxDomain` | `readonly` | `string` | `undefined` | Domain where the sandbox is hosted. | `SandboxBase.sandboxDomain` |
+| <a id="sandboxid"></a> `sandboxId` | `readonly` | `string` | `undefined` | Unique identifier of the sandbox. | `SandboxBase.sandboxId` |
+| <a id="stream"></a> `stream` | `public` | `VNCServer` | `undefined` | - | - |
+| <a id="trafficaccesstoken"></a> `trafficAccessToken?` | `readonly` | `string` | `undefined` | Traffic access token for accessing sandbox services with restricted public traffic. | `SandboxBase.trafficAccessToken` |
+
+#### Methods
+
+### ~~betaPause()~~
+
+```ts
+betaPause(opts?: SandboxPauseOpts): Promise<boolean>
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `opts?` | `SandboxPauseOpts` |
+
+###### Returns
+
+`Promise<boolean>`
+
+###### Deprecated
+
+Use Sandbox.pause instead.
+
+### connect()
+
+```ts
+connect(opts?: SandboxConnectOpts): Promise<Sandbox>
+```
+
+Connect to a sandbox. If the sandbox is paused, it will be automatically resumed.
+Sandbox must be either running or be paused.
+
+With sandbox ID you can connect to the same sandbox from different places or environments (serverless functions, etc).
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts?` | `SandboxConnectOpts` | connection options. |
+
+###### Returns
+
+`Promise<Sandbox>`
+
+A running sandbox instance
+
+###### Example
+
+```ts
+const sandbox = await Sandbox.create()
+await sandbox.betaPause()
+
+// Connect to the same sandbox.
+const sameSandbox = await sandbox.connect()
+```
+
+### createSnapshot()
+
+```ts
+createSnapshot(opts?: CreateSnapshotOpts): Promise<SnapshotInfo>
+```
+
+Create a snapshot of the sandbox's current state.
+
+The sandbox will be paused while the snapshot is being created.
+The snapshot can be used to create new sandboxes with the same filesystem and state.
+Snapshots are persistent and survive sandbox deletion.
+
+Use the returned `snapshotId` with `Sandbox.create(snapshotId)` to create a new sandbox from the snapshot.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts?` | `CreateSnapshotOpts` | snapshot creation options including optional name, `mode` (`'filesystem'` takes a filesystem-only snapshot; sandboxes created from it cold-boot instead of restoring memory), and connection options. |
+
+###### Returns
+
+`Promise<SnapshotInfo>`
+
+snapshot information including the snapshot ID.
+
+###### Throws
+
+SandboxError with `statusCode` 400 when `mode: 'filesystem'`
+is requested but the feature is not enabled for the team
+(`snapshot_filesystem_only_disabled`), and with `statusCode` 409 when the
+sandbox's node runs an orchestrator that predates the option
+(`snapshot_filesystem_only_unsupported_node`). A full memory snapshot
+still works in both cases; for 409, pause and resume the sandbox and retry.
+
+###### Example
+
+```ts
+const sandbox = await Sandbox.create()
+await sandbox.files.write('/app/state.json', '{"step": 1}')
+
+// Create a snapshot
+const snapshot = await sandbox.createSnapshot({ name: 'my-snapshot' })
+
+// Create a new sandbox from the snapshot
+const newSandbox = await Sandbox.create(snapshot.snapshotId)
+
+// Filesystem-only snapshot: sandboxes created from it start fresh from disk
+const fsSnapshot = await sandbox.createSnapshot({ mode: 'filesystem' })
+```
+
+### doubleClick()
+
+```ts
+doubleClick(x?: number, y?: number): Promise<void>
+```
+
+Double left click on the mouse position.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `x?` | `number` |
+| `y?` | `number` |
+
+###### Returns
+
+`Promise<void>`
+
+### downloadUrl()
+
+```ts
+downloadUrl(path: string, opts?: SandboxUrlOpts): Promise<string>
+```
+
+Get the URL to download a file from the sandbox.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path` | `string` | path to the file in the sandbox. |
+| `opts?` | `SandboxUrlOpts` | download url options. |
+
+###### Returns
+
+`Promise<string>`
+
+URL for downloading file.
+
+### drag()
+
+```ts
+drag(from: [number, number], to: [number, number]): Promise<void>
+```
+
+Drag the mouse from the given position to the given position.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `from` | \[`number`, `number`\] | The starting position as `[x, y]`. |
+| `to` | \[`number`, `number`\] | The ending position as `[x, y]`. |
+
+###### Returns
+
+`Promise<void>`
+
+### fork()
+
+```ts
+fork(opts?: SandboxForkOpts): Promise<(Sandbox | Error)[]>
+```
+
+Fork the sandbox.
+
+The sandbox is checkpointed in place (briefly paused, snapshotted with its
+full memory state, and resumed — its ID and expiration stay untouched) and
+`count` new sandboxes are created from that snapshot. All forks boot from
+the same snapshot, so the snapshot is captured once regardless of count.
+
+Each fork succeeds or fails independently — the returned array contains
+one entry per requested fork, either a running Sandbox instance or
+an `Error` describing why that fork failed to start
+(`Promise.allSettled`-style). Per-fork error codes map to the same error
+classes as other API errors (e.g. 429 to `RateLimitError`).
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts?` | `SandboxForkOpts` | fork options — `count`, `timeoutMs` and connection options. |
+
+###### Returns
+
+`Promise<(Sandbox | Error)[]>`
+
+array with one entry per requested fork — a sandbox instance or an error.
+
+###### Example
+
+```ts
+const sandbox = await Sandbox.create()
+
+const [fork1, fork2] = await sandbox.fork({ count: 2 })
+if (fork1 instanceof Sandbox) {
+  await fork1.commands.run('echo "hello from fork"')
+}
+```
+
+### getApplicationWindows()
+
+```ts
+getApplicationWindows(application: string): Promise<string[]>
+```
+
+Get the window ID of the window with the given title.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `application` | `string` |
+
+###### Returns
+
+`Promise<string[]>`
+
+The ID of the window.
+
+### getCurrentWindowId()
+
+```ts
+getCurrentWindowId(): Promise<string>
+```
+
+Get the current window ID.
+
+###### Returns
+
+`Promise<string>`
+
+The ID of the current window.
+
+### getCursorPosition()
+
+```ts
+getCursorPosition(): Promise<CursorPosition>
+```
+
+Get the current cursor position.
+
+###### Returns
+
+`Promise<CursorPosition>`
+
+A object with the x and y coordinates
+
+###### Throws
+
+Error if cursor position cannot be determined
+
+### getHost()
+
+```ts
+getHost(port: number): string
+```
+
+Get the host address for the specified sandbox port.
+You can then use this address to connect to the sandbox port from outside the sandbox via HTTP or WebSocket.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `port` | `number` | number of the port in the sandbox. |
+
+###### Returns
+
+`string`
+
+host address of the sandbox port.
+
+###### Example
+
+```ts
+const sandbox = await Sandbox.create()
+// Start an HTTP server
+await sandbox.commands.run('python3 -m http.server 3000', { background: true })
+// Get the hostname of the HTTP server
+const serverURL = sandbox.getHost(3000)
+```
+
+### getInfo()
+
+```ts
+getInfo(opts?: Pick<SandboxOpts, "requestTimeoutMs" | "signal">): Promise<SandboxInfo>
+```
+
+Get sandbox information like sandbox ID, template, metadata, started at/end at date.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts?` | `Pick<SandboxOpts, "requestTimeoutMs" \| "signal">` | connection options. |
+
+###### Returns
+
+`Promise<SandboxInfo>`
+
+information about the sandbox
+
+### getMcpToken()
+
+```ts
+getMcpToken(): Promise<undefined | string>
+```
+
+Get the MCP token for the sandbox.
+
+###### Returns
+
+`Promise<undefined | string>`
+
+MCP token for the sandbox, or undefined if MCP is not enabled.
+
+### getMcpUrl()
+
+```ts
+getMcpUrl(): string
+```
+
+Get the MCP URL for the sandbox.
+
+###### Returns
+
+`string`
+
+MCP URL for the sandbox.
+
+### getMetrics()
+
+```ts
+getMetrics(opts?: SandboxMetricsOpts): Promise<SandboxMetrics[]>
+```
+
+Get the metrics of the sandbox.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts?` | `SandboxMetricsOpts` | connection options. |
+
+###### Returns
+
+`Promise<SandboxMetrics[]>`
+
+List of sandbox metrics containing CPU, memory and disk usage information.
+
+### getScreenSize()
+
+```ts
+getScreenSize(): Promise<ScreenSize>
+```
+
+Get the current screen size.
+
+###### Returns
+
+`Promise<ScreenSize>`
+
+An ScreenSize object
+
+###### Throws
+
+Error if screen size cannot be determined
+
+### getWindowTitle()
+
+```ts
+getWindowTitle(windowId: string): Promise<string>
+```
+
+Get the title of the window with the given ID.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `windowId` | `string` | The ID of the window. |
+
+###### Returns
+
+`Promise<string>`
+
+The title of the window.
+
+### isRunning()
+
+```ts
+isRunning(opts?: Pick<ConnectionOpts, "requestTimeoutMs" | "signal">): Promise<boolean>
+```
+
+Check if the sandbox is running.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `opts?` | `Pick<ConnectionOpts, "requestTimeoutMs" \| "signal">` |
+
+###### Returns
+
+`Promise<boolean>`
+
+`true` if the sandbox is running, `false` otherwise.
+
+###### Example
+
+```ts
+const sandbox = await Sandbox.create()
+await sandbox.isRunning() // Returns true
+
+await sandbox.kill()
+await sandbox.isRunning() // Returns false
+```
+
+### kill()
+
+```ts
+kill(opts?: Pick<SandboxOpts, "requestTimeoutMs" | "signal">): Promise<boolean>
+```
+
+Kill the sandbox.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts?` | `Pick<SandboxOpts, "requestTimeoutMs" \| "signal">` | connection options. |
+
+###### Returns
+
+`Promise<boolean>`
+
+`true` if the sandbox was killed, `false` if the sandbox was not found.
+
+### launch()
+
+```ts
+launch(application: string, uri?: string): Promise<void>
+```
+
+Launch an application.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `application` | `string` | The application to launch. |
+| `uri?` | `string` | The URI to open in the application. |
+
+###### Returns
+
+`Promise<void>`
+
+### leftClick()
+
+```ts
+leftClick(x?: number, y?: number): Promise<void>
+```
+
+Left click on the mouse position.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `x?` | `number` |
+| `y?` | `number` |
+
+###### Returns
+
+`Promise<void>`
+
+### listSnapshots()
+
+```ts
+listSnapshots(opts?: Omit<SnapshotListOpts, "sandboxId">): SnapshotPaginator
+```
+
+List all snapshots created from this sandbox.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts?` | `Omit<SnapshotListOpts, "sandboxId">` | list options. |
+
+###### Returns
+
+`SnapshotPaginator`
+
+paginator for listing snapshots from this sandbox.
+
+### middleClick()
+
+```ts
+middleClick(x?: number, y?: number): Promise<void>
+```
+
+Middle click on the mouse position.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `x?` | `number` |
+| `y?` | `number` |
+
+###### Returns
+
+`Promise<void>`
+
+### mousePress()
+
+```ts
+mousePress(button: "left" | "right" | "middle"): Promise<void>
+```
+
+Press the mouse button.
+
+###### Parameters
+
+| Parameter | Type | Default value |
+| ------ | ------ | ------ |
+| `button` | `"left" \| "right" \| "middle"` | `'left'` |
+
+###### Returns
+
+`Promise<void>`
+
+### mouseRelease()
+
+```ts
+mouseRelease(button: "left" | "right" | "middle"): Promise<void>
+```
+
+Release the mouse button.
+
+###### Parameters
+
+| Parameter | Type | Default value |
+| ------ | ------ | ------ |
+| `button` | `"left" \| "right" \| "middle"` | `'left'` |
+
+###### Returns
+
+`Promise<void>`
+
+### moveMouse()
+
+```ts
+moveMouse(x: number, y: number): Promise<void>
+```
+
+Move the mouse to the given coordinates.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `x` | `number` | The x coordinate. |
+| `y` | `number` | The y coordinate. |
+
+###### Returns
+
+`Promise<void>`
+
+### open()
+
+```ts
+open(fileOrUrl: string): Promise<void>
+```
+
+Open a file or a URL in the default application.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `fileOrUrl` | `string` | The file or URL to open. |
+
+###### Returns
+
+`Promise<void>`
+
+### pause()
+
+```ts
+pause(opts?: SandboxPauseOpts): Promise<boolean>
+```
+
+Pause a sandbox by its ID.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts?` | `SandboxPauseOpts` | connection options, plus `mode` to control the snapshot kind. With `mode: 'filesystem'`, the in-memory state is dropped and only the filesystem is persisted; resuming such a sandbox cold-boots (reboots) it from disk, losing running processes and open connections. Defaults to `'full'` (memory and filesystem). |
+
+###### Returns
+
+`Promise<boolean>`
+
+`true` if the sandbox got paused, `false` if the sandbox was already paused.
+
+###### Example
+
+```ts
+const sandbox = await Sandbox.create()
+await sandbox.pause()
+
+// filesystem-only snapshot (resume reboots the sandbox)
+await sandbox.pause({ mode: 'filesystem' })
+```
+
+### press()
+
+```ts
+press(key: string | string[]): Promise<void>
+```
+
+Press a key.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `key` | `string \| string[]` | The key to press (e.g. "enter", "space", "backspace", etc.). Can be a single key or an array of keys. |
+
+###### Returns
+
+`Promise<void>`
+
+### rightClick()
+
+```ts
+rightClick(x?: number, y?: number): Promise<void>
+```
+
+Right click on the mouse position.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `x?` | `number` |
+| `y?` | `number` |
+
+###### Returns
+
+`Promise<void>`
+
+### screenshot()
+
+###### Call Signature
+
+```ts
+screenshot(): Promise<Uint8Array<ArrayBufferLike>>
+```
+
+Take a screenshot and save it to the given name.
+
+###### Returns
+
+`Promise<Uint8Array<ArrayBufferLike>>`
+
+A Uint8Array bytes representation of the screenshot.
+
+###### Call Signature
+
+```ts
+screenshot(format: "bytes"): Promise<Uint8Array<ArrayBufferLike>>
+```
+
+Take a screenshot and save it to the given name.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `format` | `"bytes"` | The format of the screenshot. |
+
+###### Returns
+
+`Promise<Uint8Array<ArrayBufferLike>>`
+
+A Uint8Array bytes representation of the screenshot.
+
+###### Call Signature
+
+```ts
+screenshot(format: "blob"): Promise<Blob>
+```
+
+Take a screenshot and save it to the given name.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `format` | `"blob"` |
+
+###### Returns
+
+`Promise<Blob>`
+
+A Blob representation of the screenshot.
+
+###### Call Signature
+
+```ts
+screenshot(format: "stream"): Promise<ReadableStream<Uint8Array<ArrayBufferLike>>>
+```
+
+Take a screenshot and save it to the given name.
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `format` | `"stream"` |
+
+###### Returns
+
+`Promise<ReadableStream<Uint8Array<ArrayBufferLike>>>`
+
+A ReadableStream of bytes representation of the screenshot.
+
+### scroll()
+
+```ts
+scroll(direction: "down" | "up", amount: number): Promise<void>
+```
+
+Scroll the mouse wheel by the given amount.
+
+###### Parameters
+
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `direction` | `"down" \| "up"` | `'down'` | The direction to scroll. Can be "up" or "down". |
+| `amount` | `number` | `1` | The amount to scroll. |
+
+###### Returns
+
+`Promise<void>`
+
+### setTimeout()
+
+```ts
+setTimeout(timeoutMs: number, opts?: Pick<SandboxOpts, "requestTimeoutMs" | "signal">): Promise<void>
+```
+
+Set the timeout of the sandbox.
+
+This method can extend or reduce the sandbox timeout set when creating the sandbox or from the last call to `.setTimeout`.
+Maximum time a sandbox can be kept alive is 24 hours (86_400_000 milliseconds) for Pro users and 1 hour (3_600_000 milliseconds) for Hobby users.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `timeoutMs` | `number` | timeout in **milliseconds**. |
+| `opts?` | `Pick<SandboxOpts, "requestTimeoutMs" \| "signal">` | connection options. |
+
+###### Returns
+
+`Promise<void>`
+
+### updateNetwork()
+
+```ts
+updateNetwork(network: SandboxNetworkUpdate, opts?: Pick<SandboxOpts, "requestTimeoutMs" | "signal">): Promise<void>
+```
+
+Update the network configuration of the sandbox.
+
+Replaces the current egress configuration atomically — fields that are
+omitted are cleared on the server.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `network` | `SandboxNetworkUpdate` | new network configuration. |
+| `opts?` | `Pick<SandboxOpts, "requestTimeoutMs" \| "signal">` | connection options. |
+
+###### Returns
+
+`Promise<void>`
+
+### uploadUrl()
+
+```ts
+uploadUrl(path?: string, opts?: SandboxUrlOpts): Promise<string>
+```
+
+Get the URL to upload a file to the sandbox.
+
+You have to send a POST request to this URL with the file as multipart/form-data.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `path?` | `string` | path to the file in the sandbox. |
+| `opts?` | `SandboxUrlOpts` | upload url options. |
+
+###### Returns
+
+`Promise<string>`
+
+URL for uploading file.
+
+### wait()
+
+```ts
+wait(ms: number): Promise<void>
+```
+
+Wait for the given amount of time.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `ms` | `number` | The amount of time to wait in milliseconds. |
+
+###### Returns
+
+`Promise<void>`
+
+### waitAndVerify()
+
+```ts
+waitAndVerify(
+   cmd: string, 
+   onResult: (result: CommandResult) => boolean, 
+   timeout: number, 
+interval: number): Promise<boolean>
+```
+
+Wait for a command to return a specific result.
+
+###### Parameters
+
+| Parameter | Type | Default value | Description |
+| ------ | ------ | ------ | ------ |
+| `cmd` | `string` | `undefined` | The command to run. |
+| `onResult` | `(result: CommandResult) => boolean` | `undefined` | The function to check the result of the command. |
+| `timeout` | `number` | `10` | The maximum time to wait for the command to return the result. |
+| `interval` | `number` | `0.5` | The interval to wait between checks. |
+
+###### Returns
+
+`Promise<boolean>`
+
+`true` if the command returned the result within the timeout, otherwise `false`.
+
+### write()
+
+```ts
+write(text: string, options: object): Promise<void>
+```
+
+Write the given text at the current cursor position.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `text` | `string` | The text to write. |
+| `options` | \{ `chunkSize`: `number`; `delayInMs`: `number`; \} | An object containing the chunk size and delay between each chunk of text. |
+| `options.chunkSize` | `number` | The size of each chunk of text to write. Default is 25 characters. |
+| `options.delayInMs` | `number` | The delay between each chunk of text. Default is 75 ms. |
+
+###### Returns
+
+`Promise<void>`
+
+### ~~betaPause()~~
+
+```ts
+static betaPause(sandboxId: string, opts?: SandboxPauseOpts): Promise<boolean>
+```
+
+###### Parameters
+
+| Parameter | Type |
+| ------ | ------ |
+| `sandboxId` | `string` |
+| `opts?` | `SandboxPauseOpts` |
+
+###### Returns
+
+`Promise<boolean>`
+
+###### Deprecated
+
+Use SandboxApi.pause instead.
+
+### connect()
+
+```ts
+static connect<S>(
+   this: S, 
+   sandboxId: string, 
+opts?: SandboxConnectOpts): Promise<InstanceType<S>>
+```
+
+Connect to a sandbox. If the sandbox is paused, it will be automatically resumed.
+Sandbox must be either running or be paused.
+
+With sandbox ID you can connect to the same sandbox from different places or environments (serverless functions, etc).
+
+###### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `S extends typeof Sandbox` |
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `this` | `S` | - |
+| `sandboxId` | `string` | sandbox ID. |
+| `opts?` | `SandboxConnectOpts` | connection options. |
+
+###### Returns
+
+`Promise<InstanceType<S>>`
+
+A running sandbox instance
+
+###### Example
+
+```ts
+const sandbox = await Sandbox.create()
+const sandboxId = sandbox.sandboxId
+
+// Connect to the same sandbox.
+const sameSandbox = await Sandbox.connect(sandboxId)
+```
+
+### create()
+
+###### Call Signature
+
+```ts
+static create<S>(this: S, opts?: SandboxOpts): Promise<InstanceType<S>>
+```
+
+Create a new sandbox from the default `desktop` sandbox template.
+
+###### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `S extends typeof Sandbox` |
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `this` | `S` | - |
+| `opts?` | `SandboxOpts` | connection options. |
+
+###### Returns
+
+`Promise<InstanceType<S>>`
+
+sandbox instance for the new sandbox.
+
+###### Example
+
+```ts
+const sandbox = await Sandbox.create()
+```
+
+###### Call Signature
+
+```ts
+static create<S>(
+   this: S, 
+   template: string, 
+opts?: SandboxOpts): Promise<InstanceType<S>>
+```
+
+Create a new sandbox from the specified sandbox template.
+
+###### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `S extends typeof Sandbox` |
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `this` | `S` | - |
+| `template` | `string` | sandbox template name or ID. |
+| `opts?` | `SandboxOpts` | connection options. |
+
+###### Returns
+
+`Promise<InstanceType<S>>`
+
+sandbox instance for the new sandbox.
+
+###### Example
+
+```ts
+const sandbox = await Sandbox.create('<template-name-or-id>')
+```
+
+### createSnapshot()
+
+```ts
+static createSnapshot(sandboxId: string, opts?: CreateSnapshotOpts): Promise<SnapshotInfo>
+```
+
+Create a snapshot from a sandbox.
+
+The sandbox will be paused while the snapshot is being created.
+The snapshot can be used to create new sandboxes with the same state.
+The snapshot is a persistent image that survives sandbox deletion.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `sandboxId` | `string` | sandbox ID to create snapshot from. |
+| `opts?` | `CreateSnapshotOpts` | snapshot creation options including optional name, `mode` (`'filesystem'` takes a filesystem-only snapshot), and connection options. |
+
+###### Returns
+
+`Promise<SnapshotInfo>`
+
+snapshot information including the snapshot name that can be used with Sandbox.create().
+
+###### Throws
+
+SandboxError with `statusCode` 400 when `mode: 'filesystem'`
+is requested but the feature is not enabled for the team
+(`snapshot_filesystem_only_disabled`), and with `statusCode` 409 when the
+sandbox's node runs an orchestrator that predates the option
+(`snapshot_filesystem_only_unsupported_node`). A full memory snapshot
+still works in both cases; for 409, pause and resume the sandbox and retry.
+
+### deleteSnapshot()
+
+```ts
+static deleteSnapshot(snapshotId: string, opts?: SandboxApiOpts): Promise<boolean>
+```
+
+Delete a snapshot.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `snapshotId` | `string` | snapshot ID. |
+| `opts?` | `SandboxApiOpts` | connection options. |
+
+###### Returns
+
+`Promise<boolean>`
+
+`true` if the snapshot was deleted, `false` if it was not found.
+
+### fork()
+
+```ts
+static fork<S>(
+   this: S, 
+   sandboxId: string, 
+opts?: SandboxForkOpts): Promise<(Error | InstanceType<S>)[]>
+```
+
+Fork a running sandbox specified by sandbox ID.
+
+The sandbox is checkpointed in place (briefly paused, snapshotted with its
+full memory state, and resumed — its ID and expiration stay untouched) and
+`count` new sandboxes are created from that snapshot. All forks boot from
+the same snapshot, so the snapshot is captured once regardless of count.
+
+Each fork succeeds or fails independently — the returned array contains
+one entry per requested fork, either a running Sandbox instance or
+an `Error` describing why that fork failed to start
+(`Promise.allSettled`-style). Per-fork error codes map to the same error
+classes as other API errors (e.g. 429 to `RateLimitError`).
+
+###### Type Parameters
+
+| Type Parameter |
+| ------ |
+| `S extends typeof Sandbox` |
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `this` | `S` | - |
+| `sandboxId` | `string` | sandbox ID. |
+| `opts?` | `SandboxForkOpts` | fork options — `count`, `timeoutMs` and connection options. |
+
+###### Returns
+
+`Promise<(Error | InstanceType<S>)[]>`
+
+array with one entry per requested fork — a sandbox instance or an error.
+
+###### Example
+
+```ts
+const sandbox = await Sandbox.create()
+
+const [fork1, fork2] = await Sandbox.fork(sandbox.sandboxId, { count: 2 })
+if (fork1 instanceof Sandbox) {
+  await fork1.commands.run('echo "hello from fork"')
+}
+```
+
+### ~~getFullInfo()~~
+
+```ts
+static getFullInfo(sandboxId: string, opts?: SandboxApiOpts): Promise<SandboxInfo>
+```
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `sandboxId` | `string` | sandbox ID. |
+| `opts?` | `SandboxApiOpts` | connection options. |
+
+###### Returns
+
+`Promise<SandboxInfo>`
+
+sandbox information.
+
+###### Deprecated
+
+Use Sandbox.getInfo instead.
+
+### getInfo()
+
+```ts
+static getInfo(sandboxId: string, opts?: SandboxApiOpts): Promise<SandboxInfo>
+```
+
+Get sandbox information like sandbox ID, template, metadata, started at/end at date.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `sandboxId` | `string` | sandbox ID. |
+| `opts?` | `SandboxApiOpts` | connection options. |
+
+###### Returns
+
+`Promise<SandboxInfo>`
+
+sandbox information.
+
+### getMetrics()
+
+```ts
+static getMetrics(sandboxId: string, opts?: SandboxMetricsOpts): Promise<SandboxMetrics[]>
+```
+
+Get the metrics of the sandbox.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `sandboxId` | `string` | sandbox ID. |
+| `opts?` | `SandboxMetricsOpts` | sandbox metrics options. |
+
+###### Returns
+
+`Promise<SandboxMetrics[]>`
+
+List of sandbox metrics containing CPU, memory and disk usage information.
+
+### kill()
+
+```ts
+static kill(sandboxId: string, opts?: SandboxApiOpts): Promise<boolean>
+```
+
+Kill the sandbox specified by sandbox ID.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `sandboxId` | `string` | sandbox ID. |
+| `opts?` | `SandboxApiOpts` | connection options. |
+
+###### Returns
+
+`Promise<boolean>`
+
+`true` if the sandbox was found and killed, `false` otherwise.
+
+### list()
+
+```ts
+static list(opts?: SandboxListOpts): SandboxPaginator
+```
+
+List sandboxes.
+
+By default (no `query.state` set in `opts`), returns sandboxes in both
+`running` and `paused` states. To filter by state, pass
+`opts.query.state = [...]`.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts?` | `SandboxListOpts` | connection options, plus optional `query` to filter by metadata / state / start time / template, `order` to sort by start time across the whole result set (not within a page), and `limit` / `nextToken` for pagination. |
+
+###### Returns
+
+`SandboxPaginator`
+
+a SandboxPaginator that yields pages of sandboxes
+  (running and paused by default). Iterate pages via
+  `await paginator.nextItems()` while `paginator.hasNext` is `true`.
+
+### listSnapshots()
+
+```ts
+static listSnapshots(opts?: SnapshotListOpts): SnapshotPaginator
+```
+
+List all snapshots.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `opts?` | `SnapshotListOpts` | list options including filters and pagination. |
+
+###### Returns
+
+`SnapshotPaginator`
+
+paginator for listing snapshots.
+
+### pause()
+
+```ts
+static pause(sandboxId: string, opts?: SandboxPauseOpts): Promise<boolean>
+```
+
+Pause the sandbox specified by sandbox ID.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `sandboxId` | `string` | sandbox ID. |
+| `opts?` | `SandboxPauseOpts` | pause options, including `mode` and connection options. |
+
+###### Returns
+
+`Promise<boolean>`
+
+`true` if the sandbox got paused, `false` if the sandbox was already paused.
+
+### setTimeout()
+
+```ts
+static setTimeout(
+   sandboxId: string, 
+   timeoutMs: number, 
+opts?: SandboxApiOpts): Promise<void>
+```
+
+Set the timeout of the specified sandbox.
+After the timeout expires the sandbox will be automatically killed.
+
+This method can extend or reduce the sandbox timeout set when creating the sandbox or from the last call to Sandbox.setTimeout.
+
+Maximum time a sandbox can be kept alive is 24 hours (86_400_000 milliseconds) for Pro users and 1 hour (3_600_000 milliseconds) for Hobby users.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `sandboxId` | `string` | sandbox ID. |
+| `timeoutMs` | `number` | timeout in **milliseconds**. |
+| `opts?` | `SandboxApiOpts` | connection options. |
+
+###### Returns
+
+`Promise<void>`
+
+### updateNetwork()
+
+```ts
+static updateNetwork(
+   sandboxId: string, 
+   network: SandboxNetworkUpdate, 
+opts?: SandboxApiOpts): Promise<void>
+```
+
+Update the network configuration of a running sandbox.
+
+Replaces the current egress configuration atomically — fields that are
+omitted are cleared on the server.
+
+###### Parameters
+
+| Parameter | Type | Description |
+| ------ | ------ | ------ |
+| `sandboxId` | `string` | sandbox ID. |
+| `network` | `SandboxNetworkUpdate` | new network configuration. |
+| `opts?` | `SandboxApiOpts` | connection options. |
+
+###### Returns
+
+`Promise<void>`
+
+## Interfaces
+
+### SandboxOpts
+
+Configuration options for the Sandbox environment.
+ SandboxOpts
+
+#### Properties
+
+### allowInternetAccess?
+
+```ts
+optional allowInternetAccess: boolean;
+```
+
+Allow sandbox to access the internet. If set to `False`, it works the same as setting network `denyOut` to `[0.0.0.0/0]`.
+
+### apiHeaders?
+
+```ts
+optional apiHeaders: Record<string, string>;
+```
+
+Additional headers to send with E2B API requests.
+
+### apiKey?
+
+```ts
+optional apiKey: string;
+```
+
+E2B API key to use for authentication.
+
+###### Default
+
+```ts
+E2B_API_KEY // environment variable
+```
+
+### display?
+
+```ts
+optional display: string;
+```
+
+Display identifier.
+
+### domain?
+
+```ts
+optional domain: string;
+```
+
+Domain to use for the API.
+
+###### Default
+
+E2B_DOMAIN // environment variable or `e2b.app`
+
+### dpi?
+
+```ts
+optional dpi: number;
+```
+
+Dots per inch (DPI) setting for the display.
+
+### envs?
+
+```ts
+optional envs: Record<string, string>;
+```
+
+Custom environment variables for the sandbox.
+
+Used when executing commands and code in the sandbox.
+Can be overridden with the `envs` argument when executing commands or code.
+
+###### Default
+
+```ts
+{}
+```
+
+### ~~headers?~~
+
+```ts
+optional headers: Record<string, string>;
+```
+
+Additional headers to send with the request.
+
+###### Deprecated
+
+Use `apiHeaders` instead.
+
+### httpVersion?
+
+```ts
+optional httpVersion: HttpVersion;
+```
+
+HTTP version for requests to the E2B API and to sandboxes (commands,
+filesystem, PTY). `'2'` multiplexes streams over shared connections;
+`'1.1'` pins them to HTTP/1.1 with one connection per concurrent
+request — for example when an intermediary on the path retires or
+mishandles long-lived HTTP/2 connections. Only applies in Node.
+
+###### Default
+
+E2B_HTTP_VERSION // environment variable or `'2'`
+
+### iam?
+
+```ts
+optional iam: SandboxIamOpts;
+```
+
+Sandbox workload identity configuration. Providing a non-empty
+`tokens` map enables workload identity for the sandbox.
+
+Registered tokens are exposed to SandboxNetworkOpts.rules
+`transform` callbacks as `iam.tokens.<name>` placeholders, which the egress
+proxy resolves per request.
+
+###### Example
+
+```ts
+const sandbox = await Sandbox.create({
+  iam: {
+    tokens: {
+      aws: Secret.iamToken({
+        audience: 'sts.amazonaws.com',
+        tokenType: 'JWT-SVID',
+      }),
+    },
+  },
+})
+```
+
+### lifecycle?
+
+```ts
+optional lifecycle: SandboxLifecycle;
+```
+
+Sandbox lifecycle configuration.
+
+### logger?
+
+```ts
+optional logger: Logger;
+```
+
+Logger to use for logging messages. It can accept any object that implements `Logger` interface—for example, console.
+
+### mcp?
+
+```ts
+optional mcp: McpServer$1;
+```
+
+MCP server to enable in the sandbox
+
+###### Default
+
+```ts
+undefined
+```
+
+### metadata?
+
+```ts
+optional metadata: Record<string, string>;
+```
+
+Custom metadata for the sandbox.
+
+###### Default
+
+```ts
+{}
+```
+
+### network?
+
+```ts
+optional network: SandboxNetworkOpts;
+```
+
+Sandbox network configuration
+
+### proxy?
+
+```ts
+optional proxy: string;
+```
+
+Proxy URL to use for requests. In case of a sandbox it applies to all
+requests made to the returned sandbox.
+
+###### Example
+
+```ts
+'http://user:pass@127.0.0.1:8080'
+```
+
+### requestTimeoutMs?
+
+```ts
+optional requestTimeoutMs: number;
+```
+
+Timeout for requests to the API in **milliseconds**.
+
+###### Default
+
+```ts
+60_000 // 60 seconds
+```
+
+### resolution?
+
+```ts
+optional resolution: [number, number];
+```
+
+The screen resolution in pixels, specified as [width, height].
+
+### retries?
+
+```ts
+optional retries: number;
+```
+
+Number of control-plane API retries after a 429, 502 or 503 response or
+a failure to establish the connection (refused, DNS, unreachable host).
+Any other network error (dropped connection, opaque browser/Workers
+`TypeError`) is retried too. A 502 and those network errors are not
+retried for operations that create a resource (e.g. sandbox creation) or
+append to one (secret update), as the server may already have processed
+them.
+A 429 is retried only with a valid, non-negative integer delta-seconds
+`Retry-After` header (HTTP-date and malformed values are not retried).
+502 and 503 honor such a `Retry-After` when present; otherwise they and
+connection failures use exponential backoff with jitter starting at
+100 ms (capped at 10 s).
+Retry waits use a 60-second total limit when request timeouts are disabled.
+
+###### Default
+
+```ts
+3
+```
+
+### sandboxUrl?
+
+```ts
+optional sandboxUrl: string;
+```
+
+Sandbox URL. Used for local development
+
+### ~~secure?~~
+
+```ts
+optional secure: boolean;
+```
+
+###### Deprecated
+
+Every sandbox secures envd access; this option is accepted for backward compatibility and ignored.
+
+### signal?
+
+```ts
+optional signal: AbortSignal;
+```
+
+An optional `AbortSignal` that can be used to cancel the in-flight request.
+When the signal is aborted, the underlying `fetch` is aborted and the
+returned promise rejects with an `AbortError`.
+
+### template?
+
+```ts
+optional template: string;
+```
+
+Sandbox template name or ID.
+
+###### Default
+
+'base' (or 'mcp-gateway' when `mcp` option is set)
+
+### timeoutMs?
+
+```ts
+optional timeoutMs: number;
+```
+
+Timeout for the sandbox in **milliseconds**.
+Maximum time a sandbox can be kept alive is 24 hours (86_400_000 milliseconds) for Pro users and 1 hour (3_600_000 milliseconds) for Hobby users.
+
+### ~~validateApiKey?~~
+
+```ts
+optional validateApiKey: boolean;
+```
+
+Whether to validate the format of the E2B API key on the client side.
+
+###### Deprecated
+
+The API key format is no longer validated on the client side;
+this option has no effect.
+
+### volumeMounts?
+
+```ts
+optional volumeMounts: Record<string, string | Volume>;
+```
+
+Volume mounts for the sandbox.
+
+The keys are mount paths inside the sandbox and the values are either
+a `Volume` instance or a string representing the volume name.
+
+###### Default
+
+```ts
+undefined
+```
