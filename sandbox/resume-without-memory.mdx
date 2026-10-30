@@ -136,7 +136,7 @@ exits.
 - **Already running?** The option is ignored and you get the running sandbox
   back. `connect()` never shortens a sandbox's lifetime: the new expiry is the
   later of the current expiry and now plus the timeout you pass
-  ([Persistence](/sandbox/persistence#sandboxs-timeout)). To reboot it,
+  ([Persistence](/sandbox/persistence#sandbox’s-timeout)). To reboot it,
   [`pause()`](/sandbox/persistence) it first and then connect with
   `onResume: 'reboot'` / `on_resume="reboot"`.
 - **Still starting?** A reboot that would drop memory is refused while a start
