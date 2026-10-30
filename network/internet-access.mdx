@@ -553,6 +553,18 @@ The callback must be synchronous and return a plain transform object. A promise 
 
 See [Workload identity](/iam/workload-identity) for how to register tokens, and [Secrets](/secrets) for injecting stored secrets the same way.
 
+#### Proxy CA certificate after resume
+
+To modify HTTPS requests, the egress proxy terminates TLS with its own CA. E2B installs that CA into the sandbox trust store at `/etc/ssl/certs/ca-certificates.crt` when the sandbox starts and again on every resume.
+
+- The CA is currently generated on each node, so its private key never has to be sent across the cluster. As a result, the CA can change when a sandbox resumes on a different node, or after the proxy on the same node restarts.
+- When the CA changes, the new one is added to the bundle first and the previous one is removed. When it hasn't changed, the bundle is left untouched.
+- Clients that read the bundle file when they open a connection keep working. Clients that load it once at startup, or pin the certificate, reject the new CA until they reload the bundle or restart.
+
+<Warning>
+Point clients at `/etc/ssl/certs/ca-certificates.crt` instead of copying or pinning the E2B CA. For long-running processes that cache certificates, reload them after the sandbox resumes.
+</Warning>
+
 ### Updating network settings on a running sandbox
 
 You can update the network configuration of an already running sandbox using `updateNetwork` (JavaScript) or `update_network` (Python). This replaces the current egress rules with the provided configuration without restarting the sandbox.
