@@ -64,6 +64,7 @@
                   "sandbox/environment-variables",
                   "sandbox/list",
                   "sandbox/connect",
+                  "sandbox/idempotency",
                   "sandbox/pty",
                   "sandbox/ssh-access",
                   "sandbox/secured-access"

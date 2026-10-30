@@ -1,0 +1,119 @@
+---
+title: "Idempotent sandbox creation"
+sidebarTitle: Idempotency
+description: "Retry sandbox creation safely without creating duplicate sandboxes."
+"og:image": "/images/og/generated/sandbox/idempotency.png"
+---
+
+A sandbox create request can fail after E2B has already created the sandbox, for example when the connection drops before your code reads the response. If you then retry, you can end up with two sandboxes.
+
+To avoid this, pass an idempotency key to `Sandbox.create` and send the same key with every retry. E2B creates at most one sandbox for that key and returns its result to each retry.
+
+<Note>
+Idempotency keys require SDK version `2.60.0` or above.
+</Note>
+
+## Create a sandbox with an idempotency key
+
+Generate one key for each sandbox you want to create, and store it with the job or request that needs the sandbox. This lets you reuse the key if your process restarts.
+
+<CodeGroup>
+```js JavaScript & TypeScript highlight={4,6}
+import { randomUUID } from 'node:crypto'
+import { Sandbox } from 'e2b'
+
+const idempotencyKey = randomUUID()
+
+const sandbox = await Sandbox.create({ idempotencyKey })
+```
+```python Python highlight={4,6}
+import uuid
+from e2b import Sandbox
+
+idempotency_key = str(uuid.uuid4())
+
+sandbox = Sandbox.create(idempotency_key=idempotency_key)
+```
+</CodeGroup>
+
+The key is sent as the `Idempotency-Key` header on this one create request. Other SDK calls don't send it. `AsyncSandbox.create` accepts the same `idempotency_key` argument.
+
+The SDK doesn't generate keys for you. If you don't pass a key, `Sandbox.create` works the same as before.
+
+## Key format
+
+- 1 to 255 characters.
+- Only lowercase ASCII letters, digits and hyphens (`a-z`, `0-9`, `-`). A lowercase UUID works, which is what `randomUUID()` and `str(uuid.uuid4())` return.
+- Keys are scoped to your team.
+
+If the key doesn't match this format, the SDK throws `InvalidArgumentError` (JavaScript) or raises `InvalidArgumentException` (Python) without sending the request.
+
+## Retry with the same key
+
+When E2B receives a create request with a key it has already seen:
+
+- **Same key, same parameters, original create finished:** E2B doesn't create another sandbox. It returns the original status and response body. This also applies to errors that retrying can't fix: every retry returns the same error.
+- **Same key, same parameters, original create failed temporarily:** If E2B marked the failure as safe to retry (`Should-Retry: true`), for example when there was temporarily no capacity, E2B runs the create again under the same key. Only one attempt runs at a time.
+- **Same key, different parameters:** E2B returns an error and doesn't create a sandbox. Send exactly the same template and options with every retry.
+
+E2B keeps each key for 24 hours from the first request that used it, and retries don't extend this. Once a key expires, a request with that key creates a new sandbox.
+
+The SDK already retries some failures on its own, reusing the same key: connection failures that happen before the request is sent, and responses that E2B marks as safe to retry. If the connection drops after the request was sent, the SDK doesn't retry, because the sandbox may already exist. In that case, retry yourself with the same key:
+
+<CodeGroup>
+```js JavaScript & TypeScript
+import { randomUUID } from 'node:crypto'
+import { Sandbox } from 'e2b'
+
+const idempotencyKey = randomUUID()
+
+async function createSandbox(attempts = 3) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      // Pass the same template and options on every attempt.
+      return await Sandbox.create({
+        metadata: { jobId: 'job-123' },
+        idempotencyKey,
+      })
+    } catch (err) {
+      if (attempt >= attempts) throw err
+      await new Promise((resolve) => setTimeout(resolve, 1000 * attempt))
+    }
+  }
+}
+
+const sandbox = await createSandbox()
+```
+```python Python
+import time
+import uuid
+from e2b import Sandbox
+
+idempotency_key = str(uuid.uuid4())
+
+def create_sandbox(attempts: int = 3) -> Sandbox:
+    for attempt in range(1, attempts + 1):
+        try:
+            # Pass the same template and options on every attempt.
+            return Sandbox.create(
+                metadata={"jobId": "job-123"},
+                idempotency_key=idempotency_key,
+            )
+        except Exception:
+            if attempt >= attempts:
+                raise
+            time.sleep(attempt)
+
+sandbox = create_sandbox()
+```
+</CodeGroup>
+
+## Errors
+
+E2B returns these errors for requests with an idempotency key. In the SDKs, they come back as `SandboxError` (JavaScript) or `SandboxException` (Python) with the status code and the message below.
+
+| Status | Error code | Message | What to do |
+| --- | --- | --- | --- |
+| `409` | `idempotency_request_mismatch` | Idempotency-Key was already used with a different request | Retry with the original parameters, or use a new key for a different sandbox. |
+| `409` | `idempotency_in_progress` | The original request has not recorded a response yet. Retry with the same Idempotency-Key. | The original create is still running. The SDK retries this automatically for a short time. If you still get the error, wait and retry with the same key. |
+| `422` | `idempotency_outcome_unknown` | The original request has no recorded response and its outcome is unknown. This request was not executed again. | E2B can't tell whether the sandbox was created. Check for it before creating a new one, for example by [filtering sandboxes by metadata](/sandbox/list#filtering-sandboxes). |
