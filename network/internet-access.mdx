@@ -454,6 +454,27 @@ await Sandbox.create({
 })
 ```
 
+#### TLS certificates
+
+For HTTPS requests to hosts with transform rules, the egress proxy presents a certificate signed by E2B's certificate authority (CA). E2B adds this CA to the sandbox's system bundle at `/etc/ssl/certs/ca-certificates.crt`.
+
+Clients that use their own CA bundle, such as Python Requests and Node.js, may fail certificate verification even though the system bundle trusts the proxy. If your client does not use the system bundle, configure it inside the sandbox before starting your application:
+
+<CodeGroup>
+```bash Python Requests
+export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+python app.py
+```
+```bash Node.js
+export NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+node app.js
+```
+</CodeGroup>
+
+Replace `app.py` or `app.js` with your application entry point. Node.js reads `NODE_EXTRA_CA_CERTS` only when the process starts, so restart an existing process after setting it.
+
+These settings cover the clients' standard trust configuration. If your application supplies an explicit CA bundle or bypasses environment settings, configure its trust store directly. See the [Requests certificate verification documentation](https://requests.readthedocs.io/en/latest/user/advanced/#ssl-cert-verification) and [Node.js CA configuration](https://nodejs.org/api/cli.html#node_extra_ca_certsfile).
+
 #### Matching hosts
 
 A rule key is either an exact DNS name (`api.example.com`) or a single leading wildcard label (`*.example.com`).

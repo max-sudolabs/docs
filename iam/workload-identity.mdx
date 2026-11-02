@@ -54,6 +54,8 @@ You can also pass plain token definitions instead of using the `Secret` helper: 
 
 ## Inject tokens into egress requests
 
+If your HTTP client uses its own CA bundle, configure it to trust the egress proxy before making requests. See [TLS certificates](/network/internet-access#tls-certificates) for Python Requests and Node.js settings.
+
 Registered tokens can be injected into the sandbox's outbound requests through [per-host request transforms](/network/internet-access#per-host-request-transforms). Pass a callback as a network rule's `transform`. It receives the registered tokens as `iam.tokens.<name>`:
 
 <CodeGroup>
