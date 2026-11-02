@@ -5,6 +5,44 @@ rss: true
 "og:image": "/images/og/changelog.png"
 ---
 
+<Update label="November 2, 2026" description="Streaming uploads, idempotency keys" tags={["API", "SDK", "CLI", "Console"]} rss={{ title: "Streaming Uploads & Idempotent Sandbox Creation", description: "This week adds streaming file uploads and idempotency keys for sandbox creation." }}>
+
+## Streaming Uploads & Idempotent Sandbox Creation
+
+This week adds streaming file uploads and idempotency keys for sandbox creation.
+
+### Paginated template list in the CLI
+
+The [`e2b template list`](/sdk-reference/cli/v2.23.0/template#e2b-template-list) command now pages through templates, showing 1,000 by default, with `--limit` to change it. With `-f json`, it still returns every template by default. The `--select`, `--project`, and `--team` options are removed from `e2b template delete`, `publish`, and `unpublish`, so pass the template name. Shipped in the CLI 2.23.0. [#2041](https://github.com/e2b-dev/E2B/pull/2041)
+
+### Unbuffered file uploads and command output
+
+You can now [stream an upload](/filesystem/upload#stream-an-upload) by passing an iterable of byte chunks to `files.write()`, without holding the file in memory. Set `retainOutput: false` (`retain_output=False` in Python) on [`commands.run`](/sdk-reference/js-sdk/v2.62.0/sandbox-commands#run) to stop buffering output that callbacks already receive. Shipped in the SDKs 2.62.0. [#2019](https://github.com/e2b-dev/E2B/pull/2019), [#2044](https://github.com/e2b-dev/E2B/pull/2044)
+
+### Idempotency keys in the SDKs
+
+The `Sandbox.create` method now accepts `idempotencyKey` (`idempotency_key` in Python), so you can [retry sandbox creation](/sandbox/idempotency) safely. Shipped in the SDKs 2.61.0. Since the SDKs 2.60.0, sandbox creation and other API requests are retried when the response is marked `Should-Retry: true`, and network errors after a request was sent are no longer retried. [#1978](https://github.com/e2b-dev/E2B/pull/1978), [#1998](https://github.com/e2b-dev/E2B/pull/1998)
+
+### Project access for workspace members
+
+The members page in the console now lists people added to individual projects. Owners can limit a member to selected projects, edit project access and roles, and add members to selected projects.
+
+### Past projects in workspace usage
+
+The workspace usage page now lists projects that moved out or were deleted during the period, with the usage the workspace was charged for.
+
+### Fixes
+
+- Fixed a pause, fork, or snapshot during another snapshot of the same sandbox killing the sandbox or returning `500`. It now returns a retryable `503`. [`13faa4d`](https://github.com/e2b-dev/runtime/commit/13faa4d7039efc3c5e9f5977e48e21e95ea90f3b)
+- Fixed deleting a paused sandbox during a resume leaving it running without its snapshot. [`d1207dd`](https://github.com/e2b-dev/runtime/commit/d1207dde58d28484873d23308099d34df18ab51f)
+- Fixed same-key retries returning a cached failure after a sandbox creation failure that was safe to retry. [`6c48ce9`](https://github.com/e2b-dev/runtime/commit/6c48ce97ee72e4851300562c0bbcf0dc3f932efa)
+- Fixed sandbox connect accepting a timeout of zero or less instead of returning `400`. [`9a9921f`](https://github.com/e2b-dev/runtime/commit/9a9921f597d8d9b4add51d166bc7e3b4764575aa)
+- Fixed downloads of virtual files such as `/proc/version` returning empty or truncated content through `downloadUrl()` or plain HTTP, in sandboxes from newly built templates. [`f9ed2af`](https://github.com/e2b-dev/runtime/commit/f9ed2af216243cae7431a81d1c1e375a7c7392b7)
+- Fixed the Python SDK sending `allow_public_traffic=True` when you set other network options, which overrode your project's default. Shipped in the Python SDK 2.60.0. [#2021](https://github.com/e2b-dev/E2B/pull/2021)
+- Reliability and security hardening across platform services, including dependency and base image CVE patches.
+
+</Update>
+
 <Update label="October 26, 2026" description="DNS server allowlists, streaming input, retry hints" tags={["SDK", "API", "Dashboard", "Self-hosted"]} rss={{ title: "DNS Server Allowlists, Streaming Input & Retry Hints", description: "This week you can choose which DNS servers your sandboxes reach, stream input to running commands, and tell when a failed sandbox create is worth retrying." }}>
 
 ## DNS Server Allowlists, Streaming Input & Retry Hints
