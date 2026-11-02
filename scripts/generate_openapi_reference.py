@@ -1330,7 +1330,7 @@ def _is_admin_only_op(op: dict[str, Any]) -> bool:
     )
 
 
-def filter_paths(spec: dict[str, Any]) -> None:
+def filter_paths(spec: dict[str, Any]) -> list[dict[str, Any]]:
     """Clean up paths that should not appear in the public spec.
 
     - Removes access-token, api-key and /unstable/ endpoints
@@ -1339,6 +1339,8 @@ def filter_paths(spec: dict[str, Any]) -> None:
     - Strips internal auth options (Supabase, AuthProvider, Admin) from the
       remaining operations, keeping public auth (ApiKeyAuth, AccessTokenAuth)
     - Removes the internal securityScheme definitions
+
+    Returns the removed operations, so callers can tell what only they used.
     """
     # Remove explicitly excluded paths. /unstable/ routes are for E2B's own
     # clients and may change or disappear without notice, so they stay out of
@@ -1368,6 +1370,7 @@ def filter_paths(spec: dict[str, Any]) -> None:
 
     # Drop admin-only operations; remove a path once no operations remain.
     removed_ops = 0
+    removed: list[dict[str, Any]] = []
     for path, path_item in spec["paths"].items():
         if path in to_remove:
             continue
@@ -1376,13 +1379,14 @@ def filter_paths(spec: dict[str, Any]) -> None:
             if op and (_is_admin_only_op(op) or (op.get("security") and all(
                 _is_internal_option(option) for option in op["security"]
             ))):
-                del path_item[method]
+                removed.append(path_item.pop(method))
                 removed_ops += 1
         if not any(m in path_item for m in _HTTP_METHODS):
             to_remove.append(path)
 
     for path in to_remove:
-        del spec["paths"][path]
+        path_item = spec["paths"].pop(path)
+        removed.extend(path_item[m] for m in _HTTP_METHODS if m in path_item)
     if to_remove or removed_ops:
         print(f"==> Removed {len(to_remove)} paths and {removed_ops} admin-only operations (admin, internal)")
 
@@ -1400,6 +1404,150 @@ def filter_paths(spec: dict[str, Any]) -> None:
         del schemes[key]
     if remove_keys:
         print(f"==> Removed {len(remove_keys)} internal security schemes")
+    return removed
+
+
+# Upstream documents a few feature-flagged behaviours before the flag is on in
+# production. Each entry drops one sentence, matched by its opening words, from
+# an operation description. Remove an entry once its flag is served in
+# production, so the next generation documents the behaviour.
+UNRELEASED_DESCRIPTION_SENTENCES = {
+    # unpaginated-sandbox-list-cap
+    ("get", "/sandboxes"): "Returns 400 when more than 5000 running sandboxes match",
+    # unpaginated-template-list-cap
+    ("get", "/templates"): "Returns 400 when the team has more than 5000 templates",
+}
+
+
+def remove_unreleased_descriptions(spec: dict[str, Any]) -> None:
+    """Drop the sentences listed in UNRELEASED_DESCRIPTION_SENTENCES."""
+    for (method, path), opening in UNRELEASED_DESCRIPTION_SENTENCES.items():
+        op = spec["paths"].get(path, {}).get(method)
+        description = op.get("description", "") if op else ""
+        stripped = re.sub(rf"\s*{re.escape(opening)}[^.]*\.", "", description)
+        if stripped != description:
+            op["description"] = stripped
+            print(f"==> Removed unreleased behaviour from {method.upper()} {path}")
+
+
+# Opening words of the shared Error.error_code description. Upstream lists every
+# code the API returns there, including ones only the excluded routes return.
+ERROR_CODE_DESCRIPTION_MARKER = "Machine-readable semantic error code"
+
+
+def _split_error_codes(description: str) -> tuple[str, list[str], str] | None:
+    """Split an error_code description into its lead, listed items and ending.
+
+    Items are split on commas outside parentheses, since an item may carry a
+    parenthesized explanation that itself contains commas.
+    """
+    lead, sep, rest = description.partition("initial values:")
+    if not sep:
+        return None
+    body = rest.strip()
+    end = "." if body.endswith(".") else ""
+    body = body[:-1] if end else body
+    items, depth, start = [], 0, 0
+    for i, ch in enumerate(body):
+        depth += {"(": 1, ")": -1}.get(ch, 0)
+        if ch == "," and depth == 0:
+            items.append(body[start:i].strip())
+            start = i + 1
+    items.append(body[start:].strip())
+    return lead + sep + rest[:len(rest) - len(rest.lstrip())], items, end
+
+
+def _error_code_of(item: str) -> str:
+    match = re.match(r"[a-z0-9_]+", item)
+    return match.group(0) if match else ""
+
+
+def _error_code_family(code: str) -> str:
+    return "_".join(code.split("_")[:2])
+
+
+def _mentioned_error_codes(node: Any, codes: set[str]) -> set[str]:
+    """Codes named anywhere in node, outside the shared error_code description."""
+    found: set[str] = set()
+    if isinstance(node, dict):
+        for value in node.values():
+            found |= _mentioned_error_codes(value, codes)
+    elif isinstance(node, list):
+        for value in node:
+            found |= _mentioned_error_codes(value, codes)
+    elif isinstance(node, str) and ERROR_CODE_DESCRIPTION_MARKER not in node:
+        found |= {code for code in codes if re.search(rf"\b{re.escape(code)}\b", node)}
+    return found
+
+
+def internal_error_codes(spec: dict[str, Any], removed_ops: list[dict[str, Any]]) -> set[str]:
+    """Error codes only the operations filter_paths removed can return.
+
+    Upstream names most codes only in the shared description, so codes are
+    grouped by family (their first two words, e.g. cluster_assignment). A family
+    the removed operations name and no public operation does is internal, and
+    so is every listed code in it.
+    """
+    error = spec.get("components", {}).get("schemas", {}).get("Error", {})
+    split = _split_error_codes(error.get("properties", {}).get("error_code", {}).get("description", ""))
+    if split is None:
+        return set()
+    codes = {_error_code_of(item) for item in split[1]} - {""}
+    public_ops = [
+        op for path_item in spec["paths"].values()
+        for method, op in path_item.items() if method in _HTTP_METHODS
+    ]
+    families = (
+        {_error_code_family(c) for c in _mentioned_error_codes(removed_ops, codes)}
+        - {_error_code_family(c) for c in _mentioned_error_codes(public_ops, codes)}
+    )
+    return {code for code in codes if _error_code_family(code) in families}
+
+
+def strip_error_codes(spec: dict[str, Any], codes: set[str]) -> None:
+    """Remove codes from every copy of the shared error_code description."""
+    if not codes:
+        return
+    stripped = 0
+
+    def walk(node: Any) -> None:
+        nonlocal stripped
+        if isinstance(node, list):
+            for value in node:
+                walk(value)
+        if not isinstance(node, dict):
+            return
+        for key, value in node.items():
+            if isinstance(value, str) and ERROR_CODE_DESCRIPTION_MARKER in value:
+                split = _split_error_codes(value)
+                if split is None:
+                    continue
+                lead, items, end = split
+                kept = [item for item in items if _error_code_of(item) not in codes]
+                if len(kept) != len(items):
+                    node[key] = lead + ", ".join(kept) + end
+                    stripped += 1
+            else:
+                walk(value)
+
+    walk(spec)
+    print(f"==> Removed {len(codes)} internal error codes from {stripped} descriptions: {', '.join(sorted(codes))}")
+
+
+def remove_orphaned_parameters(spec: dict[str, Any]) -> None:
+    """Remove component parameters that no remaining operation references, such
+    as those only excluded routes used. Run before remove_orphaned_schemas, so the
+    schemas only those parameters used go too."""
+    parameters = spec.get("components", {}).get("parameters", {})
+    spec_text = yaml.dump(spec.get("paths", {}), default_flow_style=False)
+    for section, entries in spec.get("components", {}).items():
+        if section != "parameters":
+            spec_text += yaml.dump(entries, default_flow_style=False)
+    orphaned = [name for name in parameters if f"parameters/{name}'" not in spec_text]
+    for name in orphaned:
+        del parameters[name]
+    if orphaned:
+        print(f"==> Removed {len(orphaned)} orphaned parameters: {', '.join(sorted(orphaned))}")
 
 
 def remove_orphaned_schemas(spec: dict[str, Any]) -> None:
@@ -1758,7 +1906,9 @@ def main() -> None:
         add_user_auth_security(merged)
 
         # Remove internal/unwanted paths
-        filter_paths(merged)
+        removed_ops = filter_paths(merged)
+        internal_codes = internal_error_codes(merged, removed_ops)
+        remove_unreleased_descriptions(merged)
 
         # Reviewed response corrections stay in source, never in generated YAML.
         apply_platform_response_fixes(merged)
@@ -1767,7 +1917,11 @@ def main() -> None:
         add_transport_examples(merged)
         preserve_response_contracts(merged)
 
-        # Clean up unreferenced schemas left over from filtered paths
+        # Copies of the error_code description exist only once the fixes ran.
+        strip_error_codes(merged, internal_codes)
+
+        # Clean up unreferenced parameters and schemas left over from filtered paths
+        remove_orphaned_parameters(merged)
         remove_orphaned_schemas(merged)
 
         # Rename and reorder tags for documentation sidebar

@@ -70,6 +70,63 @@ class GeneratorTests(unittest.TestCase):
         generator.filter_paths(spec)
         self.assertEqual(["/templates"], list(spec["paths"]))
 
+    def test_parameters_and_schemas_only_excluded_routes_use_are_removed(self):
+        ref = lambda kind, name: {"$ref": f"#/components/{kind}/{name}"}
+        spec = {"paths": {
+            "/unstable/builds": {"get": {"security": [{"ApiKeyAuth": []}],
+                                         "parameters": [ref("parameters", "buildStatuses")]}},
+            "/templates": {"get": {"security": [{"ApiKeyAuth": []}],
+                                   "parameters": [ref("parameters", "limit")]}}},
+            "components": {"securitySchemes": {"ApiKeyAuth": {}},
+                           "parameters": {
+                               "limit": {"name": "limit", "in": "query", "schema": {"type": "integer"}},
+                               "buildStatuses": {"name": "statuses", "in": "query", "schema": {
+                                   "type": "array", "items": ref("schemas", "BuildStatus")}}},
+                           "schemas": {"BuildStatus": {"type": "string"}}}}
+        generator.filter_paths(spec)
+        generator.remove_orphaned_parameters(spec)
+        generator.remove_orphaned_schemas(spec)
+        self.assertEqual(["limit"], list(spec["components"]["parameters"]))
+        self.assertEqual({}, spec["components"]["schemas"])
+
+    def test_error_codes_only_excluded_routes_return_are_stripped(self):
+        description = (
+            "Machine-readable semantic error code. Not a closed set; initial values: "
+            "sandbox_create_refused (no retry changes it, such as a bad vcpu count), "
+            "secret_limit_reached, cluster_assignment_invalid, cluster_assignment_cluster_deleting.")
+        error_code = {"type": "string", "description": description}
+        spec = {"paths": {
+            "/unstable/management/clusters/{clusterID}/deletion": {"put": {
+                "security": [{"AdminApiKeyAuth": []}],
+                "description": "Returns 409 with error_code cluster_assignment_cluster_deleting."}},
+            "/secrets": {"post": {"security": [{"ApiKeyAuth": []}],
+                "description": "Returns 409 with error_code secret_limit_reached.",
+                "responses": {"409": {"content": {"application/json": {"schema": {
+                    "properties": {"error_code": dict(error_code)}}}}}}}}},
+            "components": {"securitySchemes": {"ApiKeyAuth": {}},
+                           "schemas": {"Error": {"properties": {"error_code": error_code}}}}}
+        removed = generator.filter_paths(spec)
+        codes = generator.internal_error_codes(spec, removed)
+        self.assertEqual({"cluster_assignment_invalid", "cluster_assignment_cluster_deleting"}, codes)
+        generator.strip_error_codes(spec, codes)
+        expected = (
+            "Machine-readable semantic error code. Not a closed set; initial values: "
+            "sandbox_create_refused (no retry changes it, such as a bad vcpu count), "
+            "secret_limit_reached.")
+        inline = spec["paths"]["/secrets"]["post"]["responses"]["409"]["content"]["application/json"]
+        self.assertEqual(expected, spec["components"]["schemas"]["Error"]["properties"]["error_code"]["description"])
+        self.assertEqual(expected, inline["schema"]["properties"]["error_code"]["description"])
+
+    def test_unreleased_cap_sentences_are_removed(self):
+        spec = {"paths": {
+            "/sandboxes": {"get": {"description": "List all running sandboxes. Returns 400 when more than "
+                                                  "5000 running sandboxes match; use GET /v2/sandboxes to page through them."}},
+            "/templates": {"get": {"description": "List all templates. Returns 400 when the team has more than "
+                                                  "5000 templates; use /v2/templates to page through them."}}}}
+        generator.remove_unreleased_descriptions(spec)
+        self.assertEqual("List all running sandboxes.", spec["paths"]["/sandboxes"]["get"]["description"])
+        self.assertEqual("List all templates.", spec["paths"]["/templates"]["get"]["description"])
+
 
     def test_nullable_is_replaced_everywhere(self):
         spec = {"components": {"schemas": {
@@ -91,6 +148,19 @@ class GeneratedSpecTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.spec = yaml.safe_load((SCRIPTS.parent / "openapi-public.yaml").read_text())
+
+    def test_no_internal_or_unreleased_surface(self):
+        text = yaml.dump(self.spec)
+        for code in ("cluster_registration_", "cluster_assignment_"):
+            self.assertNotIn(code, text)
+        for code in ("sandbox_capacity_unavailable", "secret_limit_reached", "idempotency_request_mismatch"):
+            self.assertIn(code, text)
+        parameters = self.spec["components"].get("parameters", {})
+        for name in ("buildIDs", "buildStatuses", "buildsCursor", "buildsLimit", "buildIDOrTemplate"):
+            self.assertNotIn(name, parameters)
+        self.assertNotIn("BuildStatus", self.spec["components"]["schemas"])
+        for path in ("/sandboxes", "/templates"):
+            self.assertNotIn("5000", self.spec["paths"][path]["get"].get("description", ""))
 
     def test_no_openapi_30_nullable_keyword(self):
         found = []
