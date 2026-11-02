@@ -5,13 +5,12 @@ description: "Give sandbox workloads short-lived identity tokens instead of long
 "og:image": "/images/og/generated/iam/workload-identity.png"
 ---
 
-Workload identity lets code running in a sandbox prove who it is with short-lived identity tokens instead of long-lived credentials.
+E2B Workload Identity lets code running in a sandbox prove who it is with short-lived identity tokens instead of long-lived credentials.
 Rather than baking cloud API keys into a template or passing them as environment variables, you define named workload tokens when creating the sandbox.
 Each token is scoped to an audience, the external service that will verify it, such as AWS STS. That service can exchange the token for its own temporary credentials.
 
 <Note>
-Workload identity is currently in private beta.
-If you'd like access, please reach out to us at [support@e2b.dev](mailto:support@e2b.dev).
+E2B Workload Identity is generally available on E2B Cloud. It is also supported in Bring Your Own Cloud (BYOC) deployments. Contact [support@e2b.dev](mailto:support@e2b.dev) to enable it for your BYOC deployment.
 </Note>
 
 ## Configure
@@ -113,21 +112,25 @@ sandbox = Sandbox.create(
 ```
 </CodeGroup>
 
-`iam.tokens.<name>` is not the token value. It's a placeholder string (`${e2b.identity.tokens.<name>}`) that goes on the wire as-is. The egress proxy replaces it with a freshly minted token each time it forwards a matching request, so the token value never reaches your code or the sandbox.
+`iam.tokens.<name>` is not the token value. It's a placeholder string (`${e2b.identity.tokens.<name>}`) stored in the sandbox's network configuration. The egress proxy replaces it with a valid signed token when forwarding a matching HTTPS request. It can reuse a cached token for the same sandbox execution and audience while the token is valid. Token issuance and injection happen outside the sandbox.
+
+Sandbox code does not need to send the configured header, even with a dummy value. The egress proxy adds it to the outgoing request.
 
 Referencing a token name that isn't registered in `iam.tokens` fails at sandbox creation with `InvalidArgumentError` (JavaScript) / `InvalidArgumentException` (Python), listing the names that are registered. You can check whether a name is registered without failing by using `'aws' in iam.tokens` in JavaScript or `"aws" in ctx.iam.tokens` in Python.
 
-A header value can combine token placeholders with static text and stored [secret](/secrets) markers; the egress proxy substitutes each header atomically.
+A header value can combine token placeholders with static text and stored [secret](/secrets) markers. The egress proxy substitutes each header atomically.
 
 ## Federate with external services
 
-External systems can verify workload identity tokens with E2B's [OpenID Connect discovery document](https://id.e2b.dev/.well-known/openid-configuration). The document identifies the issuer and the `jwks_uri` where E2B publishes its public signing keys. Verify tokens with ES256 and require the expected `iss`, `aud`, `exp`, and `nbf` claims. Also verify that the `sub` claim belongs to your project (it starts with `spiffe://id.e2b.dev/<project-id>/`), so tokens minted for other projects are rejected.
+External systems can verify E2B Cloud workload identity tokens with E2B's [OpenID Connect discovery document](https://id.e2b.dev/.well-known/openid-configuration). The document identifies the issuer and the `jwks_uri` where E2B publishes its public signing keys. Verify tokens with ES256 and require the expected `iss`, `aud`, `exp`, and `nbf` claims. Also verify that the `sub` claim belongs to your project (it starts with `spiffe://id.e2b.dev/<project-id>/`), so tokens minted for other projects are rejected.
 
 Each token identifies one sandbox execution with a SPIFFE subject in this format:
 
 ```
 spiffe://id.e2b.dev/<project-id>/<sandbox-id>/<execution-id>
 ```
+
+BYOC deployments use their own issuer URL and public keys. Use the issuer URL and SPIFFE trust domain provided when support enables Workload Identity for your deployment. The trust domain in `sub` can differ from the issuer host.
 
 ### Configure AWS IAM
 
@@ -136,10 +139,12 @@ AWS can exchange an E2B workload identity token with the `sts.amazonaws.com` aud
 <Steps>
 <Step title="Create an OIDC identity provider">
 
-In the AWS IAM console, open **Identity providers**, choose **Add provider**, and select **OpenID Connect**. Use these values:
+In the AWS IAM console, open **Identity providers**, choose **Add provider**, and select **OpenID Connect**. For E2B Cloud, use these values.
 
-- **Provider URL:** `https://id.e2b.dev`
-- **Audience:** `sts.amazonaws.com`
+- Set **Provider URL** to `https://id.e2b.dev`.
+- Set **Audience** to `sts.amazonaws.com`.
+
+For BYOC, use your deployment's issuer URL as the **Provider URL**.
 
 You only need to create this provider once per AWS account. See the [AWS OIDC provider documentation](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html) for other setup methods.
 
@@ -174,6 +179,8 @@ Create an IAM role with a custom trust policy. Replace `<AWS_ACCOUNT_ID>` and `<
 
 The `sub` condition limits access to sandbox executions from one E2B project. You can find the project ID in the token's `project_id` claim and as the first path segment after `spiffe://id.e2b.dev/` in `sub`.
 
+For BYOC, replace `id.e2b.dev` in the provider ARN and condition keys with your deployment's issuer host. In the `spiffe://` subject, use the deployment's configured trust domain.
+
 Attach a permissions policy that grants only the AWS actions and resources these workloads need.
 
 </Step>
@@ -199,12 +206,12 @@ AWS credentials have their own lifetime. They remain valid after the E2B workloa
 
 ## Token definitions
 
-Each token definition has two fields:
+Each token definition has two fields.
 
 | Field | Description |
 |-------|-------------|
 | `audience` | Required. The audience of the workload token, the identifier of the service that will verify it. Stored exactly as provided. |
-| `tokenType` (JavaScript) / `token_type` (Python) | Required. The workload token type. `"JWT-SVID"` is the only type supported today. More types may be added later. |
+| `tokenType` (JavaScript) / `token_type` (Python) | Required. The workload token type. `"JWT-SVID"` is the only supported type. |
 
 Token names (the keys of the `tokens` map) are yours to choose.
 
