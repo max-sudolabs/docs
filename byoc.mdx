@@ -72,8 +72,9 @@ When provisioning is done and running, we will create a new project under your E
     </Accordion>
     <Accordion title="Can cluster automatically scale?">
     A cluster can be scaled horizontally by adding more orchestrators and edge controllers.
-    The autoscaler is currently in V1 not capable of automatically scale orchestrator nodes that are needed for sandbox spawning.
-    This feature is coming in the next versions.
+    On AWS and Google Cloud, the orchestrator nodes that run sandboxes scale automatically. The autoscaler keeps a minimum number of nodes ready, adds nodes when sandbox usage passes a target utilization, and stops at a maximum. When usage drops, it removes idle nodes gradually, down to the minimum.
+    The minimum, maximum, and target utilization are configured per cluster together with E2B.
+    On Azure, the number of orchestrator nodes is fixed, and E2B changes it on request.
     </Accordion>
     <Accordion title="Are sandboxes accessible only from a customer’s private network?">
     Yes. Load balancer that is handling all requests coming to sandbox can be configured as internal and VPC peering
