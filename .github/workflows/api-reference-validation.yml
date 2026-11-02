@@ -2,8 +2,8 @@ name: API Reference Validation
 
 on:
   schedule:
-    # Every Thursday at 8 PM UTC
-    - cron: '0 20 * * 4'
+    # Every day at 8 PM UTC
+    - cron: '0 20 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -46,11 +46,41 @@ jobs:
       - name: Generate OpenAPI spec
         run: python3 scripts/generate_openapi_reference.py --output openapi-public.yaml
 
+      # A new upstream error status without an example fails the two coverage
+      # tests. The PR is still opened so the gap is visible; its own test check
+      # stays red until the example is added.
       - name: Validate generated response contracts
-        run: python3 -m unittest discover -s scripts/tests -v
+        id: validate
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python3 -m unittest discover -s scripts/tests -v 2>&1 | tee "$RUNNER_TEMP/validate.log"
+
+      - name: Collect missing error examples
+        id: missing
+        if: steps.validate.outcome == 'failure'
+        run: |
+          python3 - "$RUNNER_TEMP/validate.log" <<'EOF'
+          import os, re, sys
+          coverage = {
+              "test_json_error_example_coverage",
+              "test_every_json_error_has_a_source_message_or_explicit_dynamic_exception",
+          }
+          log = open(sys.argv[1]).read()
+          failed = set(re.findall(r"^(?:FAIL|ERROR): (\w+) ", log, re.M))
+          missing = set()
+          for block in re.findall(r"Items in the first set but not the second:\n((?:\(.*\)\n)+)", log):
+              missing.update(re.findall(r"\('(\w+)', '([^']+)', '(\d+)'\)", block))
+          lines = [f"- `{m.upper()} {p}` → `{s}`" for m, p, s in sorted(missing, key=lambda e: (e[1], e[0], e[2]))]
+          section = "### Missing error examples\n\nThese responses have no example, so the OpenAPI reference tests fail until one is added:\n\n" + "\n".join(lines)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write(f"coverage_only={'true' if missing and failed <= coverage else 'false'}\n")
+              out.write(f"section<<SECTION\n{section}\nSECTION\n")
+          EOF
 
       - name: Create or update PR
         id: pr
+        if: steps.validate.outcome == 'success' || steps.missing.outputs.coverage_only == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ steps.app-token.outputs.token }}
@@ -61,6 +91,7 @@ jobs:
           committer: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
           commit-message: "docs: update openapi-public.yaml from source specs"
           title: "docs: update API reference spec"
+          labels: ${{ steps.missing.outputs.coverage_only == 'true' && 'needs-error-example' || '' }}
           body: |
             ## OpenAPI Spec Update
 
@@ -69,6 +100,12 @@ jobs:
 
             - Workflow: `${{ github.workflow }}`
             - Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            ${{ steps.missing.outputs.section }}
+
+      - name: Fail on validation errors
+        if: steps.validate.outcome == 'failure'
+        run: exit 1
 
       - name: Summary
         if: always()
