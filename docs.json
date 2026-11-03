@@ -311,8 +311,24 @@
             "icon": "square-js",
             "versions": [
               {
-                "version": "v2.62.0 (JS)",
+                "version": "v2.62.1 (JS)",
                 "default": true,
+                "pages": [
+                  "sdk-reference/js-sdk/v2.62.1/client",
+                  "sdk-reference/js-sdk/v2.62.1/errors",
+                  "sdk-reference/js-sdk/v2.62.1/sandbox",
+                  "sdk-reference/js-sdk/v2.62.1/sandbox-commands",
+                  "sdk-reference/js-sdk/v2.62.1/sandbox-filesystem",
+                  "sdk-reference/js-sdk/v2.62.1/secret",
+                  "sdk-reference/js-sdk/v2.62.1/template",
+                  "sdk-reference/js-sdk/v2.62.1/template-logger",
+                  "sdk-reference/js-sdk/v2.62.1/template-readycmd",
+                  "sdk-reference/js-sdk/v2.62.1/volume"
+                ]
+              },
+              {
+                "version": "v2.62.0 (JS)",
+                "default": false,
                 "pages": [
                   "sdk-reference/js-sdk/v2.62.0/client",
                   "sdk-reference/js-sdk/v2.62.0/errors",
@@ -4218,8 +4234,18 @@
             "icon": "square-js",
             "versions": [
               {
-                "version": "v2.9.0 (Code Interpreter JS)",
+                "version": "v2.9.1 (Code Interpreter JS)",
                 "default": true,
+                "pages": [
+                  "sdk-reference/code-interpreter-js-sdk/v2.9.1/charts",
+                  "sdk-reference/code-interpreter-js-sdk/v2.9.1/consts",
+                  "sdk-reference/code-interpreter-js-sdk/v2.9.1/messaging",
+                  "sdk-reference/code-interpreter-js-sdk/v2.9.1/sandbox"
+                ]
+              },
+              {
+                "version": "v2.9.0 (Code Interpreter JS)",
+                "default": false,
                 "pages": [
                   "sdk-reference/code-interpreter-js-sdk/v2.9.0/charts",
                   "sdk-reference/code-interpreter-js-sdk/v2.9.0/consts",
@@ -4504,8 +4530,15 @@
             "icon": "python",
             "versions": [
               {
-                "version": "v2.11.6 (Code Interpreter Python)",
+                "version": "v2.11.7 (Code Interpreter Python)",
                 "default": true,
+                "pages": [
+                  "sdk-reference/code-interpreter-python-sdk/v2.11.7/code_interpreter"
+                ]
+              },
+              {
+                "version": "v2.11.6 (Code Interpreter Python)",
+                "default": false,
                 "pages": [
                   "sdk-reference/code-interpreter-python-sdk/v2.11.6/code_interpreter"
                 ]
@@ -6802,7 +6835,7 @@
     },
     {
       "source": "/sdk-reference/js-sdk/latest/:slug*",
-      "destination": "/sdk-reference/js-sdk/v2.62.0/:slug*",
+      "destination": "/sdk-reference/js-sdk/v2.62.1/:slug*",
       "permanent": false
     },
     {
@@ -6812,12 +6845,12 @@
     },
     {
       "source": "/sdk-reference/code-interpreter-js-sdk/latest/:slug*",
-      "destination": "/sdk-reference/code-interpreter-js-sdk/v2.9.0/:slug*",
+      "destination": "/sdk-reference/code-interpreter-js-sdk/v2.9.1/:slug*",
       "permanent": false
     },
     {
       "source": "/sdk-reference/code-interpreter-python-sdk/latest/:slug*",
-      "destination": "/sdk-reference/code-interpreter-python-sdk/v2.11.6/:slug*",
+      "destination": "/sdk-reference/code-interpreter-python-sdk/v2.11.7/:slug*",
       "permanent": false
     },
     {
