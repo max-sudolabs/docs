@@ -80,7 +80,7 @@ const context = await sandbox.createCodeContext({
 await sandbox.restartCodeContext(context)
 
 // using context ID
-await sandbox.restartCodeContext(context.contextId)
+await sandbox.restartCodeContext(context.id)
 ```
 ```python Python
 from e2b_code_interpreter import Sandbox
@@ -93,12 +93,10 @@ context = sandbox.create_code_context(
 )
 
 # using context object
-restarted_context = sandbox.restart_code_context(context)
-print(restarted_context)
+sandbox.restart_code_context(context)
 
 # using context ID
-restarted_context = sandbox.restart_code_context(context.contextId)
-print(restarted_context)
+sandbox.restart_code_context(context.id)
 ```
 </CodeGroup>
 
@@ -121,7 +119,7 @@ const context = await sandbox.createCodeContext({
 await sandbox.removeCodeContext(context)
 
 // using context ID
-await sandbox.removeCodeContext(context.contextId)
+await sandbox.removeCodeContext(context.id)
 ```
 ```python Python
 from e2b_code_interpreter import Sandbox
@@ -137,6 +135,6 @@ context = sandbox.create_code_context(
 sandbox.remove_code_context(context)
 
 # using context ID
-sandbox.remove_code_context(context.contextId)
+sandbox.remove_code_context(context.id)
 ```
 </CodeGroup>
