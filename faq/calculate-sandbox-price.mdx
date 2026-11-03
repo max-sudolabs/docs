@@ -1,11 +1,11 @@
 ---
 title: "How do I calculate the price of a sandbox?"
-description: "E2B bills per second, only while a sandbox is running, based on the vCPU and RAM allocated to it. Paused and killed sandboxes are not billed."
+description: "E2B bills per second, only while a sandbox is running, based on the vCPU and RAM allocated to it. Compute is not billed for paused or killed sandboxes."
 sidebarTitle: Calculating sandbox price
 "og:image": "/images/og/generated/faq/calculate-sandbox-price.png"
 ---
 
-E2B uses [usage-based pricing](/billing#usage-based-pricing). You pay **per second, only while a sandbox is running**, based on the vCPU and RAM allocated to it. Paused and killed sandboxes are not billed.
+E2B uses [usage-based pricing](/billing#usage-based-pricing). You pay **per second, only while a sandbox is running**, based on the vCPU and RAM allocated to it. Compute (vCPU and RAM) is not billed for paused or killed sandboxes.
 
 ## The formula
 
@@ -146,8 +146,8 @@ In production, [verify the `e2b-signature` header](/sandbox/lifecycle-events-web
 ## Reducing your bill
 
 <AccordionGroup>
-  <Accordion title="Do I pay for paused or stopped sandboxes?">
-    No. Billing stops the moment a sandbox is paused or killed. See [Do paused sandboxes count toward the concurrency limit?](/faq/paused-sandboxes-concurrency)
+  <Accordion title="Do I pay for compute on paused or stopped sandboxes?">
+    No. Compute billing stops the moment a sandbox is paused or killed. See [Do paused sandboxes count toward the concurrency limit?](/faq/paused-sandboxes-concurrency)
   </Accordion>
 
   <Accordion title="How do I allocate less compute?">

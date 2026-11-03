@@ -143,15 +143,15 @@ Check your usage and costs in the [console usage tab](https://console.e2b.dev/?t
   </Accordion>
 
   <Accordion title="How do I optimize costs?">
-    - **Enable auto-pause** - Automatically pause sandboxes after a period of inactivity to stop billing while preserving state
-    - **Pause sandboxes when idle** - Use `sbx.pause()` to stop billing while keeping state available for later
+    - **Enable auto-pause** - Automatically pause sandboxes after a period of inactivity to stop compute billing while preserving state
+    - **Pause sandboxes when idle** - Use `sbx.pause()` to stop compute billing while keeping state available for later
     - **Kill sandboxes you no longer need** - Use `sbx.kill()` to stop billing and release resources permanently
     - **Allocate only what you need** - Start with default resources (2 vCPU, 512 MiB RAM) and increase only if necessary
     - **Monitor actively running sandboxes** - Use the [CLI](/cli/list-sandboxes) or [console](https://console.e2b.dev/?tab=usage) to track active sandboxes
     - **Use lifecycle events** - Set up [webhooks](/sandbox/lifecycle-events-webhooks) to get notified when sandboxes are created
   </Accordion>
 
-  <Accordion title="Do I pay for stopped sandboxes?">
-    No. You only pay while a sandbox is actively running. Once a sandbox is paused, killed or times out, billing stops immediately.
+  <Accordion title="Do I pay for compute on stopped sandboxes?">
+    No. You only pay while a sandbox is actively running. Once a sandbox is paused, killed or times out, compute billing stops immediately.
   </Accordion>
 </AccordionGroup>
