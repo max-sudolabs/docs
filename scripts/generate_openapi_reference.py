@@ -1407,29 +1407,6 @@ def filter_paths(spec: dict[str, Any]) -> list[dict[str, Any]]:
     return removed
 
 
-# Upstream documents a few feature-flagged behaviours before the flag is on in
-# production. Each entry drops one sentence, matched by its opening words, from
-# an operation description. Remove an entry once its flag is served in
-# production, so the next generation documents the behaviour.
-UNRELEASED_DESCRIPTION_SENTENCES = {
-    # unpaginated-sandbox-list-cap
-    ("get", "/sandboxes"): "Returns 400 when more than 5000 running sandboxes match",
-    # unpaginated-template-list-cap
-    ("get", "/templates"): "Returns 400 when the team has more than 5000 templates",
-}
-
-
-def remove_unreleased_descriptions(spec: dict[str, Any]) -> None:
-    """Drop the sentences listed in UNRELEASED_DESCRIPTION_SENTENCES."""
-    for (method, path), opening in UNRELEASED_DESCRIPTION_SENTENCES.items():
-        op = spec["paths"].get(path, {}).get(method)
-        description = op.get("description", "") if op else ""
-        stripped = re.sub(rf"\s*{re.escape(opening)}[^.]*\.", "", description)
-        if stripped != description:
-            op["description"] = stripped
-            print(f"==> Removed unreleased behaviour from {method.upper()} {path}")
-
-
 # Opening words of the shared Error.error_code description. Upstream lists every
 # code the API returns there, including ones only the excluded routes return.
 ERROR_CODE_DESCRIPTION_MARKER = "Machine-readable semantic error code"
@@ -1908,7 +1885,6 @@ def main() -> None:
         # Remove internal/unwanted paths
         removed_ops = filter_paths(merged)
         internal_codes = internal_error_codes(merged, removed_ops)
-        remove_unreleased_descriptions(merged)
 
         # Reviewed response corrections stay in source, never in generated YAML.
         apply_platform_response_fixes(merged)

@@ -117,16 +117,6 @@ class GeneratorTests(unittest.TestCase):
         self.assertEqual(expected, spec["components"]["schemas"]["Error"]["properties"]["error_code"]["description"])
         self.assertEqual(expected, inline["schema"]["properties"]["error_code"]["description"])
 
-    def test_unreleased_cap_sentences_are_removed(self):
-        spec = {"paths": {
-            "/sandboxes": {"get": {"description": "List all running sandboxes. Returns 400 when more than "
-                                                  "5000 running sandboxes match; use GET /v2/sandboxes to page through them."}},
-            "/templates": {"get": {"description": "List all templates. Returns 400 when the team has more than "
-                                                  "5000 templates; use /v2/templates to page through them."}}}}
-        generator.remove_unreleased_descriptions(spec)
-        self.assertEqual("List all running sandboxes.", spec["paths"]["/sandboxes"]["get"]["description"])
-        self.assertEqual("List all templates.", spec["paths"]["/templates"]["get"]["description"])
-
 
     def test_nullable_is_replaced_everywhere(self):
         spec = {"components": {"schemas": {
@@ -149,7 +139,7 @@ class GeneratedSpecTests(unittest.TestCase):
     def setUpClass(cls):
         cls.spec = yaml.safe_load((SCRIPTS.parent / "openapi-public.yaml").read_text())
 
-    def test_no_internal_or_unreleased_surface(self):
+    def test_no_internal_surface(self):
         text = yaml.dump(self.spec)
         for code in ("cluster_registration_", "cluster_assignment_"):
             self.assertNotIn(code, text)
@@ -159,8 +149,6 @@ class GeneratedSpecTests(unittest.TestCase):
         for name in ("buildIDs", "buildStatuses", "buildsCursor", "buildsLimit", "buildIDOrTemplate"):
             self.assertNotIn(name, parameters)
         self.assertNotIn("BuildStatus", self.spec["components"]["schemas"])
-        for path in ("/sandboxes", "/templates"):
-            self.assertNotIn("5000", self.spec["paths"][path]["get"].get("description", ""))
 
     def test_no_openapi_30_nullable_keyword(self):
         found = []
