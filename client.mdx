@@ -155,16 +155,17 @@ Regions do not share state. A project and its API key belong to exactly one regi
 
 If a single process only ever talks to one region, you do not need a client at all. Set `E2B_API_KEY` and `E2B_DOMAIN` to that region's values and keep using the top-level exports.
 
-E2B's managed cloud runs in several regions. `us-west-1` is the default, and [support](https://console.e2b.dev/?support=true) enables the other regions for your account. See [Migrate between regions](/faq/migrate-between-regions), [EU region](/faq/eu-region), and [Egress IP ranges](/faq/egress-ip-ranges) for more on where sandboxes run.
+E2B's managed cloud runs in several regions. US-West-1 is the default, and [support](https://console.e2b.dev/?support=true) enables the other regions for your account. See [Migrate between regions](/faq/migrate-between-regions), [EU region](/faq/eu-region), and [Egress IP ranges](/faq/egress-ip-ranges) for more on where sandboxes run.
 
 There is no `region` option. Each region is a separate deployment with its own API endpoint, so you select one by pointing a client at that region's `domain`:
 
 | Region | Domain |
 | --- | --- |
-| `us-west-1` | `e2b.app` (default) |
-| `us-west-2` | `foxtrot-2.e2b.dev` |
-| `eu-west-1` | `e2b-juliett.dev` |
-| `ap-southeast-1` | `e2b-tango.dev` |
+| US-West-1 | `e2b.app` (default) |
+| US-West-2 | `foxtrot-2.e2b.dev` |
+| US-East-1 | `foxtrot-3.e2b.dev` |
+| EU-West-1 | `e2b-juliett.dev` |
+| AP-Southeast-1 | `e2b-tango.dev` |
 
 When support enables a region, they help you create a [project](/projects) there. That project has its own API key, so a multiregion setup is one client per region, each with its own key and domain.
 
@@ -176,6 +177,7 @@ import { E2B } from 'e2b'
 const regions = {
   usWest1: new E2B({ apiKey: 'e2b_YOUR_US_WEST_1_KEY' }), // Default domain: e2b.app
   usWest2: new E2B({ apiKey: 'e2b_YOUR_US_WEST_2_KEY', domain: 'foxtrot-2.e2b.dev' }),
+  usEast1: new E2B({ apiKey: 'e2b_YOUR_US_EAST_1_KEY', domain: 'foxtrot-3.e2b.dev' }),
   euWest1: new E2B({ apiKey: 'e2b_YOUR_EU_WEST_1_KEY', domain: 'e2b-juliett.dev' }),
   apSoutheast1: new E2B({ apiKey: 'e2b_YOUR_AP_SOUTHEAST_1_KEY', domain: 'e2b-tango.dev' }),
 }
@@ -194,6 +196,7 @@ from e2b import E2B
 regions = {
     "us_west_1": E2B(api_key="e2b_YOUR_US_WEST_1_KEY"),  # Default domain: e2b.app
     "us_west_2": E2B(api_key="e2b_YOUR_US_WEST_2_KEY", domain="foxtrot-2.e2b.dev"),
+    "us_east_1": E2B(api_key="e2b_YOUR_US_EAST_1_KEY", domain="foxtrot-3.e2b.dev"),
     "eu_west_1": E2B(api_key="e2b_YOUR_EU_WEST_1_KEY", domain="e2b-juliett.dev"),
     "ap_southeast_1": E2B(api_key="e2b_YOUR_AP_SOUTHEAST_1_KEY", domain="e2b-tango.dev"),
 }
@@ -212,6 +215,7 @@ from e2b import E2B
 regions = {
     "us_west_1": E2B(api_key="e2b_YOUR_US_WEST_1_KEY"),  # Default domain: e2b.app
     "us_west_2": E2B(api_key="e2b_YOUR_US_WEST_2_KEY", domain="foxtrot-2.e2b.dev"),
+    "us_east_1": E2B(api_key="e2b_YOUR_US_EAST_1_KEY", domain="foxtrot-3.e2b.dev"),
     "eu_west_1": E2B(api_key="e2b_YOUR_EU_WEST_1_KEY", domain="e2b-juliett.dev"),
     "ap_southeast_1": E2B(api_key="e2b_YOUR_AP_SOUTHEAST_1_KEY", domain="e2b-tango.dev"),
 }
