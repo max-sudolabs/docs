@@ -14,7 +14,8 @@ paths:
     get:
       summary: List sandboxes
       x-api-group: list
-      description: List all running sandboxes. Use GET /v2/sandboxes instead.
+      description: List all running sandboxes. Returns 400 when more than 5000 running
+        sandboxes match; use GET /v2/sandboxes to page through them.
       deprecated: true
       tags:
       - Sandboxes
@@ -595,8 +596,14 @@ paths:
           letters, digits, or hyphens (a-z, 0-9, -), such as a lowercase UUID. When
           idempotency is enabled,
 
-          matching retries replay the original status and body, including errors,
-          for the retention period.
+          matching retries replay a completed status and body for the retention period.
+          A creation
+
+          failure explicitly classified as safe to retry (Should-Retry: true) permits
+          a fresh
+
+          attempt with the same key and parameters. Only one attempt can run at a
+          time.
 
           Different request parameters return 409 with error_code idempotency_request_mismatch.
 
@@ -606,8 +613,13 @@ paths:
           outcome returns 422 with error_code idempotency_outcome_unknown. These retries
           do not execute the request again.
 
-          Retries do not extend retention. After the key expires, it can start a new
-          creation.
+          Retries do not extend retention. If a fresh attempt''s request deadline
+          plus response
+
+          persistence budget would exceed the remaining retention, the previous error
+          is replayed.
+
+          After the key expires, it can start a new creation.
 
           '
         schema:
@@ -2380,6 +2392,41 @@ paths:
                   value:
                     code: 401
                     message: authorization header is missing
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 409
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                sandboxStillResuming:
+                  summary: The sandbox is still resuming
+                  value:
+                    code: 409
+                    message: Sandbox sandboxid is still resuming; retry the delete
         '429':
           description: Too many requests
           headers:
@@ -5710,6 +5757,42 @@ paths:
                   value:
                     code: 500
                     message: Error creating snapshot template
+        '503':
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 503
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                snapshotNodeBusy:
+                  summary: The node cannot accept snapshot work
+                  value:
+                    code: 503
+                    message: Sandbox 'sandboxid' cannot be snapshotted right now because
+                      its node is busy, please retry
         '403':
           description: Forbidden
           content:
@@ -5787,42 +5870,6 @@ paths:
                     code: 409
                     message: Sandbox 'sandboxid' cannot be snapshotted while in 'pausing'
                       state
-        '503':
-          description: Service unavailable
-          content:
-            application/json:
-              schema:
-                required:
-                - code
-                - message
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                    description: Error code
-                    example: 503
-                  error_code:
-                    type: string
-                    description: 'Machine-readable semantic error code. Not a closed
-                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
-                      sandbox_no_compatible_node, sandbox_create_failed (a node could
-                      not create the sandbox this time; retry), sandbox_create_refused
-                      (a node refused the sandbox for a reason no retry changes, such
-                      as a vcpu count out of bounds in the stored build; a server
-                      error, since no request field reaches that check), internal_server_error,
-                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
-                      idempotency_outcome_unknown.'
-                  message:
-                    type: string
-                    description: Error
-                type: object
-              examples:
-                snapshotNodeBusy:
-                  summary: The node cannot accept snapshot work
-                  value:
-                    code: 503
-                    message: Sandbox 'sandboxid' cannot be snapshotted right now because
-                      its node is busy, please retry
       operationId: postSandboxSnapshots
     servers:
     - *id001
@@ -6893,7 +6940,8 @@ paths:
     get:
       summary: List templates
       x-api-group: list
-      description: List all templates
+      description: List all templates. Returns 400 when the team has more than 5000
+        templates; use /v2/templates to page through them.
       deprecated: true
       tags:
       - Templates
@@ -6916,6 +6964,41 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Template'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                required:
+                - code
+                - message
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                    description: Error code
+                    example: 400
+                  error_code:
+                    type: string
+                    description: 'Machine-readable semantic error code. Not a closed
+                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
+                      sandbox_no_compatible_node, sandbox_create_failed (a node could
+                      not create the sandbox this time; retry), sandbox_create_refused
+                      (a node refused the sandbox for a reason no retry changes, such
+                      as a vcpu count out of bounds in the stored build; a server
+                      error, since no request field reaches that check), internal_server_error,
+                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
+                      idempotency_outcome_unknown.'
+                  message:
+                    type: string
+                    description: Error
+                type: object
+              examples:
+                teamMismatch:
+                  summary: The team parameter does not match the API key
+                  value:
+                    code: 400
+                    message: Team ID param mismatch with the API key
         '401':
           description: Authentication error
           content:
@@ -7042,41 +7125,6 @@ paths:
                   value:
                     code: 500
                     message: Error when getting templates
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                required:
-                - code
-                - message
-                properties:
-                  code:
-                    type: integer
-                    format: int32
-                    description: Error code
-                    example: 400
-                  error_code:
-                    type: string
-                    description: 'Machine-readable semantic error code. Not a closed
-                      set; initial values: sandbox_capacity_unavailable, sandbox_placement_timeout,
-                      sandbox_no_compatible_node, sandbox_create_failed (a node could
-                      not create the sandbox this time; retry), sandbox_create_refused
-                      (a node refused the sandbox for a reason no retry changes, such
-                      as a vcpu count out of bounds in the stored build; a server
-                      error, since no request field reaches that check), internal_server_error,
-                      secret_limit_reached, idempotency_request_mismatch, idempotency_in_progress,
-                      idempotency_outcome_unknown.'
-                  message:
-                    type: string
-                    description: Error
-                type: object
-              examples:
-                teamMismatch:
-                  summary: The team parameter does not match the API key
-                  value:
-                    code: 400
-                    message: Team ID param mismatch with the API key
         '403':
           description: Forbidden
           content:
@@ -20536,21 +20584,6 @@ components:
         used with the signature parameter.
       schema:
         type: integer
-    clusterID:
-      name: clusterID
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-      description: Identifier of the cluster
-    rigID:
-      name: rigID
-      in: path
-      required: true
-      schema:
-        type: string
-      description: Rig identifier (e.g. "default")
     templateID:
       name: templateID
       in: path
@@ -20576,33 +20609,6 @@ components:
       description: Identifier of the team, as its UUID or its public project ID (prj_)
       schema:
         type: string
-    nodeID:
-      name: nodeID
-      in: path
-      required: true
-      schema:
-        type: string
-    apiKeyID:
-      name: apiKeyID
-      in: path
-      required: true
-      schema:
-        type: string
-    aliasID:
-      name: aliasID
-      in: path
-      required: true
-      description: Identifier of the alias
-      schema:
-        type: string
-        format: uuid
-    snapshotID:
-      name: snapshotID
-      in: path
-      required: true
-      schema:
-        type: string
-        description: Identifier of the snapshot (template ID)
     tag:
       name: tag
       in: path
@@ -20708,56 +20714,6 @@ components:
       required: false
       schema:
         type: string
-    templatesSearch:
-      name: search
-      in: query
-      required: false
-      description: Case-insensitive substring match on the template ID, its aliases
-        and its names.
-      schema:
-        type: string
-        maxLength: 256
-    templatesSort:
-      name: sort
-      in: query
-      required: false
-      description: Sort column and direction.
-      schema:
-        type: string
-        enum:
-        - created_at_desc
-        - created_at_asc
-        - updated_at_desc
-        - updated_at_asc
-        default: created_at_desc
-    templatesPublic:
-      name: public
-      in: query
-      required: false
-      description: Only list public (true) or only non-public (false) templates.
-      schema:
-        type: boolean
-    templatesCursor:
-      name: cursor
-      in: query
-      required: false
-      description: 'Cursor returned by the previous page in `{sort}|{value}|{templateID}`
-        format. Rejected if its sort does not match the request.
-
-        '
-      schema:
-        type: string
-    templatesLimit:
-      name: limit
-      in: query
-      required: false
-      description: Maximum number of templates to return per page.
-      schema:
-        type: integer
-        format: int32
-        minimum: 1
-        maximum: 100
-        default: 50
     volumeID:
       name: volumeID
       in: path
@@ -24043,7 +23999,14 @@ components:
         second sandbox. Successful responses and errors without an explicit classification
         omit
 
-        the header.
+        the header. With idempotency enabled, retry sandbox creation with the same
+        Idempotency-Key
+
+        and request parameters. A retryable creation failure permits a fresh attempt;
+        an
+
+        idempotency_in_progress response only reports an existing attempt and never
+        releases it.
 
         '
       required: false
