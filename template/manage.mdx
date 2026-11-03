@@ -1,0 +1,173 @@
+---
+title: "List and manage templates"
+sidebarTitle: "List & manage"
+description: "List, inspect, and delete your templates with the E2B CLI and API"
+"og:image": "/images/og/generated/template/manage.png"
+---
+
+You can list your project's templates, inspect a single template and its builds, and delete templates you no longer need. Use the [CLI](#cli) or the [API](#api). The JavaScript and Python SDKs don't have methods to list or delete templates.
+
+## CLI
+
+These commands need [E2B CLI](/cli) `2.23.0` or later.
+
+### List templates
+
+```bash
+e2b template list
+```
+
+| Option | Description |
+| --- | --- |
+| `-l, --limit <limit>` | Maximum number of templates to show. Defaults to `1000` for table output and no limit for JSON. `0` means no limit. |
+| `-f, --format <format>` | Output format: `pretty` (default) or `json`. |
+| `-t, --project <project-id>` | Project to list templates from. |
+
+The CLI pages through all of your templates for you, so it works for projects of any size.
+
+### Delete a template
+
+Pass the template ID or name. The CLI asks for confirmation unless you pass `-y`.
+
+```bash
+e2b template delete my-template
+
+# Skip the confirmation prompt
+e2b template delete my-template -y
+```
+
+The CLI has no command to inspect a single template. Use [`GET /templates/{templateID}`](#get-a-template) instead.
+
+## API
+
+Authenticate every request with your API key in the `X-API-Key` header.
+
+### List templates
+
+`GET /v2/templates` returns your templates newest first, one page at a time.
+
+| Query parameter | Description |
+| --- | --- |
+| `limit` | Templates per page, from `1` to `100`. Defaults to `100`. |
+| `nextToken` | Cursor for the next page, taken from the previous response's `X-Next-Token` header. |
+
+The `X-Next-Token` header is only set when there are more results. Keep requesting pages until it's missing:
+
+<CodeGroup>
+
+```typescript JavaScript & TypeScript
+const templates = []
+let nextToken = null
+
+do {
+  const url = new URL('https://api.e2b.app/v2/templates')
+  url.searchParams.set('limit', '100')
+  if (nextToken) url.searchParams.set('nextToken', nextToken)
+
+  const res = await fetch(url, {
+    headers: { 'X-API-Key': process.env.E2B_API_KEY },
+  })
+  if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`)
+
+  templates.push(...(await res.json()))
+  nextToken = res.headers.get('X-Next-Token')
+} while (nextToken)
+
+for (const t of templates) {
+  console.log(t.templateID, t.names, t.buildStatus)
+}
+```
+
+```python Python
+import os
+import requests
+
+templates = []
+next_token = None
+
+while True:
+    params = {"limit": 100}
+    if next_token:
+        params["nextToken"] = next_token
+
+    res = requests.get(
+        "https://api.e2b.app/v2/templates",
+        params=params,
+        headers={"X-API-Key": os.environ["E2B_API_KEY"]},
+    )
+    res.raise_for_status()
+
+    templates.extend(res.json())
+    next_token = res.headers.get("X-Next-Token")
+    if not next_token:
+        break
+
+for t in templates:
+    print(t["templateID"], t["names"], t["buildStatus"])
+```
+
+</CodeGroup>
+
+Each template includes `templateID`, `names`, `buildID`, `buildStatus`, `cpuCount`, `memoryMB`, `diskSizeMB`, `public`, `createdAt`, `updatedAt`, `lastSpawnedAt`, `spawnCount`, and `buildCount`.
+
+<Warning>
+`GET /templates` (without `/v2`) is deprecated. It returns every template in one response and fails with `400 Bad Request` when your project has more than 5,000 templates. Use `GET /v2/templates` instead.
+</Warning>
+
+### Get a template
+
+`GET /templates/{templateID}` returns one template with its builds. Pass the template ID, not a name. Builds are paginated with the same `limit`, `nextToken`, and `X-Next-Token` as the list endpoint.
+
+<CodeGroup>
+
+```typescript JavaScript & TypeScript
+const res = await fetch(`https://api.e2b.app/templates/${templateID}`, {
+  headers: { 'X-API-Key': process.env.E2B_API_KEY },
+})
+const template = await res.json()
+
+for (const build of template.builds) {
+  console.log(build.buildID, build.status, build.createdAt)
+}
+```
+
+```python Python
+res = requests.get(
+    f"https://api.e2b.app/templates/{template_id}",
+    headers={"X-API-Key": os.environ["E2B_API_KEY"]},
+)
+res.raise_for_status()
+
+for build in res.json()["builds"]:
+    print(build["buildID"], build["status"], build["createdAt"])
+```
+
+</CodeGroup>
+
+### Delete a template
+
+`DELETE /templates/{templateID}` deletes a template by ID or name and returns `204 No Content`. The template's names become free to reuse.
+
+<CodeGroup>
+
+```typescript JavaScript & TypeScript
+const res = await fetch('https://api.e2b.app/templates/my-template', {
+  method: 'DELETE',
+  headers: { 'X-API-Key': process.env.E2B_API_KEY },
+})
+if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`)
+```
+
+```python Python
+res = requests.delete(
+    "https://api.e2b.app/templates/my-template",
+    headers={"X-API-Key": os.environ["E2B_API_KEY"]},
+)
+res.raise_for_status()
+```
+
+</CodeGroup>
+
+<Warning>
+You can't delete a template while running or paused sandboxes use it. The API returns `400 Bad Request`. Kill those sandboxes first, then retry.
+</Warning>

@@ -84,6 +84,7 @@
                   "template/build",
                   "template/names",
                   "template/tags",
+                  "template/manage",
                   "template/logging",
                   "template/error-handling",
                   {
