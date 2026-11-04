@@ -29,6 +29,103 @@ call made through its resource classes. Same shape as :class:`ApiParams`.
 
 
 
+### request\_timeout
+
+Timeout for the request in **seconds**, defaults to 60 seconds.
+
+
+
+### retries
+
+Number of control-plane HTTP retries after a 429, 502 or 503 response or
+
+a network error once the request was written (dropped connection). A 502
+and such network errors are not retried for operations that create a
+resource (e.g. sandbox creation) or append to one (secret update), as the
+server may already have processed them; failures to
+establish the connection are retried separately for every operation, see
+``E2B_CONNECTION_RETRIES``.
+A 429 is retried only with a valid, non-negative integer delta-seconds
+``Retry-After`` header (HTTP-date and malformed values are not retried).
+502 and 503 honor such a ``Retry-After`` when present; otherwise they and
+network errors use exponential backoff with jitter starting at 0.1 seconds
+(capped at 10 seconds).
+A retry is skipped when its wait would exhaust the request timeout.
+Retry waits use a 60-second total limit when request timeouts are disabled.
+Set to ``0`` to disable retries. Defaults to 3 retries.
+
+**Raises**:
+
+- `InvalidArgumentException`: if the value is negative or not an integer.
+
+
+
+### headers
+
+Additional headers to send with the request. Deprecated, use api_headers instead.
+
+
+
+### api\_headers
+
+Additional headers to send with E2B API requests.
+
+
+
+### api\_key
+
+E2B API Key to use for authentication, defaults to `E2B_API_KEY` environment variable.
+
+
+
+### validate\_api\_key
+
+Deprecated: the API key format is no longer validated on the client side;
+this option has no effect.
+
+
+
+### domain
+
+E2B domain to use for authentication, defaults to `E2B_DOMAIN` environment variable.
+
+
+
+### api\_url
+
+URL to use for the API, defaults to `https://api.<domain>`. For internal use only.
+
+
+
+### debug
+
+Whether to use debug mode, defaults to `E2B_DEBUG` environment variable.
+
+
+
+### proxy
+
+Proxy to use for the request. In case of a sandbox it applies to all **requests made to the returned sandbox**.
+
+
+
+### sandbox\_url
+
+URL to connect to sandbox, defaults to `E2B_SANDBOX_URL` environment variable.
+
+
+
+### http\_version
+
+HTTP version for requests to the E2B API and to sandboxes (commands,
+filesystem, PTY), defaults to `E2B_HTTP_VERSION` environment variable or
+`"2"`. `"1.1"` pins them to HTTP/1.1, which
+uses one connection per concurrent request instead of multiplexing streams
+over shared connections — for example when an intermediary on the path
+retires or mishandles long-lived HTTP/2 connections.
+
+
+
 ## E2B
 
 ```python

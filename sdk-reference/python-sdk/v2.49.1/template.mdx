@@ -16,6 +16,158 @@ noindex: true
 
 
 
+Special step name for the finalization phase of template building.
+This is the last step that runs after all user-defined instructions.
+
+
+
+### FINALIZE\_STEP\_NAME
+
+Special step name for the base image phase of template building.
+This is the first step that sets up the base image.
+
+
+
+### BASE\_STEP\_NAME
+
+Default setting for whether to resolve symbolic links when copying files.
+When False, symlinks are copied as symlinks rather than following them.
+
+
+
+### RESOLVE\_SYMLINKS
+
+Default setting for whether to gzip files when copying them into the
+template. When True, the upload archive is gzipped before being uploaded.
+
+
+
+### GZIP
+
+Default timeout (in seconds) for uploading the build-context archive to the
+S3 presigned URL. Uploads of large archives can take far longer than the 60s
+general API request timeout, so the upload uses a 1-hour default unless the
+caller passes an explicit ``request_timeout``. This matches the JS SDK's
+``FILE_UPLOAD_TIMEOUT_MS``.
+
+
+
+
+
+
+## DockerfFileFinalParserInterface
+
+```python
+class DockerfFileFinalParserInterface(Protocol)
+```
+
+Protocol defining the final interface for Dockerfile parsing callbacks.
+
+
+
+## DockerfileParserInterface
+
+```python
+class DockerfileParserInterface(Protocol)
+```
+
+Protocol defining the interface for Dockerfile parsing callbacks.
+
+
+
+### run\_cmd
+
+```python
+def run_cmd(command: Union[str, List[str]],
+            user: Optional[str] = None) -> "DockerfileParserInterface"
+```
+
+Handle RUN instruction.
+
+
+
+### copy
+
+```python
+def copy(src: str,
+         dest: str,
+         force_upload: Optional[Literal[True]] = None,
+         user: Optional[str] = None,
+         mode: Optional[int] = None,
+         resolve_symlinks: Optional[bool] = None,
+         gzip: Optional[bool] = None) -> "DockerfileParserInterface"
+```
+
+Handle COPY instruction.
+
+
+
+### set\_workdir
+
+```python
+def set_workdir(workdir: str) -> "DockerfileParserInterface"
+```
+
+Handle WORKDIR instruction.
+
+
+
+### set\_user
+
+```python
+def set_user(user: str) -> "DockerfileParserInterface"
+```
+
+Handle USER instruction.
+
+
+
+### set\_envs
+
+```python
+def set_envs(envs: Dict[str, str]) -> "DockerfileParserInterface"
+```
+
+Handle ENV instruction.
+
+
+
+### set\_start\_cmd
+
+```python
+def set_start_cmd(start_cmd: str,
+                  ready_cmd: str) -> "DockerfFileFinalParserInterface"
+```
+
+Handle CMD/ENTRYPOINT instruction.
+
+
+
+### parse\_dockerfile
+
+```python
+def parse_dockerfile(dockerfile_content_or_path: str,
+                     template_builder: DockerfileParserInterface) -> str
+```
+
+Parse a Dockerfile and convert it to Template SDK format.
+
+**Arguments**:
+
+- `dockerfile_content_or_path`: Either the Dockerfile content as a string, or a path to a Dockerfile file
+- `template_builder`: Interface providing template builder methods
+
+**Raises**:
+
+- `ValueError`: If the Dockerfile is invalid or unsupported
+
+**Returns**:
+
+The base image from the Dockerfile
+
+
+
+
 
 
 ## LogEntry
@@ -113,753 +265,12 @@ from e2b import Template, default_build_logger
 
 template = Template().from_python_image()
 
+# Use with build - implementation would be in build_async module
+# await Template.build(template,
+#     alias='my-template',
+#     on_build_logs=default_build_logger(min_level='debug')
+# )
 ```
-
-
-
-
-
-
-## TemplateBuildStatus
-
-```python
-class TemplateBuildStatus(str, Enum)
-```
-
-Status of a template build.
-
-
-
-## BuildStatusReason
-
-```python
-@dataclass
-class BuildStatusReason()
-```
-
-Reason for the current build status (typically for errors).
-
-
-
-### message
-
-Message with the status reason.
-
-
-
-### step
-
-Step that failed.
-
-
-
-### log\_entries
-
-Log entries related to the status reason.
-
-
-
-## TemplateBuildStatusResponse
-
-```python
-@dataclass
-class TemplateBuildStatusResponse()
-```
-
-Response from getting build status.
-
-
-
-### build\_id
-
-Build identifier.
-
-
-
-### template\_id
-
-Template identifier.
-
-
-
-### status
-
-Current status of the build.
-
-
-
-### log\_entries
-
-Build log entries.
-
-
-
-### logs
-
-Build logs (raw strings). Deprecated: use log_entries instead.
-
-
-
-### reason
-
-Reason for the current status (typically for errors).
-
-
-
-## TemplateTagInfo
-
-```python
-@dataclass
-class TemplateTagInfo()
-```
-
-Information about assigned template tags.
-
-
-
-### build\_id
-
-Build identifier associated with this tag.
-
-
-
-### tags
-
-Assigned tags of the template.
-
-
-
-## TemplateTag
-
-```python
-@dataclass
-class TemplateTag()
-```
-
-Detailed information about a single template tag.
-
-
-
-### tag
-
-Name of the tag.
-
-
-
-### build\_id
-
-Build identifier associated with this tag.
-
-
-
-### created\_at
-
-When this tag was assigned.
-
-
-
-## InstructionType
-
-```python
-class InstructionType(str, Enum)
-```
-
-Types of instructions that can be used in a template.
-
-
-
-## CopyItem
-
-```python
-class CopyItem(TypedDict)
-```
-
-Configuration for a single file/directory copy operation.
-
-
-
-## Instruction
-
-```python
-class Instruction(TypedDict)
-```
-
-Represents a single instruction in the template build process.
-
-
-
-## GenericDockerRegistry
-
-```python
-class GenericDockerRegistry(TypedDict)
-```
-
-Configuration for a generic Docker registry with basic authentication.
-
-
-
-## AWSRegistry
-
-```python
-class AWSRegistry(TypedDict)
-```
-
-Configuration for AWS Elastic Container Registry (ECR).
-
-
-
-## GCPRegistry
-
-```python
-class GCPRegistry(TypedDict)
-```
-
-Configuration for Google Container Registry (GCR) or Artifact Registry.
-
-
-
-## TemplateType
-
-```python
-class TemplateType(TypedDict)
-```
-
-Internal representation of a template for the E2B build API.
-
-
-
-## BuildInfo
-
-```python
-@dataclass
-class BuildInfo()
-```
-
-Information about a built template.
-
-
-
-
-
-
-## ReadyCmd
-
-```python
-class ReadyCmd()
-```
-
-Wrapper class for ready check commands.
-
-
-
-### wait\_for\_port
-
-```python
-def wait_for_port(port: int)
-```
-
-Wait for a port to be listening.
-
-Uses `ss` command to check if a port is open and listening.
-
-**Arguments**:
-
-- `port`: Port number to wait for
-
-**Returns**:
-
-ReadyCmd that checks for the port
-Example
-```python
-from e2b import Template, wait_for_port
-
-template = (
-    Template()
-    .from_python_image()
-    .set_start_cmd('python -m http.server 8000', wait_for_port(8000))
-)
-```
-
-
-
-### wait\_for\_url
-
-```python
-def wait_for_url(url: str, status_code: int = 200)
-```
-
-Wait for a URL to return a specific HTTP status code.
-
-Uses `curl` to make HTTP requests and check the response status.
-
-**Arguments**:
-
-- `url`: URL to check (e.g., 'http://localhost:3000/health')
-- `status_code`: Expected HTTP status code (default: 200)
-
-**Returns**:
-
-ReadyCmd that checks the URL
-Example
-```python
-from e2b import Template, wait_for_url
-
-template = (
-    Template()
-    .from_node_image()
-    .set_start_cmd('npm start', wait_for_url('http://localhost:3000/health'))
-)
-```
-
-
-
-### wait\_for\_process
-
-```python
-def wait_for_process(process_name: str)
-```
-
-Wait for a process with a specific name to be running.
-
-Uses `pgrep` to check if a process exists.
-
-**Arguments**:
-
-- `process_name`: Name of the process to wait for
-
-**Returns**:
-
-ReadyCmd that checks for the process
-Example
-```python
-from e2b import Template, wait_for_process
-
-template = (
-    Template()
-    .from_base_image()
-    .set_start_cmd('./my-daemon', wait_for_process('my-daemon'))
-)
-```
-
-
-
-### wait\_for\_file
-
-```python
-def wait_for_file(filename: str)
-```
-
-Wait for a file to exist.
-
-Uses shell test command to check file existence.
-
-**Arguments**:
-
-- `filename`: Path to the file to wait for
-
-**Returns**:
-
-ReadyCmd that checks for the file
-Example
-```python
-from e2b import Template, wait_for_file
-
-template = (
-    Template()
-    .from_base_image()
-    .set_start_cmd('./init.sh', wait_for_file('/tmp/ready'))
-)
-```
-
-
-
-### wait\_for\_timeout
-
-```python
-def wait_for_timeout(timeout: int)
-```
-
-Wait for a specified timeout before considering the sandbox ready.
-
-Uses `sleep` command to wait for a fixed duration.
-
-**Arguments**:
-
-- `timeout`: Time to wait in **milliseconds** (minimum: 1000ms / 1 second)
-
-**Returns**:
-
-ReadyCmd that waits for the specified duration
-Example
-```python
-from e2b import Template, wait_for_timeout
-
-template = (
-    Template()
-    .from_node_image()
-    .set_start_cmd('npm start', wait_for_timeout(5000))  # Wait 5 seconds
-)
-```
-
-
-
-
-
-
-### make\_traceback
-
-```python
-def make_traceback(
-        caller_frame: Optional[FrameType]) -> Optional[TracebackType]
-```
-
-Create a TracebackType from a caller frame for error reporting.
-
-**Arguments**:
-
-- `caller_frame`: The caller's frame object, or None
-
-**Returns**:
-
-A TracebackType object for use with exception.with_traceback(), or None
-
-
-
-### validate\_relative\_path
-
-```python
-def validate_relative_path(src: str,
-                           stack_trace: Optional[TracebackType]) -> None
-```
-
-Validate that a source path for copy operations is a relative path that stays
-
-within the context directory. This prevents path traversal attacks and ensures
-files are copied from within the expected directory.
-
-**Arguments**:
-
-- `src`: The source path to validate
-- `stack_trace`: Optional stack trace for error reporting
-
-**Raises**:
-
-- `TemplateException`: If the path is absolute or escapes the context directory
-Invalid paths:
-- Absolute paths: /absolute/path, C:\Windows\path
-- Parent directory escapes: ../foo, foo/../../bar, ./foo/../../../bar
-
-Valid paths:
-- Simple relative: foo, foo/bar
-- Current directory prefix: ./foo, ./foo/bar
-- Internal parent refs that don't escape: foo/../bar (stays within context)
-
-
-
-### normalize\_build\_arguments
-
-```python
-def normalize_build_arguments(name: Optional[str] = None,
-                              alias: Optional[str] = None) -> str
-```
-
-Normalize build arguments from different parameter signatures.
-
-Handles string name or legacy alias parameter.
-
-**Arguments**:
-
-- `name`: Template name in 'name' or 'name:tag' format
-- `alias`: (Deprecated) Alias name for the template. Use name instead.
-
-**Raises**:
-
-- `TemplateException`: If no template name is provided
-
-**Returns**:
-
-Normalized template name
-
-
-
-### read\_dockerignore
-
-```python
-def read_dockerignore(context_path: str) -> List[str]
-```
-
-Read and parse a .dockerignore file.
-
-**Arguments**:
-
-- `context_path`: Directory path containing the .dockerignore file
-
-**Returns**:
-
-Array of ignore patterns (empty lines and comments are filtered out)
-
-
-
-### normalize\_path
-
-```python
-def normalize_path(path: str) -> str
-```
-
-Normalize path separators to forward slashes for glob patterns (glob expects / even on Windows).
-
-**Arguments**:
-
-- `path`: The path to normalize
-
-**Returns**:
-
-The normalized path
-
-
-
-### get\_all\_files\_in\_path
-
-```python
-def get_all_files_in_path(src: str,
-                          context_path: str,
-                          ignore_patterns: List[str],
-                          include_directories: bool = True) -> List[str]
-```
-
-Get all files for a given path and ignore patterns.
-
-**Arguments**:
-
-- `src`: Path to the source directory
-- `context_path`: Base directory for resolving relative paths
-- `ignore_patterns`: Ignore patterns
-- `include_directories`: Whether to include directories
-
-**Returns**:
-
-Array of files
-
-
-
-### calculate\_files\_hash
-
-```python
-def calculate_files_hash(src: str, dest: str, context_path: str,
-                         ignore_patterns: List[str], resolve_symlinks: bool,
-                         stack_trace: Optional[TracebackType]) -> str
-```
-
-Calculate a hash of files being copied to detect changes for cache invalidation.
-
-The hash includes file content, metadata (mode, size), and relative paths.
-Note: uid, gid, and mtime are excluded to ensure stable hashes across environments.
-
-**Arguments**:
-
-- `src`: Source path pattern for files to copy
-- `dest`: Destination path where files will be copied
-- `context_path`: Base directory for resolving relative paths
-- `ignore_patterns`: Glob patterns to ignore
-- `resolve_symlinks`: Whether to resolve symbolic links when hashing
-- `stack_trace`: Optional stack trace for error reporting
-
-**Raises**:
-
-- `ValueError`: If no files match the source pattern
-
-**Returns**:
-
-Hex string hash of all files
-
-
-
-### tar\_file\_stream
-
-```python
-def tar_file_stream(file_name: str, file_context_path: str,
-                    ignore_patterns: List[str], resolve_symlinks: bool,
-                    gzip: bool) -> IO[bytes]
-```
-
-Create a tar archive of files matching a pattern in a temporary file.
-
-The archive is spooled to disk so it can be uploaded as a stream instead
-of being buffered in memory. The temporary file is deleted when closed.
-
-**Arguments**:
-
-- `file_name`: Glob pattern for files to include
-- `file_context_path`: Base directory for resolving file paths
-- `ignore_patterns`: Ignore patterns
-- `resolve_symlinks`: Whether to resolve symbolic links
-- `gzip`: Whether to gzip the archive
-
-**Returns**:
-
-Binary file object positioned at the start of the archive
-
-
-
-### strip\_ansi\_escape\_codes
-
-```python
-def strip_ansi_escape_codes(text: str) -> str
-```
-
-Strip ANSI escape codes from a string.
-
-Source: https://github.com/chalk/ansi-regex/blob/main/index.js
-
-**Arguments**:
-
-- `text`: String with ANSI escape codes
-
-**Returns**:
-
-String without ANSI escape codes
-
-
-
-### get\_caller\_frame
-
-```python
-def get_caller_frame() -> Optional[FrameType]
-```
-
-Get the caller's stack frame in user code.
-
-This is used to provide better error messages and debugging information
-by tracking where template methods were called from in user code.
-
-The caller is the first frame whose file lies outside the SDK package.
-Selecting frames by boundary rather than by fixed depth keeps the result
-stable no matter how many SDK-internal frames sit in between.
-
-**Returns**:
-
-The caller frame, or None if not available
-
-
-
-### get\_caller\_directory
-
-```python
-def get_caller_directory() -> Optional[str]
-```
-
-Get the directory of the caller in user code.
-
-This is used to determine the file_context_path when creating a template,
-so file paths are resolved relative to the user's template file location.
-
-**Returns**:
-
-The caller's directory path, or None if not available
-
-
-
-### pad\_octal
-
-```python
-def pad_octal(mode: int) -> str
-```
-
-Convert a numeric file mode to a zero-padded octal string.
-
-**Arguments**:
-
-- `mode`: File mode as a number (e.g., 493 for 0o755)
-
-**Returns**:
-
-Zero-padded 4-digit octal string (e.g., "0755")
-Example
-```python
-pad_octal(0o755)  # Returns "0755"
-pad_octal(0o644)  # Returns "0644"
-```
-
-
-
-### get\_build\_step\_index
-
-```python
-def get_build_step_index(step: str, stack_traces_length: int) -> int
-```
-
-Get the array index for a build step based on its name.
-
-Special steps:
-- BASE_STEP_NAME: Returns 0 (first step)
-- FINALIZE_STEP_NAME: Returns the last index
-- Numeric strings: Converted to number
-
-**Arguments**:
-
-- `step`: Build step name or number as string
-- `stack_traces_length`: Total number of stack traces (used for FINALIZE_STEP_NAME)
-
-**Returns**:
-
-Index for the build step
-
-
-
-### read\_gcp\_service\_account\_json
-
-```python
-def read_gcp_service_account_json(context_path: str,
-                                  path_or_content: Union[str, dict]) -> str
-```
-
-Read GCP service account JSON from a file or object.
-
-**Arguments**:
-
-- `context_path`: Base directory for resolving relative file paths
-- `path_or_content`: Either a path to a JSON file or a service account object
-
-**Returns**:
-
-Service account JSON as a string
-
-
-
-
-Special step name for the finalization phase of template building.
-This is the last step that runs after all user-defined instructions.
-
-
-
-### FINALIZE\_STEP\_NAME
-
-Special step name for the base image phase of template building.
-This is the first step that sets up the base image.
-
-
-
-### BASE\_STEP\_NAME
-
-Default setting for whether to resolve symbolic links when copying files.
-When False, symlinks are copied as symlinks rather than following them.
-
-
-
-### RESOLVE\_SYMLINKS
-
-Default setting for whether to gzip files when copying them into the
-template. When True, the upload archive is gzipped before being uploaded.
-
-
-
-### GZIP
-
-Default timeout (in seconds) for uploading the build-context archive to the
-S3 presigned URL. Uploads of large archives can take far longer than the 60s
-general API request timeout, so the upload uses a 1-hour default unless the
-caller passes an explicit ``request_timeout``. This matches the JS SDK's
-``FILE_UPLOAD_TIMEOUT_MS``.
 
 
 
@@ -1339,9 +750,11 @@ This method returns `TemplateFinal`, which means it must be the last method in t
 `TemplateFinal` class
 Example
 ```python
+# Simple start
 template.git_clone('https://myrepo.com/project.git', '/my-devcontainer')
 template.beta_set_devcontainer_start('/my-devcontainer')
 
+# With prebuild
 template.git_clone('https://myrepo.com/project.git', '/my-devcontainer')
 template.beta_dev_container_prebuild('/my-devcontainer')
 template.beta_set_dev_container_start('/my-devcontainer')
@@ -1413,11 +826,13 @@ Set the command to start when the sandbox launches and the ready check command.
 `TemplateFinal` class
 Example
 ```python
+# Using a string command
 template.set_start_cmd(
     'python app.py',
     'curl http://localhost:8000/health'
 )
 
+# Using ReadyCmd helpers
 from e2b import wait_for_port, wait_for_url
 
 template.set_start_cmd(
@@ -1450,8 +865,10 @@ Set the command to check if the sandbox is ready.
 `TemplateFinal` class
 Example
 ```python
+# Using a string command
 template.set_ready_cmd('curl http://localhost:8000/health')
 
+# Using ReadyCmd helpers
 from e2b import wait_for_port, wait_for_file, wait_for_process
 
 template.set_ready_cmd(wait_for_port(3000))
@@ -1734,6 +1151,7 @@ Example
 ```python
 Template().from_image('python:3')
 
+# With credentials (optional)
 Template().from_image('myregistry.com/myimage:latest', username='user', password='pass')
 ```
 
@@ -1899,112 +1317,706 @@ Dockerfile string representation
 
 
 
-## DockerfFileFinalParserInterface
+## ReadyCmd
 
 ```python
-class DockerfFileFinalParserInterface(Protocol)
+class ReadyCmd()
 ```
 
-Protocol defining the final interface for Dockerfile parsing callbacks.
+Wrapper class for ready check commands.
 
 
 
-## DockerfileParserInterface
+### wait\_for\_port
 
 ```python
-class DockerfileParserInterface(Protocol)
+def wait_for_port(port: int)
 ```
 
-Protocol defining the interface for Dockerfile parsing callbacks.
+Wait for a port to be listening.
 
-
-
-### run\_cmd
-
-```python
-def run_cmd(command: Union[str, List[str]],
-            user: Optional[str] = None) -> "DockerfileParserInterface"
-```
-
-Handle RUN instruction.
-
-
-
-### copy
-
-```python
-def copy(src: str,
-         dest: str,
-         force_upload: Optional[Literal[True]] = None,
-         user: Optional[str] = None,
-         mode: Optional[int] = None,
-         resolve_symlinks: Optional[bool] = None,
-         gzip: Optional[bool] = None) -> "DockerfileParserInterface"
-```
-
-Handle COPY instruction.
-
-
-
-### set\_workdir
-
-```python
-def set_workdir(workdir: str) -> "DockerfileParserInterface"
-```
-
-Handle WORKDIR instruction.
-
-
-
-### set\_user
-
-```python
-def set_user(user: str) -> "DockerfileParserInterface"
-```
-
-Handle USER instruction.
-
-
-
-### set\_envs
-
-```python
-def set_envs(envs: Dict[str, str]) -> "DockerfileParserInterface"
-```
-
-Handle ENV instruction.
-
-
-
-### set\_start\_cmd
-
-```python
-def set_start_cmd(start_cmd: str,
-                  ready_cmd: str) -> "DockerfFileFinalParserInterface"
-```
-
-Handle CMD/ENTRYPOINT instruction.
-
-
-
-### parse\_dockerfile
-
-```python
-def parse_dockerfile(dockerfile_content_or_path: str,
-                     template_builder: DockerfileParserInterface) -> str
-```
-
-Parse a Dockerfile and convert it to Template SDK format.
+Uses `ss` command to check if a port is open and listening.
 
 **Arguments**:
 
-- `dockerfile_content_or_path`: Either the Dockerfile content as a string, or a path to a Dockerfile file
-- `template_builder`: Interface providing template builder methods
-
-**Raises**:
-
-- `ValueError`: If the Dockerfile is invalid or unsupported
+- `port`: Port number to wait for
 
 **Returns**:
 
-The base image from the Dockerfile
+ReadyCmd that checks for the port
+Example
+```python
+from e2b import Template, wait_for_port
+
+template = (
+    Template()
+    .from_python_image()
+    .set_start_cmd('python -m http.server 8000', wait_for_port(8000))
+)
+```
+
+
+
+### wait\_for\_url
+
+```python
+def wait_for_url(url: str, status_code: int = 200)
+```
+
+Wait for a URL to return a specific HTTP status code.
+
+Uses `curl` to make HTTP requests and check the response status.
+
+**Arguments**:
+
+- `url`: URL to check (e.g., 'http://localhost:3000/health')
+- `status_code`: Expected HTTP status code (default: 200)
+
+**Returns**:
+
+ReadyCmd that checks the URL
+Example
+```python
+from e2b import Template, wait_for_url
+
+template = (
+    Template()
+    .from_node_image()
+    .set_start_cmd('npm start', wait_for_url('http://localhost:3000/health'))
+)
+```
+
+
+
+### wait\_for\_process
+
+```python
+def wait_for_process(process_name: str)
+```
+
+Wait for a process with a specific name to be running.
+
+Uses `pgrep` to check if a process exists.
+
+**Arguments**:
+
+- `process_name`: Name of the process to wait for
+
+**Returns**:
+
+ReadyCmd that checks for the process
+Example
+```python
+from e2b import Template, wait_for_process
+
+template = (
+    Template()
+    .from_base_image()
+    .set_start_cmd('./my-daemon', wait_for_process('my-daemon'))
+)
+```
+
+
+
+### wait\_for\_file
+
+```python
+def wait_for_file(filename: str)
+```
+
+Wait for a file to exist.
+
+Uses shell test command to check file existence.
+
+**Arguments**:
+
+- `filename`: Path to the file to wait for
+
+**Returns**:
+
+ReadyCmd that checks for the file
+Example
+```python
+from e2b import Template, wait_for_file
+
+template = (
+    Template()
+    .from_base_image()
+    .set_start_cmd('./init.sh', wait_for_file('/tmp/ready'))
+)
+```
+
+
+
+### wait\_for\_timeout
+
+```python
+def wait_for_timeout(timeout: int)
+```
+
+Wait for a specified timeout before considering the sandbox ready.
+
+Uses `sleep` command to wait for a fixed duration.
+
+**Arguments**:
+
+- `timeout`: Time to wait in **milliseconds** (minimum: 1000ms / 1 second)
+
+**Returns**:
+
+ReadyCmd that waits for the specified duration
+Example
+```python
+from e2b import Template, wait_for_timeout
+
+template = (
+    Template()
+    .from_node_image()
+    .set_start_cmd('npm start', wait_for_timeout(5000))  # Wait 5 seconds
+)
+```
+
+
+
+
+
+
+## TemplateBuildStatus
+
+```python
+class TemplateBuildStatus(str, Enum)
+```
+
+Status of a template build.
+
+
+
+## BuildStatusReason
+
+```python
+@dataclass
+class BuildStatusReason()
+```
+
+Reason for the current build status (typically for errors).
+
+
+
+### message
+
+Message with the status reason.
+
+
+
+### step
+
+Step that failed.
+
+
+
+### log\_entries
+
+Log entries related to the status reason.
+
+
+
+## TemplateBuildStatusResponse
+
+```python
+@dataclass
+class TemplateBuildStatusResponse()
+```
+
+Response from getting build status.
+
+
+
+### build\_id
+
+Build identifier.
+
+
+
+### template\_id
+
+Template identifier.
+
+
+
+### status
+
+Current status of the build.
+
+
+
+### log\_entries
+
+Build log entries.
+
+
+
+### logs
+
+Build logs (raw strings). Deprecated: use log_entries instead.
+
+
+
+### reason
+
+Reason for the current status (typically for errors).
+
+
+
+## TemplateTagInfo
+
+```python
+@dataclass
+class TemplateTagInfo()
+```
+
+Information about assigned template tags.
+
+
+
+### build\_id
+
+Build identifier associated with this tag.
+
+
+
+### tags
+
+Assigned tags of the template.
+
+
+
+## TemplateTag
+
+```python
+@dataclass
+class TemplateTag()
+```
+
+Detailed information about a single template tag.
+
+
+
+### tag
+
+Name of the tag.
+
+
+
+### build\_id
+
+Build identifier associated with this tag.
+
+
+
+### created\_at
+
+When this tag was assigned.
+
+
+
+## InstructionType
+
+```python
+class InstructionType(str, Enum)
+```
+
+Types of instructions that can be used in a template.
+
+
+
+## CopyItem
+
+```python
+class CopyItem(TypedDict)
+```
+
+Configuration for a single file/directory copy operation.
+
+
+
+## Instruction
+
+```python
+class Instruction(TypedDict)
+```
+
+Represents a single instruction in the template build process.
+
+
+
+## GenericDockerRegistry
+
+```python
+class GenericDockerRegistry(TypedDict)
+```
+
+Configuration for a generic Docker registry with basic authentication.
+
+
+
+## AWSRegistry
+
+```python
+class AWSRegistry(TypedDict)
+```
+
+Configuration for AWS Elastic Container Registry (ECR).
+
+
+
+## GCPRegistry
+
+```python
+class GCPRegistry(TypedDict)
+```
+
+Configuration for Google Container Registry (GCR) or Artifact Registry.
+
+
+
+## TemplateType
+
+```python
+class TemplateType(TypedDict)
+```
+
+Internal representation of a template for the E2B build API.
+
+
+
+## BuildInfo
+
+```python
+@dataclass
+class BuildInfo()
+```
+
+Information about a built template.
+
+
+
+
+
+
+### make\_traceback
+
+```python
+def make_traceback(
+        caller_frame: Optional[FrameType]) -> Optional[TracebackType]
+```
+
+Create a TracebackType from a caller frame for error reporting.
+
+**Arguments**:
+
+- `caller_frame`: The caller's frame object, or None
+
+**Returns**:
+
+A TracebackType object for use with exception.with_traceback(), or None
+
+
+
+### validate\_relative\_path
+
+```python
+def validate_relative_path(src: str,
+                           stack_trace: Optional[TracebackType]) -> None
+```
+
+Validate that a source path for copy operations is a relative path that stays
+
+within the context directory. This prevents path traversal attacks and ensures
+files are copied from within the expected directory.
+
+**Arguments**:
+
+- `src`: The source path to validate
+- `stack_trace`: Optional stack trace for error reporting
+
+**Raises**:
+
+- `TemplateException`: If the path is absolute or escapes the context directory
+Invalid paths:
+- Absolute paths: /absolute/path, C:\Windows\path
+- Parent directory escapes: ../foo, foo/../../bar, ./foo/../../../bar
+
+Valid paths:
+- Simple relative: foo, foo/bar
+- Current directory prefix: ./foo, ./foo/bar
+- Internal parent refs that don't escape: foo/../bar (stays within context)
+
+
+
+### normalize\_build\_arguments
+
+```python
+def normalize_build_arguments(name: Optional[str] = None,
+                              alias: Optional[str] = None) -> str
+```
+
+Normalize build arguments from different parameter signatures.
+
+Handles string name or legacy alias parameter.
+
+**Arguments**:
+
+- `name`: Template name in 'name' or 'name:tag' format
+- `alias`: (Deprecated) Alias name for the template. Use name instead.
+
+**Raises**:
+
+- `TemplateException`: If no template name is provided
+
+**Returns**:
+
+Normalized template name
+
+
+
+### read\_dockerignore
+
+```python
+def read_dockerignore(context_path: str) -> List[str]
+```
+
+Read and parse a .dockerignore file.
+
+**Arguments**:
+
+- `context_path`: Directory path containing the .dockerignore file
+
+**Returns**:
+
+Array of ignore patterns (empty lines and comments are filtered out)
+
+
+
+### normalize\_path
+
+```python
+def normalize_path(path: str) -> str
+```
+
+Normalize path separators to forward slashes for glob patterns (glob expects / even on Windows).
+
+**Arguments**:
+
+- `path`: The path to normalize
+
+**Returns**:
+
+The normalized path
+
+
+
+### get\_all\_files\_in\_path
+
+```python
+def get_all_files_in_path(src: str,
+                          context_path: str,
+                          ignore_patterns: List[str],
+                          include_directories: bool = True) -> List[str]
+```
+
+Get all files for a given path and ignore patterns.
+
+**Arguments**:
+
+- `src`: Path to the source directory
+- `context_path`: Base directory for resolving relative paths
+- `ignore_patterns`: Ignore patterns
+- `include_directories`: Whether to include directories
+
+**Returns**:
+
+Array of files
+
+
+
+### calculate\_files\_hash
+
+```python
+def calculate_files_hash(src: str, dest: str, context_path: str,
+                         ignore_patterns: List[str], resolve_symlinks: bool,
+                         stack_trace: Optional[TracebackType]) -> str
+```
+
+Calculate a hash of files being copied to detect changes for cache invalidation.
+
+The hash includes file content, metadata (mode, size), and relative paths.
+Note: uid, gid, and mtime are excluded to ensure stable hashes across environments.
+
+**Arguments**:
+
+- `src`: Source path pattern for files to copy
+- `dest`: Destination path where files will be copied
+- `context_path`: Base directory for resolving relative paths
+- `ignore_patterns`: Glob patterns to ignore
+- `resolve_symlinks`: Whether to resolve symbolic links when hashing
+- `stack_trace`: Optional stack trace for error reporting
+
+**Raises**:
+
+- `ValueError`: If no files match the source pattern
+
+**Returns**:
+
+Hex string hash of all files
+
+
+
+### tar\_file\_stream
+
+```python
+def tar_file_stream(file_name: str, file_context_path: str,
+                    ignore_patterns: List[str], resolve_symlinks: bool,
+                    gzip: bool) -> IO[bytes]
+```
+
+Create a tar archive of files matching a pattern in a temporary file.
+
+The archive is spooled to disk so it can be uploaded as a stream instead
+of being buffered in memory. The temporary file is deleted when closed.
+
+**Arguments**:
+
+- `file_name`: Glob pattern for files to include
+- `file_context_path`: Base directory for resolving file paths
+- `ignore_patterns`: Ignore patterns
+- `resolve_symlinks`: Whether to resolve symbolic links
+- `gzip`: Whether to gzip the archive
+
+**Returns**:
+
+Binary file object positioned at the start of the archive
+
+
+
+### strip\_ansi\_escape\_codes
+
+```python
+def strip_ansi_escape_codes(text: str) -> str
+```
+
+Strip ANSI escape codes from a string.
+
+Source: https://github.com/chalk/ansi-regex/blob/main/index.js
+
+**Arguments**:
+
+- `text`: String with ANSI escape codes
+
+**Returns**:
+
+String without ANSI escape codes
+
+
+
+### get\_caller\_frame
+
+```python
+def get_caller_frame() -> Optional[FrameType]
+```
+
+Get the caller's stack frame in user code.
+
+This is used to provide better error messages and debugging information
+by tracking where template methods were called from in user code.
+
+The caller is the first frame whose file lies outside the SDK package.
+Selecting frames by boundary rather than by fixed depth keeps the result
+stable no matter how many SDK-internal frames sit in between.
+
+**Returns**:
+
+The caller frame, or None if not available
+
+
+
+### get\_caller\_directory
+
+```python
+def get_caller_directory() -> Optional[str]
+```
+
+Get the directory of the caller in user code.
+
+This is used to determine the file_context_path when creating a template,
+so file paths are resolved relative to the user's template file location.
+
+**Returns**:
+
+The caller's directory path, or None if not available
+
+
+
+### pad\_octal
+
+```python
+def pad_octal(mode: int) -> str
+```
+
+Convert a numeric file mode to a zero-padded octal string.
+
+**Arguments**:
+
+- `mode`: File mode as a number (e.g., 493 for 0o755)
+
+**Returns**:
+
+Zero-padded 4-digit octal string (e.g., "0755")
+Example
+```python
+pad_octal(0o755)  # Returns "0755"
+pad_octal(0o644)  # Returns "0644"
+```
+
+
+
+### get\_build\_step\_index
+
+```python
+def get_build_step_index(step: str, stack_traces_length: int) -> int
+```
+
+Get the array index for a build step based on its name.
+
+Special steps:
+- BASE_STEP_NAME: Returns 0 (first step)
+- FINALIZE_STEP_NAME: Returns the last index
+- Numeric strings: Converted to number
+
+**Arguments**:
+
+- `step`: Build step name or number as string
+- `stack_traces_length`: Total number of stack traces (used for FINALIZE_STEP_NAME)
+
+**Returns**:
+
+Index for the build step
+
+
+
+### read\_gcp\_service\_account\_json
+
+```python
+def read_gcp_service_account_json(context_path: str,
+                                  path_or_content: Union[str, dict]) -> str
+```
+
+Read GCP service account JSON from a file or object.
+
+**Arguments**:
+
+- `context_path`: Base directory for resolving relative file paths
+- `path_or_content`: Either a path to a JSON file or a service account object
+
+**Returns**:
+
+Service account JSON as a string

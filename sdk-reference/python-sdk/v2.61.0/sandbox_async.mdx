@@ -18,6 +18,1642 @@ noindex: true
 
 
 
+## Commands
+
+```python
+class Commands()
+```
+
+Module for executing commands in the sandbox.
+
+
+
+### list
+
+```python
+async def list(request_timeout: Optional[float] = None) -> List[ProcessInfo]
+```
+
+Lists all running commands and PTY sessions.
+
+**Arguments**:
+
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+List of running commands and PTY sessions
+
+
+
+### kill
+
+```python
+async def kill(pid: int, request_timeout: Optional[float] = None) -> bool
+```
+
+Kill a running command specified by its process ID.
+
+It uses `SIGKILL` signal to kill the command.
+
+**Arguments**:
+
+- `pid`: Process ID of the command. You can get the list of processes using `sandbox.commands.list()`
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+`True` if the command was killed, `False` if the command was not found
+
+
+
+### send\_stdin
+
+```python
+async def send_stdin(pid: int,
+                     data: Union[str, bytes],
+                     request_timeout: Optional[float] = None) -> None
+```
+
+Send data to command stdin.
+
+**Arguments**:
+
+- `pid`: Process ID of the command. You can get the list of processes using `sandbox.commands.list()`.
+- `data`: Data to send to the command
+- `request_timeout`: Timeout for the request in **seconds**
+
+
+
+
+### stream\_input
+
+```python
+def stream_input(
+    pid: int,
+    *,
+    timeout: Optional[float] = STREAM_INPUT_TIMEOUT
+) -> AsyncCommandInputHandle
+```
+
+Open an ordered input handle to command stdin.
+
+**Arguments**:
+
+- `pid`: Process ID of the command.
+- `timeout`: Timeout in seconds; defaults to ``STREAM_INPUT_TIMEOUT``
+(60 seconds). ``0`` or ``None`` disables the timeout.
+
+**Raises**:
+
+- `NotFoundException`: If the command does not exist; surfaced by
+the handle's ``send()`` or ``close()``.
+- `TimeoutException`: If the stream timeout expires; surfaced by
+the handle's ``send()`` or ``close()``.
+
+**Returns**:
+
+Handle for queuing ordered input with ``send()`` and ending the
+stream with ``close()``.
+
+
+
+### close\_stdin
+
+```python
+async def close_stdin(pid: int,
+                      request_timeout: Optional[float] = None) -> None
+```
+
+Close the command stdin.
+
+This signals EOF to the command. The command must have been started with `stdin=True`.
+
+**Arguments**:
+
+- `pid`: Process ID of the command. You can get the list of processes using `sandbox.commands.list()`.
+- `request_timeout`: Timeout for the request in **seconds**
+
+
+
+
+### run
+
+```python
+@overload
+async def run(cmd: str,
+              background: Union[Literal[False], None] = None,
+              envs: Optional[Dict[str, str]] = None,
+              user: Optional[Username] = None,
+              cwd: Optional[str] = None,
+              on_stdout: Optional[OutputHandler[Stdout]] = None,
+              on_stderr: Optional[OutputHandler[Stderr]] = None,
+              stdin: Optional[bool] = None,
+              timeout: Optional[float] = 60,
+              request_timeout: Optional[float] = None) -> CommandResult
+```
+
+Start a new command and wait until it finishes executing.
+
+**Arguments**:
+
+- `cmd`: Command to execute
+- `background`: **`False` if the command should be executed in the foreground**, `True` if the command should be executed in the background
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `on_stdout`: Callback for command stdout output
+- `on_stderr`: Callback for command stderr output
+- `stdin`: If `True`, the command will have a stdin stream that you can send data to using `sandbox.commands.send_stdin()`
+- `timeout`: Timeout for the command connection in **seconds**. Using `0` will not limit the command connection time
+- `request_timeout`: Timeout for opening the stream in **seconds** — the wait until envd confirms with a start event. The running stream is bounded by `timeout`
+
+**Returns**:
+
+`CommandResult` result of the command execution
+
+
+
+### run
+
+```python
+@overload
+async def run(cmd: str,
+              background: Literal[True],
+              envs: Optional[Dict[str, str]] = None,
+              user: Optional[Username] = None,
+              cwd: Optional[str] = None,
+              on_stdout: Optional[OutputHandler[Stdout]] = None,
+              on_stderr: Optional[OutputHandler[Stderr]] = None,
+              stdin: Optional[bool] = None,
+              timeout: Optional[float] = 60,
+              request_timeout: Optional[float] = None) -> AsyncCommandHandle
+```
+
+Start a new command and return a handle to interact with it.
+
+**Arguments**:
+
+- `cmd`: Command to execute
+- `background`: `False` if the command should be executed in the foreground, **`True` if the command should be executed in the background**
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `on_stdout`: Callback for command stdout output
+- `on_stderr`: Callback for command stderr output
+- `stdin`: If `True`, the command will have a stdin stream that you can send data to using `sandbox.commands.send_stdin()`
+- `timeout`: Timeout for the command connection in **seconds**. Using `0` will not limit the command connection time
+- `request_timeout`: Timeout for opening the stream in **seconds** — the wait until envd confirms with a start event. The running stream is bounded by `timeout`
+
+**Returns**:
+
+`AsyncCommandHandle` handle to interact with the running command
+
+
+
+### connect
+
+```python
+async def connect(
+        pid: int,
+        timeout: Optional[float] = 60,
+        request_timeout: Optional[float] = None,
+        on_stdout: Optional[OutputHandler[Stdout]] = None,
+        on_stderr: Optional[OutputHandler[Stderr]] = None
+) -> AsyncCommandHandle
+```
+
+Connects to a running command.
+
+You can use `AsyncCommandHandle.wait()` to wait for the command to finish and get execution results.
+
+**Arguments**:
+
+- `pid`: Process ID of the command to connect to. You can get the list of processes using `sandbox.commands.list()`
+- `request_timeout`: Timeout for opening the stream in **seconds** — the wait until envd confirms with a start event. The running stream is bounded by `timeout`
+- `timeout`: Timeout for the command connection in **seconds**. Using `0` will not limit the command connection time
+- `on_stdout`: Callback for command stdout output
+- `on_stderr`: Callback for command stderr output
+
+**Returns**:
+
+`AsyncCommandHandle` handle to interact with the running command
+
+
+
+
+
+
+## AsyncCommandHandle
+
+```python
+class AsyncCommandHandle()
+```
+
+Command execution handle.
+
+It provides methods for waiting for the command to finish, retrieving stdout/stderr, and killing the command.
+
+
+
+### pid
+
+```python
+@property
+def pid()
+```
+
+Command process ID.
+
+
+
+### stdout
+
+```python
+@property
+def stdout()
+```
+
+Command stdout output.
+
+
+
+### stderr
+
+```python
+@property
+def stderr()
+```
+
+Command stderr output.
+
+
+
+### error
+
+```python
+@property
+def error()
+```
+
+Command execution error message.
+
+
+
+### exit\_code
+
+```python
+@property
+def exit_code()
+```
+
+Command execution exit code.
+
+`0` if the command finished successfully.
+
+It is `None` if the command is still running.
+
+
+
+### disconnect
+
+```python
+async def disconnect() -> None
+```
+
+Disconnects from the command.
+
+The command is not killed, but SDK stops receiving events from the command.
+You can reconnect to the command using `sandbox.commands.connect` method.
+
+
+
+### wait
+
+```python
+async def wait() -> CommandResult
+```
+
+Wait for the command to finish and return the result.
+
+If the command exits with a non-zero exit code, it throws a `CommandExitException`.
+
+**Returns**:
+
+`CommandResult` result of command execution
+
+
+
+### kill
+
+```python
+async def kill() -> bool
+```
+
+Kills the command.
+
+It uses `SIGKILL` signal to kill the command
+
+**Returns**:
+
+`True` if the command was killed successfully, `False` if the command was not found
+
+
+
+### send\_stdin
+
+```python
+async def send_stdin(data: Union[str, bytes],
+                     request_timeout: Optional[float] = None) -> None
+```
+
+Send data to the command stdin.
+
+The command must have been started with `stdin=True`.
+
+**Arguments**:
+
+- `data`: Data to send to the command
+- `request_timeout`: Timeout for the request in **seconds**
+
+
+
+### close\_stdin
+
+```python
+async def close_stdin(request_timeout: Optional[float] = None) -> None
+```
+
+Close the command stdin.
+
+This signals EOF to the command. The command must have been started with `stdin=True`.
+
+**Arguments**:
+
+- `request_timeout`: Timeout for the request in **seconds**
+
+
+
+
+
+
+## AsyncCommandInputHandle
+
+```python
+class AsyncCommandInputHandle()
+```
+
+An ordered, long-lived input handle for a command or PTY.
+
+
+
+### send
+
+```python
+async def send(data: Union[str, bytes]) -> None
+```
+
+Queue input for ordered transmission.
+
+**Arguments**:
+
+- `data`: Input data to send.
+
+**Raises**:
+
+- `NotFoundException`: If the command or PTY does not exist.
+- `TimeoutException`: If the input stream times out.
+- `SandboxException`: If this handle is closed. Open a new one with
+``sandbox.commands.stream_input(pid)`` or
+``sandbox.pty.stream_input(pid)``.
+
+**Returns**:
+
+``None`` once the input has been queued.
+
+
+
+### close
+
+```python
+async def close() -> None
+```
+
+Finish the input stream and wait for envd to acknowledge it.
+
+**Raises**:
+
+- `NotFoundException`: If the command or PTY does not exist.
+- `TimeoutException`: If the input stream times out.
+
+**Returns**:
+
+``None`` when envd acknowledges the end of the input stream.
+
+
+
+
+
+
+## Pty
+
+```python
+class Pty()
+```
+
+Module for interacting with PTYs (pseudo-terminals) in the sandbox.
+
+
+
+### kill
+
+```python
+async def kill(pid: int, request_timeout: Optional[float] = None) -> bool
+```
+
+Kill PTY.
+
+**Arguments**:
+
+- `pid`: Process ID of the PTY
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+`true` if the PTY was killed, `false` if the PTY was not found
+
+
+
+### send\_stdin
+
+```python
+async def send_stdin(pid: int,
+                     data: bytes,
+                     request_timeout: Optional[float] = None) -> None
+```
+
+Send input to a PTY.
+
+**Arguments**:
+
+- `pid`: Process ID of the PTY
+- `data`: Input data to send
+- `request_timeout`: Timeout for the request in **seconds**
+
+
+
+### stream\_input
+
+```python
+def stream_input(
+    pid: int,
+    *,
+    timeout: Optional[float] = STREAM_INPUT_TIMEOUT
+) -> AsyncCommandInputHandle
+```
+
+Open an ordered input handle to a PTY.
+
+**Arguments**:
+
+- `pid`: Process ID of the PTY.
+- `timeout`: Timeout in seconds; defaults to ``STREAM_INPUT_TIMEOUT``
+(60 seconds). ``0`` or ``None`` disables the timeout.
+
+**Raises**:
+
+- `NotFoundException`: If the PTY does not exist; surfaced by the
+handle's ``send()`` or ``close()``.
+- `TimeoutException`: If the stream timeout expires; surfaced by
+the handle's ``send()`` or ``close()``.
+
+**Returns**:
+
+Handle for queuing ordered input with ``send()`` and ending the
+stream with ``close()``.
+
+
+
+### create
+
+```python
+async def create(
+        size: PtySize,
+        on_data: OutputHandler[PtyOutput],
+        user: Optional[Username] = None,
+        cwd: Optional[str] = None,
+        envs: Optional[Dict[str, str]] = None,
+        timeout: Optional[float] = 60,
+        request_timeout: Optional[float] = None) -> AsyncCommandHandle
+```
+
+Start a new PTY (pseudo-terminal).
+
+**Arguments**:
+
+- `size`: Size of the PTY
+- `on_data`: Callback to handle PTY data
+- `user`: User to use for the PTY
+- `cwd`: Working directory for the PTY
+- `envs`: Environment variables for the PTY
+- `timeout`: Timeout for the PTY in **seconds**
+- `request_timeout`: Timeout for opening the stream in **seconds** — the wait until envd confirms with a start event. The running stream is bounded by `timeout`
+
+**Returns**:
+
+Handle to interact with the PTY
+
+
+
+### connect
+
+```python
+async def connect(
+        pid: int,
+        on_data: OutputHandler[PtyOutput],
+        timeout: Optional[float] = 60,
+        request_timeout: Optional[float] = None) -> AsyncCommandHandle
+```
+
+Connect to a running PTY.
+
+**Arguments**:
+
+- `pid`: Process ID of the PTY to connect to. You can get the list of running PTYs using `sandbox.pty.list()`.
+- `on_data`: Callback to handle PTY data
+- `timeout`: Timeout for the PTY connection in **seconds**. Using `0` will not limit the connection time
+- `request_timeout`: Timeout for opening the stream in **seconds** — the wait until envd confirms with a start event. The running stream is bounded by `timeout`
+
+**Returns**:
+
+Handle to interact with the PTY
+
+
+
+### resize
+
+```python
+async def resize(pid: int,
+                 size: PtySize,
+                 request_timeout: Optional[float] = None) -> None
+```
+
+Resize PTY.
+
+Call this when the terminal window is resized and the number of columns and rows has changed.
+
+**Arguments**:
+
+- `pid`: Process ID of the PTY
+- `size`: New size of the PTY
+- `request_timeout`: Timeout for the request in **seconds**
+
+
+
+
+
+
+## Filesystem
+
+```python
+class Filesystem()
+```
+
+Module for interacting with the filesystem in the sandbox.
+
+
+
+### read
+
+```python
+@overload
+async def read(path: str,
+               format: Literal["text"] = "text",
+               user: Optional[Username] = None,
+               request_timeout: Optional[float] = None,
+               gzip: bool = False) -> str
+```
+
+Read file content as a `str`.
+
+**Arguments**:
+
+- `path`: Path to the file
+- `user`: Run the operation as this user
+- `format`: Format of the file content—`text` by default
+- `request_timeout`: Timeout for the request in **seconds**
+- `gzip`: Use gzip compression for the request
+
+**Returns**:
+
+File content as a `str`
+
+
+
+### read
+
+```python
+@overload
+async def read(path: str,
+               format: Literal["bytes"],
+               user: Optional[Username] = None,
+               request_timeout: Optional[float] = None,
+               gzip: bool = False) -> bytearray
+```
+
+Read file content as a `bytearray`.
+
+**Arguments**:
+
+- `path`: Path to the file
+- `user`: Run the operation as this user
+- `format`: Format of the file content—`bytes`
+- `request_timeout`: Timeout for the request in **seconds**
+- `gzip`: Use gzip compression for the request
+
+**Returns**:
+
+File content as a `bytearray`
+
+
+
+### read
+
+```python
+@overload
+async def read(
+        path: str,
+        format: Literal["stream"],
+        user: Optional[Username] = None,
+        request_timeout: Optional[float] = None,
+        gzip: bool = False,
+        stream_idle_timeout: Optional[float] = None) -> AsyncFileStreamReader
+```
+
+Read file content as an `AsyncFileStreamReader` (an `AsyncIterator[bytes]`).
+
+A `request_timeout` set explicitly for this call is the deadline for
+the whole transfer; by default the download is not bounded in total.
+A stalled stream is reclaimed by `stream_idle_timeout` (raising
+`httpx.ReadTimeout`). The reader releases its connection once fully
+consumed; if you don't read it to the end, use it as an async context
+manager or call `aclose()` for deterministic cleanup. There is no
+garbage-collection safety net—an abandoned stream holds its
+connection until the idle timeout fires or the client is closed.
+
+**Arguments**:
+
+- `path`: Path to the file
+- `user`: Run the operation as this user
+- `format`: Format of the file content—`stream`
+- `request_timeout`: Deadline for the whole transfer in **seconds**
+- `gzip`: Use gzip compression for the request
+- `stream_idle_timeout`: Idle timeout in **seconds** for the streamed
+body—abort if the response head or the next chunk doesn't arrive
+within this window. Resets on every chunk, so it bounds a stalled
+stream without limiting total transfer time. Defaults to a
+transport-wide idle read timeout (60 seconds); pass `0` to
+disable.
+
+**Returns**:
+
+File content as an `AsyncFileStreamReader`
+
+
+
+### write
+
+```python
+async def write(path: str,
+                data: Union[str, bytes, IO],
+                user: Optional[Username] = None,
+                request_timeout: Optional[float] = None,
+                gzip: bool = False,
+                use_octet_stream: Optional[bool] = None,
+                metadata: Optional[Dict[str, str]] = None) -> WriteInfo
+```
+
+Write content to a file on the path.
+
+Writing to a file that doesn't exist creates the file.
+Writing to a file that already exists overwrites the file.
+Writing to a file at path that doesn't exist creates the necessary directories.
+
+**Arguments**:
+
+- `path`: Path to the file
+- `data`: Data to write to the file, can be a `str`, `bytes`, or `IO`. File-like objects are streamed in chunks instead of being buffered in memory.
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request in **seconds**
+- `gzip`: Use gzip compression for the upload. Implies the `application/octet-stream` upload. Requires envd 0.5.7 or later — when not supported, the upload falls back to uncompressed `multipart/form-data`.
+- `use_octet_stream`: Upload using `application/octet-stream` instead of `multipart/form-data`. Defaults to `None`, which uses octet-stream when `data` is a file-like object (so streamed uploads aren't buffered) and `multipart/form-data` otherwise. Requires envd 0.5.7 or later — when not supported, the upload falls back to `multipart/form-data`, which reads text-mode file-like data into memory (httpx only streams binary file objects in a multipart body).
+- `metadata`: User-defined metadata to persist on the uploaded file as extended attributes. Keys are lowercased by the sandbox; invalid keys or values raise an `InvalidArgumentException`. Requires envd 0.6.2 or later.
+
+**Returns**:
+
+Information about the written file
+
+
+
+### write\_files
+
+```python
+async def write_files(
+        files: List[WriteEntry],
+        user: Optional[Username] = None,
+        request_timeout: Optional[float] = None,
+        gzip: bool = False,
+        use_octet_stream: Optional[bool] = None,
+        metadata: Optional[Dict[str, str]] = None) -> List[WriteInfo]
+```
+
+Writes multiple files.
+
+Writes a list of files to the filesystem.
+When writing to a file that doesn't exist, the file will get created.
+When writing to a file that already exists, the file will get overwritten.
+When writing to a file at path that doesn't exist, the necessary directories will be created.
+
+**Arguments**:
+
+- `files`: list of files to write as `WriteEntry` objects, each containing `path` and `data`
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request
+- `gzip`: Use gzip compression for the upload. Implies the `application/octet-stream` upload. Requires envd 0.5.7 or later — when not supported, the upload falls back to uncompressed `multipart/form-data`.
+- `use_octet_stream`: Upload using `application/octet-stream` instead of `multipart/form-data`. Defaults to `None`, which uses octet-stream when any entry is a file-like object (so streamed uploads aren't buffered) and `multipart/form-data` otherwise. Requires envd 0.5.7 or later — when not supported, the upload falls back to `multipart/form-data`, which reads text-mode file-like data into memory (httpx only streams binary file objects in a multipart body).
+- `metadata`: User-defined metadata to persist on each uploaded file as extended attributes; the same map is applied to every file. Keys are lowercased by the sandbox; invalid keys or values raise an `InvalidArgumentException`. Requires envd 0.6.2 or later.
+
+**Returns**:
+
+Information about the written files
+
+
+
+### list
+
+```python
+async def list(path: str,
+               depth: Optional[int] = 1,
+               user: Optional[Username] = None,
+               request_timeout: Optional[float] = None) -> List[EntryInfo]
+```
+
+List entries in a directory.
+
+**Arguments**:
+
+- `path`: Path to the directory
+- `depth`: Depth of the directory to list
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+List of entries in the directory
+
+
+
+### exists
+
+```python
+async def exists(path: str,
+                 user: Optional[Username] = None,
+                 request_timeout: Optional[float] = None) -> bool
+```
+
+Check if a file or a directory exists.
+
+**Arguments**:
+
+- `path`: Path to a file or a directory
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+`True` if the file or directory exists, `False` otherwise
+
+
+
+### get\_info
+
+```python
+async def get_info(path: str,
+                   user: Optional[Username] = None,
+                   request_timeout: Optional[float] = None) -> EntryInfo
+```
+
+Get information about a file or directory.
+
+**Arguments**:
+
+- `path`: Path to a file or a directory
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Information about the file or directory like name, type, and path
+
+
+
+### remove
+
+```python
+async def remove(path: str,
+                 user: Optional[Username] = None,
+                 request_timeout: Optional[float] = None) -> None
+```
+
+Remove a file or a directory.
+
+**Arguments**:
+
+- `path`: Path to a file or a directory
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request in **seconds**
+
+
+
+### rename
+
+```python
+async def rename(old_path: str,
+                 new_path: str,
+                 user: Optional[Username] = None,
+                 request_timeout: Optional[float] = None) -> EntryInfo
+```
+
+Rename a file or directory.
+
+**Arguments**:
+
+- `old_path`: Path to the file or directory to rename
+- `new_path`: New path to the file or directory
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Information about the renamed file or directory
+
+
+
+### make\_dir
+
+```python
+async def make_dir(path: str,
+                   user: Optional[Username] = None,
+                   request_timeout: Optional[float] = None) -> bool
+```
+
+Create a new directory and all directories along the way if needed on the specified path.
+
+**Arguments**:
+
+- `path`: Path to a new directory. For example '/dirA/dirB' when creating 'dirB'.
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+`True` if the directory was created, `False` if the directory already exists
+
+
+
+### watch\_dir
+
+```python
+async def watch_dir(path: str,
+                    on_event: OutputHandler[FilesystemEvent],
+                    on_exit: Optional[OutputHandler[
+                        Optional[Exception]]] = None,
+                    user: Optional[Username] = None,
+                    request_timeout: Optional[float] = None,
+                    timeout: Optional[float] = 60,
+                    recursive: bool = False,
+                    include_entry: bool = False,
+                    allow_network_mounts: bool = False) -> AsyncWatchHandle
+```
+
+Watch directory for filesystem events.
+
+**Arguments**:
+
+- `path`: Path to a directory to watch
+- `on_event`: Callback to call on each event in the directory
+- `on_exit`: Callback to call when the watching ends. It receives the error that ended the watch, or `None` on a clean end or when `stop()` is called
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for opening the stream in **seconds** — the wait until envd confirms with a start event. The running watch is bounded by `timeout`
+- `timeout`: Timeout for the watch operation in **seconds**. Using `0` will not limit the watch time
+- `recursive`: Watch directory recursively
+- `include_entry`: Include the `EntryInfo` of the affected entry in each event, when available. Requires envd 0.6.3 or later
+- `allow_network_mounts`: Allow watching paths on network filesystem mounts (NFS, CIFS, SMB, FUSE), which are rejected by default. Events on network mounts may be unreliable or not delivered at all. Requires envd 0.6.4 or later
+
+**Returns**:
+
+`AsyncWatchHandle` object for stopping watching directory
+
+
+
+
+
+
+## AsyncWatchHandle
+
+```python
+class AsyncWatchHandle()
+```
+
+Handle for watching a directory in the sandbox filesystem.
+
+Use `.stop()` to stop watching the directory.
+
+
+
+### stop
+
+```python
+async def stop()
+```
+
+Stop watching the directory.
+
+
+
+
+
+
+## Git
+
+```python
+class Git()
+```
+
+Async module for running git operations in the sandbox.
+
+:deprecated: Run git with `sandbox.commands.run()` instead. The git module will be removed in the next major version.
+
+
+
+### \_\_init\_\_
+
+```python
+def __init__(commands: Commands) -> None
+```
+
+Create a Git helper bound to the sandbox command runner.
+
+**Arguments**:
+
+- `commands`: Command runner used to execute git commands
+
+
+
+### clone
+
+```python
+async def clone(url: str,
+                path: Optional[str] = None,
+                branch: Optional[str] = None,
+                depth: Optional[int] = None,
+                username: Optional[str] = None,
+                password: Optional[str] = None,
+                envs: Optional[Dict[str, str]] = None,
+                user: Optional[str] = None,
+                cwd: Optional[str] = None,
+                timeout: Optional[float] = None,
+                request_timeout: Optional[float] = None,
+                dangerously_store_credentials: bool = False)
+```
+
+Clone a git repository into the sandbox.
+
+**Arguments**:
+
+- `url`: Git repository URL
+- `path`: Destination path for the clone
+- `branch`: Branch to check out
+- `depth`: If set, perform a shallow clone with this depth
+- `username`: Username for HTTP(S) authentication
+- `password`: Password or token for HTTP(S) authentication
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+- `dangerously_store_credentials`: Store credentials in the cloned repository when True
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### init
+
+```python
+async def init(path: str,
+               bare: bool = False,
+               initial_branch: Optional[str] = None,
+               envs: Optional[Dict[str, str]] = None,
+               user: Optional[str] = None,
+               cwd: Optional[str] = None,
+               timeout: Optional[float] = None,
+               request_timeout: Optional[float] = None)
+```
+
+Initialize a new git repository.
+
+**Arguments**:
+
+- `path`: Destination path for the repository
+- `bare`: Create a bare repository when True
+- `initial_branch`: Initial branch name (for example, "main")
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### remote\_add
+
+```python
+async def remote_add(path: str,
+                     name: str,
+                     url: str,
+                     fetch: bool = False,
+                     overwrite: bool = False,
+                     envs: Optional[Dict[str, str]] = None,
+                     user: Optional[str] = None,
+                     cwd: Optional[str] = None,
+                     timeout: Optional[float] = None,
+                     request_timeout: Optional[float] = None)
+```
+
+Add (or update) a remote for a repository.
+
+**Arguments**:
+
+- `path`: Repository path
+- `name`: Remote name (for example, "origin")
+- `url`: Remote URL
+- `fetch`: Fetch the remote after adding it when True
+- `overwrite`: Overwrite the remote URL if it already exists when True
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### remote\_get
+
+```python
+async def remote_get(path: str,
+                     name: str,
+                     envs: Optional[Dict[str, str]] = None,
+                     user: Optional[str] = None,
+                     cwd: Optional[str] = None,
+                     timeout: Optional[float] = None,
+                     request_timeout: Optional[float] = None) -> Optional[str]
+```
+
+Get the URL for a git remote.
+
+Returns `None` when the remote does not exist.
+
+**Arguments**:
+
+- `path`: Repository path
+- `name`: Remote name (for example, "origin")
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Remote URL if present, otherwise `None`
+
+
+
+### status
+
+```python
+async def status(path: str,
+                 envs: Optional[Dict[str, str]] = None,
+                 user: Optional[str] = None,
+                 cwd: Optional[str] = None,
+                 timeout: Optional[float] = None,
+                 request_timeout: Optional[float] = None) -> GitStatus
+```
+
+Get repository status information.
+
+**Arguments**:
+
+- `path`: Repository path
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Parsed git status
+
+
+
+### branches
+
+```python
+async def branches(path: str,
+                   envs: Optional[Dict[str, str]] = None,
+                   user: Optional[str] = None,
+                   cwd: Optional[str] = None,
+                   timeout: Optional[float] = None,
+                   request_timeout: Optional[float] = None) -> GitBranches
+```
+
+List branches in a repository.
+
+**Arguments**:
+
+- `path`: Repository path
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Parsed branch list
+
+
+
+### create\_branch
+
+```python
+async def create_branch(path: str,
+                        branch: str,
+                        envs: Optional[Dict[str, str]] = None,
+                        user: Optional[str] = None,
+                        cwd: Optional[str] = None,
+                        timeout: Optional[float] = None,
+                        request_timeout: Optional[float] = None)
+```
+
+Create and check out a new branch.
+
+**Arguments**:
+
+- `path`: Repository path
+- `branch`: Branch name to create
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### checkout\_branch
+
+```python
+async def checkout_branch(path: str,
+                          branch: str,
+                          envs: Optional[Dict[str, str]] = None,
+                          user: Optional[str] = None,
+                          cwd: Optional[str] = None,
+                          timeout: Optional[float] = None,
+                          request_timeout: Optional[float] = None)
+```
+
+Check out an existing branch.
+
+**Arguments**:
+
+- `path`: Repository path
+- `branch`: Branch name to check out
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### delete\_branch
+
+```python
+async def delete_branch(path: str,
+                        branch: str,
+                        force: bool = False,
+                        envs: Optional[Dict[str, str]] = None,
+                        user: Optional[str] = None,
+                        cwd: Optional[str] = None,
+                        timeout: Optional[float] = None,
+                        request_timeout: Optional[float] = None)
+```
+
+Delete a branch.
+
+**Arguments**:
+
+- `path`: Repository path
+- `branch`: Branch name to delete
+- `force`: Force deletion with `-D` when `True`
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### add
+
+```python
+async def add(path: str,
+              files: Optional[List[str]] = None,
+              all: bool = True,
+              envs: Optional[Dict[str, str]] = None,
+              user: Optional[str] = None,
+              cwd: Optional[str] = None,
+              timeout: Optional[float] = None,
+              request_timeout: Optional[float] = None)
+```
+
+Stage files for commit.
+
+**Arguments**:
+
+- `path`: Repository path
+- `files`: Files to add; when omitted, adds the current directory
+- `all`: When `True` and `files` is omitted, stage all changes
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### commit
+
+```python
+async def commit(path: str,
+                 message: str,
+                 author_name: Optional[str] = None,
+                 author_email: Optional[str] = None,
+                 allow_empty: bool = False,
+                 envs: Optional[Dict[str, str]] = None,
+                 user: Optional[str] = None,
+                 cwd: Optional[str] = None,
+                 timeout: Optional[float] = None,
+                 request_timeout: Optional[float] = None)
+```
+
+Create a commit in the repository.
+
+**Arguments**:
+
+- `path`: Repository path
+- `message`: Commit message
+- `author_name`: Commit author name
+- `author_email`: Commit author email
+- `allow_empty`: Allow empty commits when `True`
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### reset
+
+```python
+async def reset(path: str,
+                mode: Optional[GitResetMode] = None,
+                target: Optional[str] = None,
+                paths: Optional[List[str]] = None,
+                envs: Optional[Dict[str, str]] = None,
+                user: Optional[str] = None,
+                cwd: Optional[str] = None,
+                timeout: Optional[float] = None,
+                request_timeout: Optional[float] = None)
+```
+
+Reset the current HEAD to a specified state.
+
+**Arguments**:
+
+- `path`: Repository path
+- `mode`: Reset mode (soft, mixed, hard, merge, keep)
+- `target`: Commit, branch, or ref to reset to (defaults to HEAD)
+- `paths`: Paths to reset
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### restore
+
+```python
+async def restore(path: str,
+                  paths: List[str],
+                  staged: Optional[bool] = None,
+                  worktree: Optional[bool] = None,
+                  source: Optional[str] = None,
+                  envs: Optional[Dict[str, str]] = None,
+                  user: Optional[str] = None,
+                  cwd: Optional[str] = None,
+                  timeout: Optional[float] = None,
+                  request_timeout: Optional[float] = None)
+```
+
+Restore working tree files or unstage changes.
+
+**Arguments**:
+
+- `path`: Repository path
+- `paths`: Paths to restore (use ["."] for all)
+- `staged`: When True, restore the index (unstage)
+- `worktree`: When True, restore working tree files
+- `source`: Restore from the given source (commit, branch, or ref)
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### push
+
+```python
+async def push(path: str,
+               remote: Optional[str] = None,
+               branch: Optional[str] = None,
+               set_upstream: bool = True,
+               username: Optional[str] = None,
+               password: Optional[str] = None,
+               envs: Optional[Dict[str, str]] = None,
+               user: Optional[str] = None,
+               cwd: Optional[str] = None,
+               timeout: Optional[float] = None,
+               request_timeout: Optional[float] = None)
+```
+
+Push commits to a remote.
+
+**Arguments**:
+
+- `path`: Repository path
+- `remote`: Remote name, e.g. `origin`
+- `branch`: Branch name to push
+- `set_upstream`: Set upstream tracking when `True`
+- `username`: Username for HTTP(S) authentication
+- `password`: Password or token for HTTP(S) authentication
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### pull
+
+```python
+async def pull(path: str,
+               remote: Optional[str] = None,
+               branch: Optional[str] = None,
+               username: Optional[str] = None,
+               password: Optional[str] = None,
+               envs: Optional[Dict[str, str]] = None,
+               user: Optional[str] = None,
+               cwd: Optional[str] = None,
+               timeout: Optional[float] = None,
+               request_timeout: Optional[float] = None)
+```
+
+Pull changes from a remote.
+
+**Arguments**:
+
+- `path`: Repository path
+- `remote`: Remote name, e.g. `origin`
+- `branch`: Branch name to pull
+- `username`: Username for HTTP(S) authentication
+- `password`: Password or token for HTTP(S) authentication
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### set\_config
+
+```python
+async def set_config(key: str,
+                     value: str,
+                     scope: str = "global",
+                     path: Optional[str] = None,
+                     envs: Optional[Dict[str, str]] = None,
+                     user: Optional[str] = None,
+                     cwd: Optional[str] = None,
+                     timeout: Optional[float] = None,
+                     request_timeout: Optional[float] = None)
+```
+
+Set a git config value.
+
+Use `scope="local"` together with `path` to configure a specific repository.
+
+**Arguments**:
+
+- `key`: Git config key (e.g. `pull.rebase`)
+- `value`: Git config value
+- `scope`: Config scope: `global`, `local`, or `system`
+- `path`: Repository path required when `scope` is `local`
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### get\_config
+
+```python
+async def get_config(key: str,
+                     scope: str = "global",
+                     path: Optional[str] = None,
+                     envs: Optional[Dict[str, str]] = None,
+                     user: Optional[str] = None,
+                     cwd: Optional[str] = None,
+                     timeout: Optional[float] = None,
+                     request_timeout: Optional[float] = None) -> Optional[str]
+```
+
+Get a git config value.
+
+Returns `None` when the key is not set in the requested scope.
+
+**Arguments**:
+
+- `key`: Git config key (e.g. `pull.rebase`)
+- `scope`: Config scope: `global`, `local`, or `system`
+- `path`: Repository path required when `scope` is `local`
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Config value if present, otherwise `None`
+
+
+
+### dangerously\_authenticate
+
+```python
+async def dangerously_authenticate(username: str,
+                                   password: str,
+                                   host: str = "github.com",
+                                   protocol: str = "https",
+                                   envs: Optional[Dict[str, str]] = None,
+                                   user: Optional[str] = None,
+                                   cwd: Optional[str] = None,
+                                   timeout: Optional[float] = None,
+                                   request_timeout: Optional[float] = None)
+```
+
+Dangerously authenticate git globally via the credential helper.
+
+This persists credentials in the credential store and may be accessible to agents running on the sandbox.
+Prefer short-lived credentials when possible.
+
+**Arguments**:
+
+- `username`: Username for HTTP(S) authentication
+- `password`: Password or token for HTTP(S) authentication
+- `host`: Host to authenticate for, defaults to `github.com`
+- `protocol`: Protocol to authenticate for, defaults to `https`
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### configure\_user
+
+```python
+async def configure_user(name: str,
+                         email: str,
+                         scope: str = "global",
+                         path: Optional[str] = None,
+                         envs: Optional[Dict[str, str]] = None,
+                         user: Optional[str] = None,
+                         cwd: Optional[str] = None,
+                         timeout: Optional[float] = None,
+                         request_timeout: Optional[float] = None)
+```
+
+Configure git user name and email.
+
+**Arguments**:
+
+- `name`: Git user name
+- `email`: Git user email
+- `scope`: Config scope: `global`, `local`, or `system`
+- `path`: Repository path required when `scope` is `local`
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+
+
+
 ## AsyncSandbox
 
 ```python
@@ -1031,9 +2667,6 @@ MCP token for the sandbox, or None if MCP is not enabled.
 
 
 
-
-
-
 ## AsyncSandboxPaginator
 
 ```python
@@ -1073,6 +2706,28 @@ options on top of the ones the paginator was constructed with.
 **Returns**:
 
 List of sandboxes
+
+
+
+### has\_next
+
+```python
+@property
+def has_next() -> bool
+```
+
+Returns True if there are more items to fetch.
+
+
+
+### next\_token
+
+```python
+@property
+def next_token() -> Optional[str]
+```
+
+Returns the next token to use for pagination.
 
 
 
@@ -1118,374 +2773,25 @@ List of snapshots
 
 
 
-
-
-
-## Filesystem
+### has\_next
 
 ```python
-class Filesystem()
+@property
+def has_next() -> bool
 ```
 
-Module for interacting with the filesystem in the sandbox.
+Returns True if there are more items to fetch.
 
 
 
-### read
+### next\_token
 
 ```python
-@overload
-async def read(path: str,
-               format: Literal["text"] = "text",
-               user: Optional[Username] = None,
-               request_timeout: Optional[float] = None,
-               gzip: bool = False) -> str
+@property
+def next_token() -> Optional[str]
 ```
 
-Read file content as a `str`.
-
-**Arguments**:
-
-- `path`: Path to the file
-- `user`: Run the operation as this user
-- `format`: Format of the file content—`text` by default
-- `request_timeout`: Timeout for the request in **seconds**
-- `gzip`: Use gzip compression for the request
-
-**Returns**:
-
-File content as a `str`
-
-
-
-### read
-
-```python
-@overload
-async def read(path: str,
-               format: Literal["bytes"],
-               user: Optional[Username] = None,
-               request_timeout: Optional[float] = None,
-               gzip: bool = False) -> bytearray
-```
-
-Read file content as a `bytearray`.
-
-**Arguments**:
-
-- `path`: Path to the file
-- `user`: Run the operation as this user
-- `format`: Format of the file content—`bytes`
-- `request_timeout`: Timeout for the request in **seconds**
-- `gzip`: Use gzip compression for the request
-
-**Returns**:
-
-File content as a `bytearray`
-
-
-
-### read
-
-```python
-@overload
-async def read(
-        path: str,
-        format: Literal["stream"],
-        user: Optional[Username] = None,
-        request_timeout: Optional[float] = None,
-        gzip: bool = False,
-        stream_idle_timeout: Optional[float] = None) -> AsyncFileStreamReader
-```
-
-Read file content as an `AsyncFileStreamReader` (an `AsyncIterator[bytes]`).
-
-A `request_timeout` set explicitly for this call is the deadline for
-the whole transfer; by default the download is not bounded in total.
-A stalled stream is reclaimed by `stream_idle_timeout` (raising
-`httpx.ReadTimeout`). The reader releases its connection once fully
-consumed; if you don't read it to the end, use it as an async context
-manager or call `aclose()` for deterministic cleanup. There is no
-garbage-collection safety net—an abandoned stream holds its
-connection until the idle timeout fires or the client is closed.
-
-**Arguments**:
-
-- `path`: Path to the file
-- `user`: Run the operation as this user
-- `format`: Format of the file content—`stream`
-- `request_timeout`: Deadline for the whole transfer in **seconds**
-- `gzip`: Use gzip compression for the request
-- `stream_idle_timeout`: Idle timeout in **seconds** for the streamed
-body—abort if the response head or the next chunk doesn't arrive
-within this window. Resets on every chunk, so it bounds a stalled
-stream without limiting total transfer time. Defaults to a
-transport-wide idle read timeout (60 seconds); pass `0` to
-disable.
-
-**Returns**:
-
-File content as an `AsyncFileStreamReader`
-
-
-
-### write
-
-```python
-async def write(path: str,
-                data: Union[str, bytes, IO],
-                user: Optional[Username] = None,
-                request_timeout: Optional[float] = None,
-                gzip: bool = False,
-                use_octet_stream: Optional[bool] = None,
-                metadata: Optional[Dict[str, str]] = None) -> WriteInfo
-```
-
-Write content to a file on the path.
-
-Writing to a file that doesn't exist creates the file.
-Writing to a file that already exists overwrites the file.
-Writing to a file at path that doesn't exist creates the necessary directories.
-
-**Arguments**:
-
-- `path`: Path to the file
-- `data`: Data to write to the file, can be a `str`, `bytes`, or `IO`. File-like objects are streamed in chunks instead of being buffered in memory.
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request in **seconds**
-- `gzip`: Use gzip compression for the upload. Implies the `application/octet-stream` upload. Requires envd 0.5.7 or later — when not supported, the upload falls back to uncompressed `multipart/form-data`.
-- `use_octet_stream`: Upload using `application/octet-stream` instead of `multipart/form-data`. Defaults to `None`, which uses octet-stream when `data` is a file-like object (so streamed uploads aren't buffered) and `multipart/form-data` otherwise. Requires envd 0.5.7 or later — when not supported, the upload falls back to `multipart/form-data`, which reads text-mode file-like data into memory (httpx only streams binary file objects in a multipart body).
-- `metadata`: User-defined metadata to persist on the uploaded file as extended attributes. Keys are lowercased by the sandbox; invalid keys or values raise an `InvalidArgumentException`. Requires envd 0.6.2 or later.
-
-**Returns**:
-
-Information about the written file
-
-
-
-### write\_files
-
-```python
-async def write_files(
-        files: List[WriteEntry],
-        user: Optional[Username] = None,
-        request_timeout: Optional[float] = None,
-        gzip: bool = False,
-        use_octet_stream: Optional[bool] = None,
-        metadata: Optional[Dict[str, str]] = None) -> List[WriteInfo]
-```
-
-Writes multiple files.
-
-Writes a list of files to the filesystem.
-When writing to a file that doesn't exist, the file will get created.
-When writing to a file that already exists, the file will get overwritten.
-When writing to a file at path that doesn't exist, the necessary directories will be created.
-
-**Arguments**:
-
-- `files`: list of files to write as `WriteEntry` objects, each containing `path` and `data`
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request
-- `gzip`: Use gzip compression for the upload. Implies the `application/octet-stream` upload. Requires envd 0.5.7 or later — when not supported, the upload falls back to uncompressed `multipart/form-data`.
-- `use_octet_stream`: Upload using `application/octet-stream` instead of `multipart/form-data`. Defaults to `None`, which uses octet-stream when any entry is a file-like object (so streamed uploads aren't buffered) and `multipart/form-data` otherwise. Requires envd 0.5.7 or later — when not supported, the upload falls back to `multipart/form-data`, which reads text-mode file-like data into memory (httpx only streams binary file objects in a multipart body).
-- `metadata`: User-defined metadata to persist on each uploaded file as extended attributes; the same map is applied to every file. Keys are lowercased by the sandbox; invalid keys or values raise an `InvalidArgumentException`. Requires envd 0.6.2 or later.
-
-**Returns**:
-
-Information about the written files
-
-
-
-### list
-
-```python
-async def list(path: str,
-               depth: Optional[int] = 1,
-               user: Optional[Username] = None,
-               request_timeout: Optional[float] = None) -> List[EntryInfo]
-```
-
-List entries in a directory.
-
-**Arguments**:
-
-- `path`: Path to the directory
-- `depth`: Depth of the directory to list
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-List of entries in the directory
-
-
-
-### exists
-
-```python
-async def exists(path: str,
-                 user: Optional[Username] = None,
-                 request_timeout: Optional[float] = None) -> bool
-```
-
-Check if a file or a directory exists.
-
-**Arguments**:
-
-- `path`: Path to a file or a directory
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-`True` if the file or directory exists, `False` otherwise
-
-
-
-### get\_info
-
-```python
-async def get_info(path: str,
-                   user: Optional[Username] = None,
-                   request_timeout: Optional[float] = None) -> EntryInfo
-```
-
-Get information about a file or directory.
-
-**Arguments**:
-
-- `path`: Path to a file or a directory
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Information about the file or directory like name, type, and path
-
-
-
-### remove
-
-```python
-async def remove(path: str,
-                 user: Optional[Username] = None,
-                 request_timeout: Optional[float] = None) -> None
-```
-
-Remove a file or a directory.
-
-**Arguments**:
-
-- `path`: Path to a file or a directory
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request in **seconds**
-
-
-
-### rename
-
-```python
-async def rename(old_path: str,
-                 new_path: str,
-                 user: Optional[Username] = None,
-                 request_timeout: Optional[float] = None) -> EntryInfo
-```
-
-Rename a file or directory.
-
-**Arguments**:
-
-- `old_path`: Path to the file or directory to rename
-- `new_path`: New path to the file or directory
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Information about the renamed file or directory
-
-
-
-### make\_dir
-
-```python
-async def make_dir(path: str,
-                   user: Optional[Username] = None,
-                   request_timeout: Optional[float] = None) -> bool
-```
-
-Create a new directory and all directories along the way if needed on the specified path.
-
-**Arguments**:
-
-- `path`: Path to a new directory. For example '/dirA/dirB' when creating 'dirB'.
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-`True` if the directory was created, `False` if the directory already exists
-
-
-
-### watch\_dir
-
-```python
-async def watch_dir(path: str,
-                    on_event: OutputHandler[FilesystemEvent],
-                    on_exit: Optional[OutputHandler[
-                        Optional[Exception]]] = None,
-                    user: Optional[Username] = None,
-                    request_timeout: Optional[float] = None,
-                    timeout: Optional[float] = 60,
-                    recursive: bool = False,
-                    include_entry: bool = False,
-                    allow_network_mounts: bool = False) -> AsyncWatchHandle
-```
-
-Watch directory for filesystem events.
-
-**Arguments**:
-
-- `path`: Path to a directory to watch
-- `on_event`: Callback to call on each event in the directory
-- `on_exit`: Callback to call when the watching ends. It receives the error that ended the watch, or `None` on a clean end or when `stop()` is called
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for opening the stream in **seconds** — the wait until envd confirms with a start event. The running watch is bounded by `timeout`
-- `timeout`: Timeout for the watch operation in **seconds**. Using `0` will not limit the watch time
-- `recursive`: Watch directory recursively
-- `include_entry`: Include the `EntryInfo` of the affected entry in each event, when available. Requires envd 0.6.3 or later
-- `allow_network_mounts`: Allow watching paths on network filesystem mounts (NFS, CIFS, SMB, FUSE), which are rejected by default. Events on network mounts may be unreliable or not delivered at all. Requires envd 0.6.4 or later
-
-**Returns**:
-
-`AsyncWatchHandle` object for stopping watching directory
-
-
-
-
-
-
-## AsyncWatchHandle
-
-```python
-class AsyncWatchHandle()
-```
-
-Handle for watching a directory in the sandbox filesystem.
-
-Use `.stop()` to stop watching the directory.
-
-
-
-### stop
-
-```python
-async def stop()
-```
-
-Stop watching the directory.
+Returns the next token to use for pagination.
 
 
 
@@ -1530,1265 +2836,93 @@ An `AsyncSandboxPaginator` that yields pages of sandboxes (running and paused by
 
 
 
-
-
-
-## Pty
-
-```python
-class Pty()
-```
-
-Module for interacting with PTYs (pseudo-terminals) in the sandbox.
-
-
-
-### kill
-
-```python
-async def kill(pid: int, request_timeout: Optional[float] = None) -> bool
-```
-
-Kill PTY.
-
-**Arguments**:
-
-- `pid`: Process ID of the PTY
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-`true` if the PTY was killed, `false` if the PTY was not found
-
-
-
-### send\_stdin
-
-```python
-async def send_stdin(pid: int,
-                     data: bytes,
-                     request_timeout: Optional[float] = None) -> None
-```
-
-Send input to a PTY.
-
-**Arguments**:
-
-- `pid`: Process ID of the PTY
-- `data`: Input data to send
-- `request_timeout`: Timeout for the request in **seconds**
-
-
-
-### stream\_input
-
-```python
-def stream_input(
-    pid: int,
-    *,
-    timeout: Optional[float] = STREAM_INPUT_TIMEOUT
-) -> AsyncCommandInputHandle
-```
-
-Open an ordered input handle to a PTY.
-
-**Arguments**:
-
-- `pid`: Process ID of the PTY.
-- `timeout`: Timeout in seconds; defaults to ``STREAM_INPUT_TIMEOUT``
-(60 seconds). ``0`` or ``None`` disables the timeout.
-
-**Raises**:
-
-- `NotFoundException`: If the PTY does not exist; surfaced by the
-handle's ``send()`` or ``close()``.
-- `TimeoutException`: If the stream timeout expires; surfaced by
-the handle's ``send()`` or ``close()``.
-
-**Returns**:
-
-Handle for queuing ordered input with ``send()`` and ending the
-stream with ``close()``.
-
-
-
-### create
-
-```python
-async def create(
-        size: PtySize,
-        on_data: OutputHandler[PtyOutput],
-        user: Optional[Username] = None,
-        cwd: Optional[str] = None,
-        envs: Optional[Dict[str, str]] = None,
-        timeout: Optional[float] = 60,
-        request_timeout: Optional[float] = None) -> AsyncCommandHandle
-```
-
-Start a new PTY (pseudo-terminal).
-
-**Arguments**:
-
-- `size`: Size of the PTY
-- `on_data`: Callback to handle PTY data
-- `user`: User to use for the PTY
-- `cwd`: Working directory for the PTY
-- `envs`: Environment variables for the PTY
-- `timeout`: Timeout for the PTY in **seconds**
-- `request_timeout`: Timeout for opening the stream in **seconds** — the wait until envd confirms with a start event. The running stream is bounded by `timeout`
-
-**Returns**:
-
-Handle to interact with the PTY
-
-
-
-### connect
-
-```python
-async def connect(
-        pid: int,
-        on_data: OutputHandler[PtyOutput],
-        timeout: Optional[float] = 60,
-        request_timeout: Optional[float] = None) -> AsyncCommandHandle
-```
-
-Connect to a running PTY.
-
-**Arguments**:
-
-- `pid`: Process ID of the PTY to connect to. You can get the list of running PTYs using `sandbox.pty.list()`.
-- `on_data`: Callback to handle PTY data
-- `timeout`: Timeout for the PTY connection in **seconds**. Using `0` will not limit the connection time
-- `request_timeout`: Timeout for opening the stream in **seconds** — the wait until envd confirms with a start event. The running stream is bounded by `timeout`
-
-**Returns**:
-
-Handle to interact with the PTY
-
-
-
-### resize
-
-```python
-async def resize(pid: int,
-                 size: PtySize,
-                 request_timeout: Optional[float] = None) -> None
-```
-
-Resize PTY.
-
-Call this when the terminal window is resized and the number of columns and rows has changed.
-
-**Arguments**:
-
-- `pid`: Process ID of the PTY
-- `size`: New size of the PTY
-- `request_timeout`: Timeout for the request in **seconds**
-
-
-
-
-
-
-## AsyncCommandInputHandle
-
-```python
-class AsyncCommandInputHandle()
-```
-
-An ordered, long-lived input handle for a command or PTY.
-
-
-
-### send
-
-```python
-async def send(data: Union[str, bytes]) -> None
-```
-
-Queue input for ordered transmission.
-
-**Arguments**:
-
-- `data`: Input data to send.
-
-**Raises**:
-
-- `NotFoundException`: If the command or PTY does not exist.
-- `TimeoutException`: If the input stream times out.
-- `SandboxException`: If this handle is closed. Open a new one with
-``sandbox.commands.stream_input(pid)`` or
-``sandbox.pty.stream_input(pid)``.
-
-**Returns**:
-
-``None`` once the input has been queued.
-
-
-
-### close
-
-```python
-async def close() -> None
-```
-
-Finish the input stream and wait for envd to acknowledge it.
-
-**Raises**:
-
-- `NotFoundException`: If the command or PTY does not exist.
-- `TimeoutException`: If the input stream times out.
-
-**Returns**:
-
-``None`` when envd acknowledges the end of the input stream.
-
-
-
-
-
-
-## Commands
-
-```python
-class Commands()
-```
-
-Module for executing commands in the sandbox.
-
-
-
-### list
-
-```python
-async def list(request_timeout: Optional[float] = None) -> List[ProcessInfo]
-```
-
-Lists all running commands and PTY sessions.
-
-**Arguments**:
-
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-List of running commands and PTY sessions
-
-
-
-### kill
-
-```python
-async def kill(pid: int, request_timeout: Optional[float] = None) -> bool
-```
-
-Kill a running command specified by its process ID.
-
-It uses `SIGKILL` signal to kill the command.
-
-**Arguments**:
-
-- `pid`: Process ID of the command. You can get the list of processes using `sandbox.commands.list()`
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-`True` if the command was killed, `False` if the command was not found
-
-
-
-### send\_stdin
-
-```python
-async def send_stdin(pid: int,
-                     data: Union[str, bytes],
-                     request_timeout: Optional[float] = None) -> None
-```
-
-Send data to command stdin.
-
-**Arguments**:
-
-- `pid`: Process ID of the command. You can get the list of processes using `sandbox.commands.list()`.
-- `data`: Data to send to the command
-- `request_timeout`: Timeout for the request in **seconds**
-
-
-
-
-### stream\_input
-
-```python
-def stream_input(
-    pid: int,
-    *,
-    timeout: Optional[float] = STREAM_INPUT_TIMEOUT
-) -> AsyncCommandInputHandle
-```
-
-Open an ordered input handle to command stdin.
-
-**Arguments**:
-
-- `pid`: Process ID of the command.
-- `timeout`: Timeout in seconds; defaults to ``STREAM_INPUT_TIMEOUT``
-(60 seconds). ``0`` or ``None`` disables the timeout.
-
-**Raises**:
-
-- `NotFoundException`: If the command does not exist; surfaced by
-the handle's ``send()`` or ``close()``.
-- `TimeoutException`: If the stream timeout expires; surfaced by
-the handle's ``send()`` or ``close()``.
-
-**Returns**:
-
-Handle for queuing ordered input with ``send()`` and ending the
-stream with ``close()``.
-
-
-
-### close\_stdin
-
-```python
-async def close_stdin(pid: int,
-                      request_timeout: Optional[float] = None) -> None
-```
-
-Close the command stdin.
-
-This signals EOF to the command. The command must have been started with `stdin=True`.
-
-**Arguments**:
-
-- `pid`: Process ID of the command. You can get the list of processes using `sandbox.commands.list()`.
-- `request_timeout`: Timeout for the request in **seconds**
-
-
-
-
-### run
-
-```python
-@overload
-async def run(cmd: str,
-              background: Union[Literal[False], None] = None,
-              envs: Optional[Dict[str, str]] = None,
-              user: Optional[Username] = None,
-              cwd: Optional[str] = None,
-              on_stdout: Optional[OutputHandler[Stdout]] = None,
-              on_stderr: Optional[OutputHandler[Stderr]] = None,
-              stdin: Optional[bool] = None,
-              timeout: Optional[float] = 60,
-              request_timeout: Optional[float] = None) -> CommandResult
-```
-
-Start a new command and wait until it finishes executing.
-
-**Arguments**:
-
-- `cmd`: Command to execute
-- `background`: **`False` if the command should be executed in the foreground**, `True` if the command should be executed in the background
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `on_stdout`: Callback for command stdout output
-- `on_stderr`: Callback for command stderr output
-- `stdin`: If `True`, the command will have a stdin stream that you can send data to using `sandbox.commands.send_stdin()`
-- `timeout`: Timeout for the command connection in **seconds**. Using `0` will not limit the command connection time
-- `request_timeout`: Timeout for opening the stream in **seconds** — the wait until envd confirms with a start event. The running stream is bounded by `timeout`
-
-**Returns**:
-
-`CommandResult` result of the command execution
-
-
-
-### run
-
-```python
-@overload
-async def run(cmd: str,
-              background: Literal[True],
-              envs: Optional[Dict[str, str]] = None,
-              user: Optional[Username] = None,
-              cwd: Optional[str] = None,
-              on_stdout: Optional[OutputHandler[Stdout]] = None,
-              on_stderr: Optional[OutputHandler[Stderr]] = None,
-              stdin: Optional[bool] = None,
-              timeout: Optional[float] = 60,
-              request_timeout: Optional[float] = None) -> AsyncCommandHandle
-```
-
-Start a new command and return a handle to interact with it.
-
-**Arguments**:
-
-- `cmd`: Command to execute
-- `background`: `False` if the command should be executed in the foreground, **`True` if the command should be executed in the background**
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `on_stdout`: Callback for command stdout output
-- `on_stderr`: Callback for command stderr output
-- `stdin`: If `True`, the command will have a stdin stream that you can send data to using `sandbox.commands.send_stdin()`
-- `timeout`: Timeout for the command connection in **seconds**. Using `0` will not limit the command connection time
-- `request_timeout`: Timeout for opening the stream in **seconds** — the wait until envd confirms with a start event. The running stream is bounded by `timeout`
-
-**Returns**:
-
-`AsyncCommandHandle` handle to interact with the running command
-
-
-
-### connect
-
-```python
-async def connect(
-        pid: int,
-        timeout: Optional[float] = 60,
-        request_timeout: Optional[float] = None,
-        on_stdout: Optional[OutputHandler[Stdout]] = None,
-        on_stderr: Optional[OutputHandler[Stderr]] = None
-) -> AsyncCommandHandle
-```
-
-Connects to a running command.
-
-You can use `AsyncCommandHandle.wait()` to wait for the command to finish and get execution results.
-
-**Arguments**:
-
-- `pid`: Process ID of the command to connect to. You can get the list of processes using `sandbox.commands.list()`
-- `request_timeout`: Timeout for opening the stream in **seconds** — the wait until envd confirms with a start event. The running stream is bounded by `timeout`
-- `timeout`: Timeout for the command connection in **seconds**. Using `0` will not limit the command connection time
-- `on_stdout`: Callback for command stdout output
-- `on_stderr`: Callback for command stderr output
-
-**Returns**:
-
-`AsyncCommandHandle` handle to interact with the running command
-
-
-
-
-
-
-## AsyncCommandHandle
-
-```python
-class AsyncCommandHandle()
-```
-
-Command execution handle.
-
-It provides methods for waiting for the command to finish, retrieving stdout/stderr, and killing the command.
-
-
-
-### pid
+### sandbox\_id
 
 ```python
 @property
-def pid()
+def sandbox_id() -> str
 ```
 
-Command process ID.
+Unique identifier of the sandbox.
 
 
 
-### stdout
-
-```python
-@property
-def stdout()
-```
-
-Command stdout output.
-
-
-
-### stderr
+### download\_url
 
 ```python
-@property
-def stderr()
-```
-
-Command stderr output.
-
-
-
-### error
-
-```python
-@property
-def error()
-```
-
-Command execution error message.
-
-
-
-### exit\_code
-
-```python
-@property
-def exit_code()
-```
-
-Command execution exit code.
-
-`0` if the command finished successfully.
-
-It is `None` if the command is still running.
-
-
-
-### disconnect
-
-```python
-async def disconnect() -> None
-```
-
-Disconnects from the command.
-
-The command is not killed, but SDK stops receiving events from the command.
-You can reconnect to the command using `sandbox.commands.connect` method.
-
-
-
-### wait
-
-```python
-async def wait() -> CommandResult
-```
-
-Wait for the command to finish and return the result.
-
-If the command exits with a non-zero exit code, it throws a `CommandExitException`.
-
-**Returns**:
-
-`CommandResult` result of command execution
-
-
-
-### kill
-
-```python
-async def kill() -> bool
-```
-
-Kills the command.
-
-It uses `SIGKILL` signal to kill the command
-
-**Returns**:
-
-`True` if the command was killed successfully, `False` if the command was not found
-
-
-
-### send\_stdin
-
-```python
-async def send_stdin(data: Union[str, bytes],
-                     request_timeout: Optional[float] = None) -> None
-```
-
-Send data to the command stdin.
-
-The command must have been started with `stdin=True`.
-
-**Arguments**:
-
-- `data`: Data to send to the command
-- `request_timeout`: Timeout for the request in **seconds**
-
-
-
-### close\_stdin
-
-```python
-async def close_stdin(request_timeout: Optional[float] = None) -> None
-```
-
-Close the command stdin.
-
-This signals EOF to the command. The command must have been started with `stdin=True`.
-
-**Arguments**:
-
-- `request_timeout`: Timeout for the request in **seconds**
-
-
-
-
-
-
-## Git
-
-```python
-class Git()
-```
-
-Async module for running git operations in the sandbox.
-
-:deprecated: Run git with `sandbox.commands.run()` instead. The git module will be removed in the next major version.
-
-
-
-### \_\_init\_\_
-
-```python
-def __init__(commands: Commands) -> None
-```
-
-Create a Git helper bound to the sandbox command runner.
-
-**Arguments**:
-
-- `commands`: Command runner used to execute git commands
-
-
-
-### clone
-
-```python
-async def clone(url: str,
-                path: Optional[str] = None,
-                branch: Optional[str] = None,
-                depth: Optional[int] = None,
-                username: Optional[str] = None,
-                password: Optional[str] = None,
-                envs: Optional[Dict[str, str]] = None,
-                user: Optional[str] = None,
-                cwd: Optional[str] = None,
-                timeout: Optional[float] = None,
-                request_timeout: Optional[float] = None,
-                dangerously_store_credentials: bool = False)
-```
-
-Clone a git repository into the sandbox.
-
-**Arguments**:
-
-- `url`: Git repository URL
-- `path`: Destination path for the clone
-- `branch`: Branch to check out
-- `depth`: If set, perform a shallow clone with this depth
-- `username`: Username for HTTP(S) authentication
-- `password`: Password or token for HTTP(S) authentication
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-- `dangerously_store_credentials`: Store credentials in the cloned repository when True
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### init
-
-```python
-async def init(path: str,
-               bare: bool = False,
-               initial_branch: Optional[str] = None,
-               envs: Optional[Dict[str, str]] = None,
-               user: Optional[str] = None,
-               cwd: Optional[str] = None,
-               timeout: Optional[float] = None,
-               request_timeout: Optional[float] = None)
-```
-
-Initialize a new git repository.
-
-**Arguments**:
-
-- `path`: Destination path for the repository
-- `bare`: Create a bare repository when True
-- `initial_branch`: Initial branch name (for example, "main")
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### remote\_add
-
-```python
-async def remote_add(path: str,
-                     name: str,
-                     url: str,
-                     fetch: bool = False,
-                     overwrite: bool = False,
-                     envs: Optional[Dict[str, str]] = None,
-                     user: Optional[str] = None,
-                     cwd: Optional[str] = None,
-                     timeout: Optional[float] = None,
-                     request_timeout: Optional[float] = None)
-```
-
-Add (or update) a remote for a repository.
-
-**Arguments**:
-
-- `path`: Repository path
-- `name`: Remote name (for example, "origin")
-- `url`: Remote URL
-- `fetch`: Fetch the remote after adding it when True
-- `overwrite`: Overwrite the remote URL if it already exists when True
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### remote\_get
-
-```python
-async def remote_get(path: str,
-                     name: str,
-                     envs: Optional[Dict[str, str]] = None,
-                     user: Optional[str] = None,
-                     cwd: Optional[str] = None,
-                     timeout: Optional[float] = None,
-                     request_timeout: Optional[float] = None) -> Optional[str]
-```
-
-Get the URL for a git remote.
-
-Returns `None` when the remote does not exist.
-
-**Arguments**:
-
-- `path`: Repository path
-- `name`: Remote name (for example, "origin")
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Remote URL if present, otherwise `None`
-
-
-
-### status
-
-```python
-async def status(path: str,
-                 envs: Optional[Dict[str, str]] = None,
+def download_url(path: str,
                  user: Optional[str] = None,
-                 cwd: Optional[str] = None,
-                 timeout: Optional[float] = None,
-                 request_timeout: Optional[float] = None) -> GitStatus
+                 use_signature_expiration: Optional[int] = None) -> str
 ```
 
-Get repository status information.
+Get the URL to download a file from the sandbox.
 
 **Arguments**:
 
-- `path`: Repository path
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
+- `path`: Path to the file to download
+- `user`: User to download the file as
+- `use_signature_expiration`: Expiration time for the signed URL in seconds
 
 **Returns**:
 
-Parsed git status
+URL for downloading file
 
 
 
-### branches
-
-```python
-async def branches(path: str,
-                   envs: Optional[Dict[str, str]] = None,
-                   user: Optional[str] = None,
-                   cwd: Optional[str] = None,
-                   timeout: Optional[float] = None,
-                   request_timeout: Optional[float] = None) -> GitBranches
-```
-
-List branches in a repository.
-
-**Arguments**:
-
-- `path`: Repository path
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Parsed branch list
-
-
-
-### create\_branch
+### upload\_url
 
 ```python
-async def create_branch(path: str,
-                        branch: str,
-                        envs: Optional[Dict[str, str]] = None,
-                        user: Optional[str] = None,
-                        cwd: Optional[str] = None,
-                        timeout: Optional[float] = None,
-                        request_timeout: Optional[float] = None)
-```
-
-Create and check out a new branch.
-
-**Arguments**:
-
-- `path`: Repository path
-- `branch`: Branch name to create
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### checkout\_branch
-
-```python
-async def checkout_branch(path: str,
-                          branch: str,
-                          envs: Optional[Dict[str, str]] = None,
-                          user: Optional[str] = None,
-                          cwd: Optional[str] = None,
-                          timeout: Optional[float] = None,
-                          request_timeout: Optional[float] = None)
-```
-
-Check out an existing branch.
-
-**Arguments**:
-
-- `path`: Repository path
-- `branch`: Branch name to check out
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### delete\_branch
-
-```python
-async def delete_branch(path: str,
-                        branch: str,
-                        force: bool = False,
-                        envs: Optional[Dict[str, str]] = None,
-                        user: Optional[str] = None,
-                        cwd: Optional[str] = None,
-                        timeout: Optional[float] = None,
-                        request_timeout: Optional[float] = None)
-```
-
-Delete a branch.
-
-**Arguments**:
-
-- `path`: Repository path
-- `branch`: Branch name to delete
-- `force`: Force deletion with `-D` when `True`
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### add
-
-```python
-async def add(path: str,
-              files: Optional[List[str]] = None,
-              all: bool = True,
-              envs: Optional[Dict[str, str]] = None,
-              user: Optional[str] = None,
-              cwd: Optional[str] = None,
-              timeout: Optional[float] = None,
-              request_timeout: Optional[float] = None)
-```
-
-Stage files for commit.
-
-**Arguments**:
-
-- `path`: Repository path
-- `files`: Files to add; when omitted, adds the current directory
-- `all`: When `True` and `files` is omitted, stage all changes
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### commit
-
-```python
-async def commit(path: str,
-                 message: str,
-                 author_name: Optional[str] = None,
-                 author_email: Optional[str] = None,
-                 allow_empty: bool = False,
-                 envs: Optional[Dict[str, str]] = None,
-                 user: Optional[str] = None,
-                 cwd: Optional[str] = None,
-                 timeout: Optional[float] = None,
-                 request_timeout: Optional[float] = None)
-```
-
-Create a commit in the repository.
-
-**Arguments**:
-
-- `path`: Repository path
-- `message`: Commit message
-- `author_name`: Commit author name
-- `author_email`: Commit author email
-- `allow_empty`: Allow empty commits when `True`
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### reset
-
-```python
-async def reset(path: str,
-                mode: Optional[GitResetMode] = None,
-                target: Optional[str] = None,
-                paths: Optional[List[str]] = None,
-                envs: Optional[Dict[str, str]] = None,
-                user: Optional[str] = None,
-                cwd: Optional[str] = None,
-                timeout: Optional[float] = None,
-                request_timeout: Optional[float] = None)
-```
-
-Reset the current HEAD to a specified state.
-
-**Arguments**:
-
-- `path`: Repository path
-- `mode`: Reset mode (soft, mixed, hard, merge, keep)
-- `target`: Commit, branch, or ref to reset to (defaults to HEAD)
-- `paths`: Paths to reset
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### restore
-
-```python
-async def restore(path: str,
-                  paths: List[str],
-                  staged: Optional[bool] = None,
-                  worktree: Optional[bool] = None,
-                  source: Optional[str] = None,
-                  envs: Optional[Dict[str, str]] = None,
-                  user: Optional[str] = None,
-                  cwd: Optional[str] = None,
-                  timeout: Optional[float] = None,
-                  request_timeout: Optional[float] = None)
-```
-
-Restore working tree files or unstage changes.
-
-**Arguments**:
-
-- `path`: Repository path
-- `paths`: Paths to restore (use ["."] for all)
-- `staged`: When True, restore the index (unstage)
-- `worktree`: When True, restore working tree files
-- `source`: Restore from the given source (commit, branch, or ref)
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### push
-
-```python
-async def push(path: str,
-               remote: Optional[str] = None,
-               branch: Optional[str] = None,
-               set_upstream: bool = True,
-               username: Optional[str] = None,
-               password: Optional[str] = None,
-               envs: Optional[Dict[str, str]] = None,
+def upload_url(path: str,
                user: Optional[str] = None,
-               cwd: Optional[str] = None,
-               timeout: Optional[float] = None,
-               request_timeout: Optional[float] = None)
+               use_signature_expiration: Optional[int] = None) -> str
 ```
 
-Push commits to a remote.
+Get the URL to upload a file to the sandbox.
+
+You have to send a POST request to this URL with the file as multipart/form-data.
 
 **Arguments**:
 
-- `path`: Repository path
-- `remote`: Remote name, e.g. `origin`
-- `branch`: Branch name to push
-- `set_upstream`: Set upstream tracking when `True`
-- `username`: Username for HTTP(S) authentication
-- `password`: Password or token for HTTP(S) authentication
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
+- `path`: Path to the file to upload
+- `user`: User to upload the file as
+- `use_signature_expiration`: Expiration time for the signed URL in seconds
 
 **Returns**:
 
-Command result from the command runner
+URL for uploading file
 
 
 
-### pull
+### get\_host
 
 ```python
-async def pull(path: str,
-               remote: Optional[str] = None,
-               branch: Optional[str] = None,
-               username: Optional[str] = None,
-               password: Optional[str] = None,
-               envs: Optional[Dict[str, str]] = None,
-               user: Optional[str] = None,
-               cwd: Optional[str] = None,
-               timeout: Optional[float] = None,
-               request_timeout: Optional[float] = None)
+def get_host(port: int) -> str
 ```
 
-Pull changes from a remote.
+Get the host address to connect to the sandbox.
+
+You can then use this address to connect to the sandbox port from outside the sandbox via HTTP or WebSocket.
 
 **Arguments**:
 
-- `path`: Repository path
-- `remote`: Remote name, e.g. `origin`
-- `branch`: Branch name to pull
-- `username`: Username for HTTP(S) authentication
-- `password`: Password or token for HTTP(S) authentication
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
+- `port`: Port to connect to
 
 **Returns**:
 
-Command result from the command runner
+Host address to connect to
 
 
 
-### set\_config
+### get\_mcp\_url
 
 ```python
-async def set_config(key: str,
-                     value: str,
-                     scope: str = "global",
-                     path: Optional[str] = None,
-                     envs: Optional[Dict[str, str]] = None,
-                     user: Optional[str] = None,
-                     cwd: Optional[str] = None,
-                     timeout: Optional[float] = None,
-                     request_timeout: Optional[float] = None)
+def get_mcp_url() -> str
 ```
 
-Set a git config value.
+Get the MCP URL for the sandbox.
 
-Use `scope="local"` together with `path` to configure a specific repository.
-
-**Arguments**:
-
-- `key`: Git config key (e.g. `pull.rebase`)
-- `value`: Git config value
-- `scope`: Config scope: `global`, `local`, or `system`
-- `path`: Repository path required when `scope` is `local`
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
+:returns MCP URL for the sandbox.
 
 
 
-### get\_config
 
-```python
-async def get_config(key: str,
-                     scope: str = "global",
-                     path: Optional[str] = None,
-                     envs: Optional[Dict[str, str]] = None,
-                     user: Optional[str] = None,
-                     cwd: Optional[str] = None,
-                     timeout: Optional[float] = None,
-                     request_timeout: Optional[float] = None) -> Optional[str]
-```
-
-Get a git config value.
-
-Returns `None` when the key is not set in the requested scope.
-
-**Arguments**:
-
-- `key`: Git config key (e.g. `pull.rebase`)
-- `scope`: Config scope: `global`, `local`, or `system`
-- `path`: Repository path required when `scope` is `local`
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Config value if present, otherwise `None`
-
-
-
-### dangerously\_authenticate
-
-```python
-async def dangerously_authenticate(username: str,
-                                   password: str,
-                                   host: str = "github.com",
-                                   protocol: str = "https",
-                                   envs: Optional[Dict[str, str]] = None,
-                                   user: Optional[str] = None,
-                                   cwd: Optional[str] = None,
-                                   timeout: Optional[float] = None,
-                                   request_timeout: Optional[float] = None)
-```
-
-Dangerously authenticate git globally via the credential helper.
-
-This persists credentials in the credential store and may be accessible to agents running on the sandbox.
-Prefer short-lived credentials when possible.
-
-**Arguments**:
-
-- `username`: Username for HTTP(S) authentication
-- `password`: Password or token for HTTP(S) authentication
-- `host`: Host to authenticate for, defaults to `github.com`
-- `protocol`: Protocol to authenticate for, defaults to `https`
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### configure\_user
-
-```python
-async def configure_user(name: str,
-                         email: str,
-                         scope: str = "global",
-                         path: Optional[str] = None,
-                         envs: Optional[Dict[str, str]] = None,
-                         user: Optional[str] = None,
-                         cwd: Optional[str] = None,
-                         timeout: Optional[float] = None,
-                         request_timeout: Optional[float] = None)
-```
-
-Configure git user name and email.
-
-**Arguments**:
-
-- `name`: Git user name
-- `email`: Git user email
-- `scope`: Config scope: `global`, `local`, or `system`
-- `path`: Repository path required when `scope` is `local`
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner

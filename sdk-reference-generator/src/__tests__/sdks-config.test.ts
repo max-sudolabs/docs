@@ -211,14 +211,14 @@ describe("sdks.config - python-sdk version overrides", () => {
       pythonSdkConfig.configOverrides,
       "v2.43.0"
     );
-    expect(v2_43_0.allowedPackages).toHaveLength(11); // + secrets
+    expect(v2_43_0.allowedPackages).toHaveLength(12); // + secret packages
 
     const v2_44_0 = resolveConfig(
       pythonSdkConfig.defaultConfig,
       pythonSdkConfig.configOverrides,
       "v2.44.0"
     );
-    expect(v2_44_0.allowedPackages).toHaveLength(12); // + client
+    expect(v2_44_0.allowedPackages).toHaveLength(13); // + client
   });
 
   it("should include secrets starting in v2.43.0", () => {
@@ -229,7 +229,8 @@ describe("sdks.config - python-sdk version overrides", () => {
         version
       );
 
-      expect(resolved.allowedPackages).toContain("e2b.secret");
+      expect(resolved.allowedPackages).toContain("e2b.secret.secret_sync");
+      expect(resolved.allowedPackages).toContain("e2b.secret.secret_async");
     }
 
     for (const version of ["v2.42.0", "v2.19.0"]) {
@@ -239,7 +240,10 @@ describe("sdks.config - python-sdk version overrides", () => {
         version
       );
 
-      expect(resolved.allowedPackages).not.toContain("e2b.secret");
+      expect(resolved.allowedPackages).not.toContain("e2b.secret.secret_sync");
+      expect(resolved.allowedPackages).not.toContain(
+        "e2b.secret.secret_async"
+      );
       expect(resolved.allowedPackages).toContain("e2b.volume.volume_sync");
       expect(resolved.allowedPackages).toContain("e2b.volume.volume_async");
     }
@@ -262,7 +266,7 @@ describe("sdks.config - python-sdk version overrides", () => {
       "v2.43.0"
     );
     expect(v2_43_0.allowedPackages).not.toContain("e2b.client");
-    expect(v2_43_0.allowedPackages).toContain("e2b.secret");
+    expect(v2_43_0.allowedPackages).toContain("e2b.secret.secret_sync");
   });
 });
 

@@ -9,6 +9,84 @@ sidebarTitle: "Template Async"
 
 
 
+### check\_alias\_exists
+
+```python
+async def check_alias_exists(client: AuthenticatedClient, alias: str) -> bool
+```
+
+Check if a template with the given alias exists.
+
+**Arguments**:
+
+- `client` - Authenticated API client
+- `alias` - Template alias to check
+  
+
+**Returns**:
+
+  True if the alias exists, False otherwise
+
+
+
+### assign\_tags
+
+```python
+async def assign_tags(client: AuthenticatedClient, target_name: str,
+                      tags: List[str]) -> TemplateTagInfo
+```
+
+Assign tag(s) to an existing template build.
+
+**Arguments**:
+
+- `client` - Authenticated API client
+- `target_name` - Template name in 'name:tag' format (the source build to tag from)
+- `tags` - Tags to assign
+  
+
+**Returns**:
+
+  TemplateTagInfo with build_id and assigned tags
+
+
+
+### remove\_tags
+
+```python
+async def remove_tags(client: AuthenticatedClient, name: str,
+                      tags: List[str]) -> None
+```
+
+Remove tag(s) from a template.
+
+**Arguments**:
+
+- `client` - Authenticated API client
+- `name` - Template name
+- `tags` - List of tags to remove
+
+
+
+### get\_template\_tags
+
+```python
+async def get_template_tags(client: AuthenticatedClient,
+                            template_id_or_name: str) -> List[TemplateTag]
+```
+
+Get all tags for a template.
+
+**Arguments**:
+
+- `client` - Authenticated API client
+- `template_id_or_name` - Template ID or name (a name may be namespaced)
+
+
+
+
+
+
 ## AsyncTemplate
 
 ```python
@@ -297,78 +375,414 @@ for tag in tags:
 
 
 
-
-
-
-### check\_alias\_exists
+### \_\_init\_\_
 
 ```python
-async def check_alias_exists(client: AuthenticatedClient, alias: str) -> bool
+def __init__(file_context_path: Optional[Union[str, Path]] = None,
+             file_ignore_patterns: Optional[List[str]] = None)
 ```
 
-Check if a template with the given alias exists.
+Create a new template builder instance.
 
 **Arguments**:
 
-- `client` - Authenticated API client
-- `alias` - Template alias to check
-  
+- `file_context_path`: Base path for resolving relative file paths in copy operations
+- `file_ignore_patterns`: Patterns in `.dockerignore` syntax for files to exclude when copying. They are applied after the `.dockerignore` file in the context directory, so they take precedence over it. An invalid pattern (such as an unterminated `[`) raises a :class:`TemplateException`. Brace expansion (`{a,b}`) is not supported, as in Docker
+
+
+
+### skip\_cache
+
+```python
+def skip_cache() -> "TemplateBase"
+```
+
+Skip cache for all subsequent build instructions from this point.
 
 **Returns**:
 
-  True if the alias exists, False otherwise
-
-
-
-### assign\_tags
-
+`TemplateBase` class
+Example
 ```python
-async def assign_tags(client: AuthenticatedClient, target_name: str,
-                      tags: List[str]) -> TemplateTagInfo
+template.skip_cache().from_python_image('3.11')
 ```
 
-Assign tag(s) to an existing template build.
+
+
+### from\_debian\_image
+
+```python
+def from_debian_image(variant: str = "stable") -> TemplateBuilder
+```
+
+Start template from a Debian base image.
 
 **Arguments**:
 
-- `client` - Authenticated API client
-- `target_name` - Template name in 'name:tag' format (the source build to tag from)
-- `tags` - Tags to assign
-  
+- `variant`: Debian image variant
 
 **Returns**:
 
-  TemplateTagInfo with build_id and assigned tags
-
-
-
-### remove\_tags
-
+`TemplateBuilder` class
+Example
 ```python
-async def remove_tags(client: AuthenticatedClient, name: str,
-                      tags: List[str]) -> None
+Template().from_debian_image('bookworm')
 ```
 
-Remove tag(s) from a template.
+
+
+### from\_ubuntu\_image
+
+```python
+def from_ubuntu_image(variant: str = "latest") -> TemplateBuilder
+```
+
+Start template from an Ubuntu base image.
 
 **Arguments**:
 
-- `client` - Authenticated API client
-- `name` - Template name
-- `tags` - List of tags to remove
+- `variant`: Ubuntu image variant (default: 'latest')
 
+**Returns**:
 
-
-### get\_template\_tags
-
+`TemplateBuilder` class
+Example
 ```python
-async def get_template_tags(client: AuthenticatedClient,
-                            template_id_or_name: str) -> List[TemplateTag]
+Template().from_ubuntu_image('24.04')
 ```
 
-Get all tags for a template.
+
+
+### from\_fedora\_image
+
+```python
+def from_fedora_image(variant: str = "44") -> TemplateBuilder
+```
+
+Start template from a Fedora base image.
 
 **Arguments**:
 
-- `client` - Authenticated API client
-- `template_id_or_name` - Template ID or name (a name may be namespaced)
+- `variant`: Fedora image variant (default: '44')
+
+**Returns**:
+
+`TemplateBuilder` class
+Example
+```python
+Template().from_fedora_image('44')
+```
+
+
+
+### from\_alpine\_image
+
+```python
+def from_alpine_image(variant: str = "3.24") -> TemplateBuilder
+```
+
+Start template from an Alpine base image.
+
+**Arguments**:
+
+- `variant`: Alpine image variant (default: '3.24')
+
+**Returns**:
+
+`TemplateBuilder` class
+Example
+```python
+Template().from_alpine_image('3.24')
+```
+
+
+
+### from\_arch\_image
+
+```python
+def from_arch_image(variant: str = "latest") -> TemplateBuilder
+```
+
+Start template from an Arch Linux base image.
+
+Defaults to `latest`: Arch is a rolling release and template
+provisioning runs `pacman -Syu`, so pinning a tag would not change
+the built result.
+
+**Arguments**:
+
+- `variant`: Arch Linux image variant (default: 'latest')
+
+**Returns**:
+
+`TemplateBuilder` class
+Example
+```python
+Template().from_arch_image('base-devel')
+```
+
+
+
+### from\_python\_image
+
+```python
+def from_python_image(version: str = "3") -> TemplateBuilder
+```
+
+Start template from a Python base image.
+
+**Arguments**:
+
+- `version`: Python version (default: '3')
+
+**Returns**:
+
+`TemplateBuilder` class
+Example
+```python
+Template().from_python_image('3')
+```
+
+
+
+### from\_node\_image
+
+```python
+def from_node_image(variant: str = "lts") -> TemplateBuilder
+```
+
+Start template from a Node.js base image.
+
+**Arguments**:
+
+- `variant`: Node.js image variant (default: 'lts')
+
+**Returns**:
+
+`TemplateBuilder` class
+Example
+```python
+Template().from_node_image('24')
+```
+
+
+
+### from\_bun\_image
+
+```python
+def from_bun_image(variant: str = "latest") -> TemplateBuilder
+```
+
+Start template from a Bun base image.
+
+**Arguments**:
+
+- `variant`: Bun image variant (default: 'latest')
+
+**Returns**:
+
+`TemplateBuilder` class
+
+
+
+### from\_base\_image
+
+```python
+def from_base_image() -> TemplateBuilder
+```
+
+Start template from the E2B base image (e2bdev/base:latest).
+
+**Returns**:
+
+`TemplateBuilder` class
+Example
+```python
+Template().from_base_image()
+```
+
+
+
+### from\_image
+
+```python
+def from_image(image: str,
+               username: Optional[str] = None,
+               password: Optional[str] = None) -> TemplateBuilder
+```
+
+Start template from a Docker image.
+
+**Arguments**:
+
+- `image`: Docker image name (e.g., 'ubuntu:24.04')
+- `username`: Username for private registry authentication
+- `password`: Password for private registry authentication
+
+**Returns**:
+
+`TemplateBuilder` class
+Example
+```python
+Template().from_image('python:3')
+
+# With credentials (optional)
+Template().from_image('myregistry.com/myimage:latest', username='user', password='pass')
+```
+
+
+
+### from\_template
+
+```python
+def from_template(template: str) -> TemplateBuilder
+```
+
+Start template from an existing E2B template.
+
+**Arguments**:
+
+- `template`: E2B template ID or alias
+
+**Returns**:
+
+`TemplateBuilder` class
+Example
+```python
+Template().from_template('my-base-template')
+```
+
+
+
+### from\_dockerfile
+
+```python
+def from_dockerfile(dockerfile_content_or_path: str) -> TemplateBuilder
+```
+
+Parse a Dockerfile and convert it to Template SDK format.
+
+**Arguments**:
+
+- `dockerfile_content_or_path`: Either the Dockerfile content as a string, or a path to a Dockerfile file
+
+**Returns**:
+
+`TemplateBuilder` class
+Example
+```python
+Template().from_dockerfile('Dockerfile')
+Template().from_dockerfile('FROM python:3\nRUN pip install numpy')
+```
+
+
+
+### from\_aws\_registry
+
+```python
+def from_aws_registry(image: str, access_key_id: str, secret_access_key: str,
+                      region: str) -> TemplateBuilder
+```
+
+Start template from an AWS ECR registry image.
+
+**Arguments**:
+
+- `image`: Docker image name from AWS ECR
+- `access_key_id`: AWS access key ID
+- `secret_access_key`: AWS secret access key
+- `region`: AWS region
+
+**Returns**:
+
+`TemplateBuilder` class
+Example
+```python
+Template().from_aws_registry(
+    '123456789.dkr.ecr.us-west-2.amazonaws.com/myimage:latest',
+    access_key_id='AKIA...',
+    secret_access_key='...',
+    region='us-west-2'
+)
+```
+
+
+
+### from\_gcp\_registry
+
+```python
+def from_gcp_registry(
+        image: str, service_account_json: Union[str, dict]) -> TemplateBuilder
+```
+
+Start template from a GCP Artifact Registry or Container Registry image.
+
+**Arguments**:
+
+- `image`: Docker image name from GCP registry
+- `service_account_json`: Service account JSON string, dict, or path to JSON file
+
+**Returns**:
+
+`TemplateBuilder` class
+Example
+```python
+Template().from_gcp_registry(
+    'gcr.io/myproject/myimage:latest',
+    service_account_json='path/to/service-account.json'
+)
+```
+
+
+
+### to\_json
+
+```python
+@staticmethod
+def to_json(template: "TemplateClass") -> str
+```
+
+Convert a template to JSON representation.
+
+**Arguments**:
+
+- `template`: The template to convert (TemplateBuilder or TemplateFinal instance)
+
+**Returns**:
+
+JSON string representation of the template
+Example
+```python
+template = Template().from_python_image('3').copy('app.py', '/app/')
+json_str = TemplateBase.to_json(template)
+```
+
+
+
+### to\_dockerfile
+
+```python
+@staticmethod
+def to_dockerfile(template: "TemplateClass") -> str
+```
+
+Convert a template to Dockerfile format.
+
+Note: Templates based on other E2B templates cannot be converted to Dockerfile.
+
+**Arguments**:
+
+- `template`: The template to convert (TemplateBuilder or TemplateFinal instance)
+
+**Raises**:
+
+- `ValueError`: If the template is based on another E2B template or has no base image
+Example
+```python
+template = Template().from_python_image('3').copy('app.py', '/app/')
+dockerfile = TemplateBase.to_dockerfile(template)
+```
+
+**Returns**:
+
+Dockerfile string representation

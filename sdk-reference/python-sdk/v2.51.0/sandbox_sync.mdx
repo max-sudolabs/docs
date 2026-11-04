@@ -18,478 +18,6 @@ noindex: true
 
 
 
-## WatchHandle
-
-```python
-class WatchHandle()
-```
-
-Handle for watching filesystem events.
-It is used to get the latest events that have occurred in the watched directory.
-
-Use `.stop()` to stop watching the directory.
-
-
-
-### stop
-
-```python
-def stop(request_timeout: Optional[float] = None)
-```
-
-Stop watching the directory.
-
-After you stop the watcher you won't be able to get the events anymore.
-
-**Arguments**:
-
-- `request_timeout`: Timeout for the request in **seconds**
-
-
-
-### get\_new\_events
-
-```python
-def get_new_events(
-        request_timeout: Optional[float] = None) -> List[FilesystemEvent]
-```
-
-Get the latest events that have occurred in the watched directory since the last call, or from the beginning of the watching, up until now.
-
-**Arguments**:
-
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-List of filesystem events
-
-
-
-
-
-
-## Filesystem
-
-```python
-class Filesystem()
-```
-
-Module for interacting with the filesystem in the sandbox.
-
-
-
-### read
-
-```python
-@overload
-def read(path: str,
-         format: Literal["text"] = "text",
-         user: Optional[Username] = None,
-         request_timeout: Optional[float] = None,
-         gzip: bool = False) -> str
-```
-
-Read file content as a `str`.
-
-**Arguments**:
-
-- `path`: Path to the file
-- `user`: Run the operation as this user
-- `format`: Format of the file content—`text` by default
-- `request_timeout`: Timeout for the request in **seconds**
-- `gzip`: Use gzip compression for the request
-
-**Returns**:
-
-File content as a `str`
-
-
-
-### read
-
-```python
-@overload
-def read(path: str,
-         format: Literal["bytes"],
-         user: Optional[Username] = None,
-         request_timeout: Optional[float] = None,
-         gzip: bool = False) -> bytearray
-```
-
-Read file content as a `bytearray`.
-
-**Arguments**:
-
-- `path`: Path to the file
-- `user`: Run the operation as this user
-- `format`: Format of the file content—`bytes`
-- `request_timeout`: Timeout for the request in **seconds**
-- `gzip`: Use gzip compression for the request
-
-**Returns**:
-
-File content as a `bytearray`
-
-
-
-### read
-
-```python
-@overload
-def read(path: str,
-         format: Literal["stream"],
-         user: Optional[Username] = None,
-         request_timeout: Optional[float] = None,
-         gzip: bool = False,
-         stream_idle_timeout: Optional[float] = None) -> FileStreamReader
-```
-
-Read file content as a `FileStreamReader` (an `Iterator[bytes]`).
-
-A `request_timeout` set explicitly for this call is the deadline for
-the whole transfer; by default the download is not bounded in total.
-A stalled stream is reclaimed by a transport-wide idle read timeout
-(raising `httpx.ReadTimeout`). The reader releases its connection
-once fully consumed; if you don't read it to the end, use it as a
-context manager or call `close()` for deterministic cleanup.
-
-**Arguments**:
-
-- `path`: Path to the file
-- `user`: Run the operation as this user
-- `format`: Format of the file content—`stream`
-- `request_timeout`: Deadline for the whole transfer in **seconds**
-- `gzip`: Use gzip compression for the request
-- `stream_idle_timeout`: Ignored — the sync client cannot
-interrupt a blocking read. A stalled streamed read is bounded by
-a transport-wide idle read timeout instead (60 seconds), which
-resets on every chunk. (`AsyncSandbox.files.read` honors this
-parameter.)
-
-**Returns**:
-
-File content as a `FileStreamReader`
-
-
-
-### write
-
-```python
-def write(path: str,
-          data: Union[str, bytes, IO],
-          user: Optional[Username] = None,
-          request_timeout: Optional[float] = None,
-          gzip: bool = False,
-          use_octet_stream: Optional[bool] = None,
-          metadata: Optional[Dict[str, str]] = None) -> WriteInfo
-```
-
-Write content to a file on the path.
-
-Writing to a file that doesn't exist creates the file.
-Writing to a file that already exists overwrites the file.
-Writing to a file at path that doesn't exist creates the necessary directories.
-
-**Arguments**:
-
-- `path`: Path to the file
-- `data`: Data to write to the file, can be a `str`, `bytes`, or `IO`. File-like objects are streamed in chunks instead of being buffered in memory.
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request in **seconds**
-- `gzip`: Use gzip compression for the upload. Implies the `application/octet-stream` upload. Requires envd 0.5.7 or later — when not supported, the upload falls back to uncompressed `multipart/form-data`.
-- `use_octet_stream`: Upload using `application/octet-stream` instead of `multipart/form-data`. Defaults to `None`, which uses octet-stream when `data` is a file-like object (so streamed uploads aren't buffered) and `multipart/form-data` otherwise. Requires envd 0.5.7 or later — when not supported, the upload falls back to `multipart/form-data`, which reads text-mode file-like data into memory (httpx only streams binary file objects in a multipart body).
-- `metadata`: User-defined metadata to persist on the uploaded file as extended attributes. Keys are lowercased by the sandbox; invalid keys or values raise an `InvalidArgumentException`. Requires envd 0.6.2 or later.
-
-**Returns**:
-
-Information about the written file
-
-
-
-### write\_files
-
-```python
-def write_files(files: List[WriteEntry],
-                user: Optional[Username] = None,
-                request_timeout: Optional[float] = None,
-                gzip: bool = False,
-                use_octet_stream: Optional[bool] = None,
-                metadata: Optional[Dict[str, str]] = None) -> List[WriteInfo]
-```
-
-Writes multiple files.
-
-Writes a list of files to the filesystem.
-When writing to a file that doesn't exist, the file will get created.
-When writing to a file that already exists, the file will get overwritten.
-When writing to a file at path that doesn't exist, the necessary directories will be created.
-
-**Arguments**:
-
-- `files`: list of files to write as `WriteEntry` objects, each containing `path` and `data`
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request
-- `gzip`: Use gzip compression for the upload. Implies the `application/octet-stream` upload. Requires envd 0.5.7 or later — when not supported, the upload falls back to uncompressed `multipart/form-data`.
-- `use_octet_stream`: Upload using `application/octet-stream` instead of `multipart/form-data`. Defaults to `None`, which uses octet-stream when any entry is a file-like object (so streamed uploads aren't buffered) and `multipart/form-data` otherwise. Requires envd 0.5.7 or later — when not supported, the upload falls back to `multipart/form-data`, which reads text-mode file-like data into memory (httpx only streams binary file objects in a multipart body).
-- `metadata`: User-defined metadata to persist on each uploaded file as extended attributes; the same map is applied to every file. Keys are lowercased by the sandbox; invalid keys or values raise an `InvalidArgumentException`. Requires envd 0.6.2 or later.
-
-**Returns**:
-
-Information about the written files
-
-
-
-### list
-
-```python
-def list(path: str,
-         depth: Optional[int] = 1,
-         user: Optional[Username] = None,
-         request_timeout: Optional[float] = None) -> List[EntryInfo]
-```
-
-List entries in a directory.
-
-**Arguments**:
-
-- `path`: Path to the directory
-- `depth`: Depth of the directory to list
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-List of entries in the directory
-
-
-
-### exists
-
-```python
-def exists(path: str,
-           user: Optional[Username] = None,
-           request_timeout: Optional[float] = None) -> bool
-```
-
-Check if a file or a directory exists.
-
-**Arguments**:
-
-- `path`: Path to a file or a directory
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-`True` if the file or directory exists, `False` otherwise
-
-
-
-### get\_info
-
-```python
-def get_info(path: str,
-             user: Optional[Username] = None,
-             request_timeout: Optional[float] = None) -> EntryInfo
-```
-
-Get information about a file or directory.
-
-**Arguments**:
-
-- `path`: Path to a file or a directory
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Information about the file or directory like name, type, and path
-
-
-
-### remove
-
-```python
-def remove(path: str,
-           user: Optional[Username] = None,
-           request_timeout: Optional[float] = None) -> None
-```
-
-Remove a file or a directory.
-
-**Arguments**:
-
-- `path`: Path to a file or a directory
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request in **seconds**
-
-
-
-### rename
-
-```python
-def rename(old_path: str,
-           new_path: str,
-           user: Optional[Username] = None,
-           request_timeout: Optional[float] = None) -> EntryInfo
-```
-
-Rename a file or directory.
-
-**Arguments**:
-
-- `old_path`: Path to the file or directory to rename
-- `new_path`: New path to the file or directory
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Information about the renamed file or directory
-
-
-
-### make\_dir
-
-```python
-def make_dir(path: str,
-             user: Optional[Username] = None,
-             request_timeout: Optional[float] = None) -> bool
-```
-
-Create a new directory and all directories along the way if needed on the specified path.
-
-**Arguments**:
-
-- `path`: Path to a new directory. For example '/dirA/dirB' when creating 'dirB'.
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-`True` if the directory was created, `False` if the directory already exists
-
-
-
-### watch\_dir
-
-```python
-def watch_dir(path: str,
-              user: Optional[Username] = None,
-              request_timeout: Optional[float] = None,
-              recursive: bool = False,
-              include_entry: bool = False,
-              allow_network_mounts: bool = False) -> WatchHandle
-```
-
-Watch directory for filesystem events.
-
-**Arguments**:
-
-- `path`: Path to a directory to watch
-- `user`: Run the operation as this user
-- `request_timeout`: Timeout for the request in **seconds**
-- `recursive`: Watch directory recursively
-- `include_entry`: Include the `EntryInfo` of the affected entry in each event, when available. Requires envd 0.6.3 or later
-- `allow_network_mounts`: Allow watching paths on network filesystem mounts (NFS, CIFS, SMB, FUSE), which are rejected by default. Events on network mounts may be unreliable or not delivered at all. Requires envd 0.6.4 or later
-
-**Returns**:
-
-`WatchHandle` object for stopping watching directory
-
-
-
-
-
-
-## SandboxPaginator
-
-```python
-class SandboxPaginator(SandboxPaginatorBase)
-```
-
-Paginator for listing sandboxes.
-
-**Example**:
-
-```python
-paginator = Sandbox.list()
-
-while paginator.has_next:
-    sandboxes = paginator.next_items()
-    print(sandboxes)
-```
-
-
-
-### next\_items
-
-```python
-def next_items(**opts: Unpack[ApiParams]) -> List[SandboxInfo]
-```
-
-Returns the next page of sandboxes.
-
-Call this method only if `has_next` is `True`, otherwise it will raise an exception.
-
-**Arguments**:
-
-- `opts`: Per-call connection options (e.g. `api_key`, `domain`,
-`headers`, `request_timeout`). When provided, this call uses these
-options on top of the ones the paginator was constructed with.
-
-**Returns**:
-
-List of sandboxes
-
-
-
-## SnapshotPaginator
-
-```python
-class SnapshotPaginator(SnapshotPaginatorBase)
-```
-
-Paginator for listing snapshots.
-
-**Example**:
-
-```python
-paginator = Sandbox.list_snapshots()
-
-while paginator.has_next:
-    snapshots = paginator.next_items()
-    print(snapshots)
-```
-
-
-
-### next\_items
-
-```python
-def next_items(**opts: Unpack[ApiParams]) -> List[SnapshotInfo]
-```
-
-Returns the next page of snapshots.
-
-Call this method only if `has_next` is `True`, otherwise it will raise an exception.
-
-**Arguments**:
-
-- `opts`: Per-call connection options (e.g. `api_key`, `domain`,
-`headers`, `request_timeout`). When provided, this call uses these
-options on top of the ones the paginator was constructed with.
-
-**Returns**:
-
-List of snapshots
-
-
-
-
-
-
 ## Commands
 
 ```python
@@ -922,6 +450,1061 @@ Call this when the terminal window is resized and the number of columns and rows
 
 
 
+## Filesystem
+
+```python
+class Filesystem()
+```
+
+Module for interacting with the filesystem in the sandbox.
+
+
+
+### read
+
+```python
+@overload
+def read(path: str,
+         format: Literal["text"] = "text",
+         user: Optional[Username] = None,
+         request_timeout: Optional[float] = None,
+         gzip: bool = False) -> str
+```
+
+Read file content as a `str`.
+
+**Arguments**:
+
+- `path`: Path to the file
+- `user`: Run the operation as this user
+- `format`: Format of the file content—`text` by default
+- `request_timeout`: Timeout for the request in **seconds**
+- `gzip`: Use gzip compression for the request
+
+**Returns**:
+
+File content as a `str`
+
+
+
+### read
+
+```python
+@overload
+def read(path: str,
+         format: Literal["bytes"],
+         user: Optional[Username] = None,
+         request_timeout: Optional[float] = None,
+         gzip: bool = False) -> bytearray
+```
+
+Read file content as a `bytearray`.
+
+**Arguments**:
+
+- `path`: Path to the file
+- `user`: Run the operation as this user
+- `format`: Format of the file content—`bytes`
+- `request_timeout`: Timeout for the request in **seconds**
+- `gzip`: Use gzip compression for the request
+
+**Returns**:
+
+File content as a `bytearray`
+
+
+
+### read
+
+```python
+@overload
+def read(path: str,
+         format: Literal["stream"],
+         user: Optional[Username] = None,
+         request_timeout: Optional[float] = None,
+         gzip: bool = False,
+         stream_idle_timeout: Optional[float] = None) -> FileStreamReader
+```
+
+Read file content as a `FileStreamReader` (an `Iterator[bytes]`).
+
+A `request_timeout` set explicitly for this call is the deadline for
+the whole transfer; by default the download is not bounded in total.
+A stalled stream is reclaimed by a transport-wide idle read timeout
+(raising `httpx.ReadTimeout`). The reader releases its connection
+once fully consumed; if you don't read it to the end, use it as a
+context manager or call `close()` for deterministic cleanup.
+
+**Arguments**:
+
+- `path`: Path to the file
+- `user`: Run the operation as this user
+- `format`: Format of the file content—`stream`
+- `request_timeout`: Deadline for the whole transfer in **seconds**
+- `gzip`: Use gzip compression for the request
+- `stream_idle_timeout`: Ignored — the sync client cannot
+interrupt a blocking read. A stalled streamed read is bounded by
+a transport-wide idle read timeout instead (60 seconds), which
+resets on every chunk. (`AsyncSandbox.files.read` honors this
+parameter.)
+
+**Returns**:
+
+File content as a `FileStreamReader`
+
+
+
+### write
+
+```python
+def write(path: str,
+          data: Union[str, bytes, IO],
+          user: Optional[Username] = None,
+          request_timeout: Optional[float] = None,
+          gzip: bool = False,
+          use_octet_stream: Optional[bool] = None,
+          metadata: Optional[Dict[str, str]] = None) -> WriteInfo
+```
+
+Write content to a file on the path.
+
+Writing to a file that doesn't exist creates the file.
+Writing to a file that already exists overwrites the file.
+Writing to a file at path that doesn't exist creates the necessary directories.
+
+**Arguments**:
+
+- `path`: Path to the file
+- `data`: Data to write to the file, can be a `str`, `bytes`, or `IO`. File-like objects are streamed in chunks instead of being buffered in memory.
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request in **seconds**
+- `gzip`: Use gzip compression for the upload. Implies the `application/octet-stream` upload. Requires envd 0.5.7 or later — when not supported, the upload falls back to uncompressed `multipart/form-data`.
+- `use_octet_stream`: Upload using `application/octet-stream` instead of `multipart/form-data`. Defaults to `None`, which uses octet-stream when `data` is a file-like object (so streamed uploads aren't buffered) and `multipart/form-data` otherwise. Requires envd 0.5.7 or later — when not supported, the upload falls back to `multipart/form-data`, which reads text-mode file-like data into memory (httpx only streams binary file objects in a multipart body).
+- `metadata`: User-defined metadata to persist on the uploaded file as extended attributes. Keys are lowercased by the sandbox; invalid keys or values raise an `InvalidArgumentException`. Requires envd 0.6.2 or later.
+
+**Returns**:
+
+Information about the written file
+
+
+
+### write\_files
+
+```python
+def write_files(files: List[WriteEntry],
+                user: Optional[Username] = None,
+                request_timeout: Optional[float] = None,
+                gzip: bool = False,
+                use_octet_stream: Optional[bool] = None,
+                metadata: Optional[Dict[str, str]] = None) -> List[WriteInfo]
+```
+
+Writes multiple files.
+
+Writes a list of files to the filesystem.
+When writing to a file that doesn't exist, the file will get created.
+When writing to a file that already exists, the file will get overwritten.
+When writing to a file at path that doesn't exist, the necessary directories will be created.
+
+**Arguments**:
+
+- `files`: list of files to write as `WriteEntry` objects, each containing `path` and `data`
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request
+- `gzip`: Use gzip compression for the upload. Implies the `application/octet-stream` upload. Requires envd 0.5.7 or later — when not supported, the upload falls back to uncompressed `multipart/form-data`.
+- `use_octet_stream`: Upload using `application/octet-stream` instead of `multipart/form-data`. Defaults to `None`, which uses octet-stream when any entry is a file-like object (so streamed uploads aren't buffered) and `multipart/form-data` otherwise. Requires envd 0.5.7 or later — when not supported, the upload falls back to `multipart/form-data`, which reads text-mode file-like data into memory (httpx only streams binary file objects in a multipart body).
+- `metadata`: User-defined metadata to persist on each uploaded file as extended attributes; the same map is applied to every file. Keys are lowercased by the sandbox; invalid keys or values raise an `InvalidArgumentException`. Requires envd 0.6.2 or later.
+
+**Returns**:
+
+Information about the written files
+
+
+
+### list
+
+```python
+def list(path: str,
+         depth: Optional[int] = 1,
+         user: Optional[Username] = None,
+         request_timeout: Optional[float] = None) -> List[EntryInfo]
+```
+
+List entries in a directory.
+
+**Arguments**:
+
+- `path`: Path to the directory
+- `depth`: Depth of the directory to list
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+List of entries in the directory
+
+
+
+### exists
+
+```python
+def exists(path: str,
+           user: Optional[Username] = None,
+           request_timeout: Optional[float] = None) -> bool
+```
+
+Check if a file or a directory exists.
+
+**Arguments**:
+
+- `path`: Path to a file or a directory
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+`True` if the file or directory exists, `False` otherwise
+
+
+
+### get\_info
+
+```python
+def get_info(path: str,
+             user: Optional[Username] = None,
+             request_timeout: Optional[float] = None) -> EntryInfo
+```
+
+Get information about a file or directory.
+
+**Arguments**:
+
+- `path`: Path to a file or a directory
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Information about the file or directory like name, type, and path
+
+
+
+### remove
+
+```python
+def remove(path: str,
+           user: Optional[Username] = None,
+           request_timeout: Optional[float] = None) -> None
+```
+
+Remove a file or a directory.
+
+**Arguments**:
+
+- `path`: Path to a file or a directory
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request in **seconds**
+
+
+
+### rename
+
+```python
+def rename(old_path: str,
+           new_path: str,
+           user: Optional[Username] = None,
+           request_timeout: Optional[float] = None) -> EntryInfo
+```
+
+Rename a file or directory.
+
+**Arguments**:
+
+- `old_path`: Path to the file or directory to rename
+- `new_path`: New path to the file or directory
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Information about the renamed file or directory
+
+
+
+### make\_dir
+
+```python
+def make_dir(path: str,
+             user: Optional[Username] = None,
+             request_timeout: Optional[float] = None) -> bool
+```
+
+Create a new directory and all directories along the way if needed on the specified path.
+
+**Arguments**:
+
+- `path`: Path to a new directory. For example '/dirA/dirB' when creating 'dirB'.
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+`True` if the directory was created, `False` if the directory already exists
+
+
+
+### watch\_dir
+
+```python
+def watch_dir(path: str,
+              user: Optional[Username] = None,
+              request_timeout: Optional[float] = None,
+              recursive: bool = False,
+              include_entry: bool = False,
+              allow_network_mounts: bool = False) -> WatchHandle
+```
+
+Watch directory for filesystem events.
+
+**Arguments**:
+
+- `path`: Path to a directory to watch
+- `user`: Run the operation as this user
+- `request_timeout`: Timeout for the request in **seconds**
+- `recursive`: Watch directory recursively
+- `include_entry`: Include the `EntryInfo` of the affected entry in each event, when available. Requires envd 0.6.3 or later
+- `allow_network_mounts`: Allow watching paths on network filesystem mounts (NFS, CIFS, SMB, FUSE), which are rejected by default. Events on network mounts may be unreliable or not delivered at all. Requires envd 0.6.4 or later
+
+**Returns**:
+
+`WatchHandle` object for stopping watching directory
+
+
+
+
+
+
+## WatchHandle
+
+```python
+class WatchHandle()
+```
+
+Handle for watching filesystem events.
+It is used to get the latest events that have occurred in the watched directory.
+
+Use `.stop()` to stop watching the directory.
+
+
+
+### stop
+
+```python
+def stop(request_timeout: Optional[float] = None)
+```
+
+Stop watching the directory.
+
+After you stop the watcher you won't be able to get the events anymore.
+
+**Arguments**:
+
+- `request_timeout`: Timeout for the request in **seconds**
+
+
+
+### get\_new\_events
+
+```python
+def get_new_events(
+        request_timeout: Optional[float] = None) -> List[FilesystemEvent]
+```
+
+Get the latest events that have occurred in the watched directory since the last call, or from the beginning of the watching, up until now.
+
+**Arguments**:
+
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+List of filesystem events
+
+
+
+
+
+
+## Git
+
+```python
+class Git()
+```
+
+Module for running git operations in the sandbox.
+
+:deprecated: Run git with `sandbox.commands.run()` instead. The git module will be removed in the next major version.
+
+
+
+### \_\_init\_\_
+
+```python
+def __init__(commands: Commands) -> None
+```
+
+Create a Git helper bound to the sandbox command runner.
+
+**Arguments**:
+
+- `commands`: Command runner used to execute git commands
+
+
+
+### clone
+
+```python
+def clone(url: str,
+          path: Optional[str] = None,
+          branch: Optional[str] = None,
+          depth: Optional[int] = None,
+          username: Optional[str] = None,
+          password: Optional[str] = None,
+          envs: Optional[Dict[str, str]] = None,
+          user: Optional[str] = None,
+          cwd: Optional[str] = None,
+          timeout: Optional[float] = None,
+          request_timeout: Optional[float] = None,
+          dangerously_store_credentials: bool = False)
+```
+
+Clone a git repository into the sandbox.
+
+**Arguments**:
+
+- `url`: Git repository URL
+- `path`: Destination path for the clone
+- `branch`: Branch to check out
+- `depth`: If set, perform a shallow clone with this depth
+- `username`: Username for HTTP(S) authentication
+- `password`: Password or token for HTTP(S) authentication
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+- `dangerously_store_credentials`: Store credentials in the cloned repository when True
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### init
+
+```python
+def init(path: str,
+         bare: bool = False,
+         initial_branch: Optional[str] = None,
+         envs: Optional[Dict[str, str]] = None,
+         user: Optional[str] = None,
+         cwd: Optional[str] = None,
+         timeout: Optional[float] = None,
+         request_timeout: Optional[float] = None)
+```
+
+Initialize a new git repository.
+
+**Arguments**:
+
+- `path`: Destination path for the repository
+- `bare`: Create a bare repository when True
+- `initial_branch`: Initial branch name (for example, "main")
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### remote\_add
+
+```python
+def remote_add(path: str,
+               name: str,
+               url: str,
+               fetch: bool = False,
+               overwrite: bool = False,
+               envs: Optional[Dict[str, str]] = None,
+               user: Optional[str] = None,
+               cwd: Optional[str] = None,
+               timeout: Optional[float] = None,
+               request_timeout: Optional[float] = None)
+```
+
+Add (or update) a remote for a repository.
+
+**Arguments**:
+
+- `path`: Repository path
+- `name`: Remote name (for example, "origin")
+- `url`: Remote URL
+- `fetch`: Fetch the remote after adding it when True
+- `overwrite`: Overwrite the remote URL if it already exists when True
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### remote\_get
+
+```python
+def remote_get(path: str,
+               name: str,
+               envs: Optional[Dict[str, str]] = None,
+               user: Optional[str] = None,
+               cwd: Optional[str] = None,
+               timeout: Optional[float] = None,
+               request_timeout: Optional[float] = None) -> Optional[str]
+```
+
+Get the URL for a git remote.
+
+Returns `None` when the remote does not exist.
+
+**Arguments**:
+
+- `path`: Repository path
+- `name`: Remote name (for example, "origin")
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Remote URL if present, otherwise `None`
+
+
+
+### status
+
+```python
+def status(path: str,
+           envs: Optional[Dict[str, str]] = None,
+           user: Optional[str] = None,
+           cwd: Optional[str] = None,
+           timeout: Optional[float] = None,
+           request_timeout: Optional[float] = None) -> GitStatus
+```
+
+Get repository status information.
+
+**Arguments**:
+
+- `path`: Repository path
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Parsed git status
+
+
+
+### branches
+
+```python
+def branches(path: str,
+             envs: Optional[Dict[str, str]] = None,
+             user: Optional[str] = None,
+             cwd: Optional[str] = None,
+             timeout: Optional[float] = None,
+             request_timeout: Optional[float] = None) -> GitBranches
+```
+
+List branches in a repository.
+
+**Arguments**:
+
+- `path`: Repository path
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Parsed branch list
+
+
+
+### create\_branch
+
+```python
+def create_branch(path: str,
+                  branch: str,
+                  envs: Optional[Dict[str, str]] = None,
+                  user: Optional[str] = None,
+                  cwd: Optional[str] = None,
+                  timeout: Optional[float] = None,
+                  request_timeout: Optional[float] = None)
+```
+
+Create and check out a new branch.
+
+**Arguments**:
+
+- `path`: Repository path
+- `branch`: Branch name to create
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### checkout\_branch
+
+```python
+def checkout_branch(path: str,
+                    branch: str,
+                    envs: Optional[Dict[str, str]] = None,
+                    user: Optional[str] = None,
+                    cwd: Optional[str] = None,
+                    timeout: Optional[float] = None,
+                    request_timeout: Optional[float] = None)
+```
+
+Check out an existing branch.
+
+**Arguments**:
+
+- `path`: Repository path
+- `branch`: Branch name to check out
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### delete\_branch
+
+```python
+def delete_branch(path: str,
+                  branch: str,
+                  force: bool = False,
+                  envs: Optional[Dict[str, str]] = None,
+                  user: Optional[str] = None,
+                  cwd: Optional[str] = None,
+                  timeout: Optional[float] = None,
+                  request_timeout: Optional[float] = None)
+```
+
+Delete a branch.
+
+**Arguments**:
+
+- `path`: Repository path
+- `branch`: Branch name to delete
+- `force`: Force deletion with `-D` when `True`
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### add
+
+```python
+def add(path: str,
+        files: Optional[List[str]] = None,
+        all: bool = True,
+        envs: Optional[Dict[str, str]] = None,
+        user: Optional[str] = None,
+        cwd: Optional[str] = None,
+        timeout: Optional[float] = None,
+        request_timeout: Optional[float] = None)
+```
+
+Stage files for commit.
+
+**Arguments**:
+
+- `path`: Repository path
+- `files`: Files to add; when omitted, adds the current directory
+- `all`: When `True` and `files` is omitted, stage all changes
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### commit
+
+```python
+def commit(path: str,
+           message: str,
+           author_name: Optional[str] = None,
+           author_email: Optional[str] = None,
+           allow_empty: bool = False,
+           envs: Optional[Dict[str, str]] = None,
+           user: Optional[str] = None,
+           cwd: Optional[str] = None,
+           timeout: Optional[float] = None,
+           request_timeout: Optional[float] = None)
+```
+
+Create a commit in the repository.
+
+**Arguments**:
+
+- `path`: Repository path
+- `message`: Commit message
+- `author_name`: Commit author name
+- `author_email`: Commit author email
+- `allow_empty`: Allow empty commits when `True`
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### reset
+
+```python
+def reset(path: str,
+          mode: Optional[GitResetMode] = None,
+          target: Optional[str] = None,
+          paths: Optional[List[str]] = None,
+          envs: Optional[Dict[str, str]] = None,
+          user: Optional[str] = None,
+          cwd: Optional[str] = None,
+          timeout: Optional[float] = None,
+          request_timeout: Optional[float] = None)
+```
+
+Reset the current HEAD to a specified state.
+
+**Arguments**:
+
+- `path`: Repository path
+- `mode`: Reset mode (soft, mixed, hard, merge, keep)
+- `target`: Commit, branch, or ref to reset to (defaults to HEAD)
+- `paths`: Paths to reset
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### restore
+
+```python
+def restore(path: str,
+            paths: List[str],
+            staged: Optional[bool] = None,
+            worktree: Optional[bool] = None,
+            source: Optional[str] = None,
+            envs: Optional[Dict[str, str]] = None,
+            user: Optional[str] = None,
+            cwd: Optional[str] = None,
+            timeout: Optional[float] = None,
+            request_timeout: Optional[float] = None)
+```
+
+Restore working tree files or unstage changes.
+
+**Arguments**:
+
+- `path`: Repository path
+- `paths`: Paths to restore (use ["."] for all)
+- `staged`: When True, restore the index (unstage)
+- `worktree`: When True, restore working tree files
+- `source`: Restore from the given source (commit, branch, or ref)
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### push
+
+```python
+def push(path: str,
+         remote: Optional[str] = None,
+         branch: Optional[str] = None,
+         set_upstream: bool = True,
+         username: Optional[str] = None,
+         password: Optional[str] = None,
+         envs: Optional[Dict[str, str]] = None,
+         user: Optional[str] = None,
+         cwd: Optional[str] = None,
+         timeout: Optional[float] = None,
+         request_timeout: Optional[float] = None)
+```
+
+Push commits to a remote.
+
+**Arguments**:
+
+- `path`: Repository path
+- `remote`: Remote name, e.g. `origin`
+- `branch`: Branch name to push
+- `set_upstream`: Set upstream tracking when `True`
+- `username`: Username for HTTP(S) authentication
+- `password`: Password or token for HTTP(S) authentication
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### pull
+
+```python
+def pull(path: str,
+         remote: Optional[str] = None,
+         branch: Optional[str] = None,
+         username: Optional[str] = None,
+         password: Optional[str] = None,
+         envs: Optional[Dict[str, str]] = None,
+         user: Optional[str] = None,
+         cwd: Optional[str] = None,
+         timeout: Optional[float] = None,
+         request_timeout: Optional[float] = None)
+```
+
+Pull changes from a remote.
+
+**Arguments**:
+
+- `path`: Repository path
+- `remote`: Remote name, e.g. `origin`
+- `branch`: Branch name to pull
+- `username`: Username for HTTP(S) authentication
+- `password`: Password or token for HTTP(S) authentication
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### set\_config
+
+```python
+def set_config(key: str,
+               value: str,
+               scope: str = "global",
+               path: Optional[str] = None,
+               envs: Optional[Dict[str, str]] = None,
+               user: Optional[str] = None,
+               cwd: Optional[str] = None,
+               timeout: Optional[float] = None,
+               request_timeout: Optional[float] = None)
+```
+
+Set a git config value.
+
+Use `scope="local"` together with `path` to configure a specific repository.
+
+**Arguments**:
+
+- `key`: Git config key (e.g. `pull.rebase`)
+- `value`: Git config value
+- `scope`: Config scope: `global`, `local`, or `system`
+- `path`: Repository path required when `scope` is `local`
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### get\_config
+
+```python
+def get_config(key: str,
+               scope: str = "global",
+               path: Optional[str] = None,
+               envs: Optional[Dict[str, str]] = None,
+               user: Optional[str] = None,
+               cwd: Optional[str] = None,
+               timeout: Optional[float] = None,
+               request_timeout: Optional[float] = None) -> Optional[str]
+```
+
+Get a git config value.
+
+Returns `None` when the key is not set in the requested scope.
+
+**Arguments**:
+
+- `key`: Git config key (e.g. `pull.rebase`)
+- `scope`: Config scope: `global`, `local`, or `system`
+- `path`: Repository path required when `scope` is `local`
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Config value if present, otherwise `None`
+
+
+
+### dangerously\_authenticate
+
+```python
+def dangerously_authenticate(username: str,
+                             password: str,
+                             host: str = "github.com",
+                             protocol: str = "https",
+                             envs: Optional[Dict[str, str]] = None,
+                             user: Optional[str] = None,
+                             cwd: Optional[str] = None,
+                             timeout: Optional[float] = None,
+                             request_timeout: Optional[float] = None)
+```
+
+Dangerously authenticate git globally via the credential helper.
+
+This persists credentials in the credential store and may be accessible to agents running on the sandbox.
+Prefer short-lived credentials when possible.
+
+**Arguments**:
+
+- `username`: Username for HTTP(S) authentication
+- `password`: Password or token for HTTP(S) authentication
+- `host`: Host to authenticate for, defaults to `github.com`
+- `protocol`: Protocol to authenticate for, defaults to `https`
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+### configure\_user
+
+```python
+def configure_user(name: str,
+                   email: str,
+                   scope: str = "global",
+                   path: Optional[str] = None,
+                   envs: Optional[Dict[str, str]] = None,
+                   user: Optional[str] = None,
+                   cwd: Optional[str] = None,
+                   timeout: Optional[float] = None,
+                   request_timeout: Optional[float] = None)
+```
+
+Configure git user name and email.
+
+**Arguments**:
+
+- `name`: Git user name
+- `email`: Git user email
+- `scope`: Config scope: `global`, `local`, or `system`
+- `path`: Repository path required when `scope` is `local`
+- `envs`: Environment variables used for the command
+- `user`: User to run the command as
+- `cwd`: Working directory to run the command
+- `timeout`: Timeout for the command connection in **seconds**
+- `request_timeout`: Timeout for the request in **seconds**
+
+**Returns**:
+
+Command result from the command runner
+
+
+
+
+
+
 ## Sandbox
 
 ```python
@@ -1119,6 +1702,7 @@ A running sandbox instance
 sandbox = Sandbox.create()
 sandbox.pause()
 
+# Another code block
 same_sandbox = sandbox.connect()
 ```
 
@@ -1165,6 +1749,7 @@ A running sandbox instance
 sandbox = Sandbox.create()
 Sandbox.pause(sandbox.sandbox_id)
 
+# Another code block
 same_sandbox = Sandbox.connect(sandbox.sandbox_id)
 ```
 
@@ -1208,6 +1793,7 @@ A running sandbox instance
 sandbox = Sandbox.create()
 sandbox.pause()
 
+# Another code block
 same_sandbox = sandbox.connect()
 ```
 
@@ -1891,670 +2477,131 @@ MCP token for the sandbox, or None if MCP is not enabled.
 
 
 
-## Git
+## SandboxPaginator
 
 ```python
-class Git()
+class SandboxPaginator(SandboxPaginatorBase)
 ```
 
-Module for running git operations in the sandbox.
+Paginator for listing sandboxes.
 
-:deprecated: Run git with `sandbox.commands.run()` instead. The git module will be removed in the next major version.
-
-
-
-### \_\_init\_\_
+**Example**:
 
 ```python
-def __init__(commands: Commands) -> None
+paginator = Sandbox.list()
+
+while paginator.has_next:
+    sandboxes = paginator.next_items()
+    print(sandboxes)
 ```
 
-Create a Git helper bound to the sandbox command runner.
+
+
+### next\_items
+
+```python
+def next_items(**opts: Unpack[ApiParams]) -> List[SandboxInfo]
+```
+
+Returns the next page of sandboxes.
+
+Call this method only if `has_next` is `True`, otherwise it will raise an exception.
 
 **Arguments**:
 
-- `commands`: Command runner used to execute git commands
-
-
-
-### clone
-
-```python
-def clone(url: str,
-          path: Optional[str] = None,
-          branch: Optional[str] = None,
-          depth: Optional[int] = None,
-          username: Optional[str] = None,
-          password: Optional[str] = None,
-          envs: Optional[Dict[str, str]] = None,
-          user: Optional[str] = None,
-          cwd: Optional[str] = None,
-          timeout: Optional[float] = None,
-          request_timeout: Optional[float] = None,
-          dangerously_store_credentials: bool = False)
-```
-
-Clone a git repository into the sandbox.
-
-**Arguments**:
-
-- `url`: Git repository URL
-- `path`: Destination path for the clone
-- `branch`: Branch to check out
-- `depth`: If set, perform a shallow clone with this depth
-- `username`: Username for HTTP(S) authentication
-- `password`: Password or token for HTTP(S) authentication
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-- `dangerously_store_credentials`: Store credentials in the cloned repository when True
+- `opts`: Per-call connection options (e.g. `api_key`, `domain`,
+`headers`, `request_timeout`). When provided, this call uses these
+options on top of the ones the paginator was constructed with.
 
 **Returns**:
 
-Command result from the command runner
+List of sandboxes
 
 
 
-### init
+### has\_next
 
 ```python
-def init(path: str,
-         bare: bool = False,
-         initial_branch: Optional[str] = None,
-         envs: Optional[Dict[str, str]] = None,
-         user: Optional[str] = None,
-         cwd: Optional[str] = None,
-         timeout: Optional[float] = None,
-         request_timeout: Optional[float] = None)
+@property
+def has_next() -> bool
 ```
 
-Initialize a new git repository.
+Returns True if there are more items to fetch.
+
+
+
+### next\_token
+
+```python
+@property
+def next_token() -> Optional[str]
+```
+
+Returns the next token to use for pagination.
+
+
+
+## SnapshotPaginator
+
+```python
+class SnapshotPaginator(SnapshotPaginatorBase)
+```
+
+Paginator for listing snapshots.
+
+**Example**:
+
+```python
+paginator = Sandbox.list_snapshots()
+
+while paginator.has_next:
+    snapshots = paginator.next_items()
+    print(snapshots)
+```
+
+
+
+### next\_items
+
+```python
+def next_items(**opts: Unpack[ApiParams]) -> List[SnapshotInfo]
+```
+
+Returns the next page of snapshots.
+
+Call this method only if `has_next` is `True`, otherwise it will raise an exception.
 
 **Arguments**:
 
-- `path`: Destination path for the repository
-- `bare`: Create a bare repository when True
-- `initial_branch`: Initial branch name (for example, "main")
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
+- `opts`: Per-call connection options (e.g. `api_key`, `domain`,
+`headers`, `request_timeout`). When provided, this call uses these
+options on top of the ones the paginator was constructed with.
 
 **Returns**:
 
-Command result from the command runner
+List of snapshots
 
 
 
-### remote\_add
+### has\_next
 
 ```python
-def remote_add(path: str,
-               name: str,
-               url: str,
-               fetch: bool = False,
-               overwrite: bool = False,
-               envs: Optional[Dict[str, str]] = None,
-               user: Optional[str] = None,
-               cwd: Optional[str] = None,
-               timeout: Optional[float] = None,
-               request_timeout: Optional[float] = None)
+@property
+def has_next() -> bool
 ```
 
-Add (or update) a remote for a repository.
-
-**Arguments**:
-
-- `path`: Repository path
-- `name`: Remote name (for example, "origin")
-- `url`: Remote URL
-- `fetch`: Fetch the remote after adding it when True
-- `overwrite`: Overwrite the remote URL if it already exists when True
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
+Returns True if there are more items to fetch.
 
 
 
-### remote\_get
+### next\_token
 
 ```python
-def remote_get(path: str,
-               name: str,
-               envs: Optional[Dict[str, str]] = None,
-               user: Optional[str] = None,
-               cwd: Optional[str] = None,
-               timeout: Optional[float] = None,
-               request_timeout: Optional[float] = None) -> Optional[str]
+@property
+def next_token() -> Optional[str]
 ```
 
-Get the URL for a git remote.
-
-Returns `None` when the remote does not exist.
-
-**Arguments**:
-
-- `path`: Repository path
-- `name`: Remote name (for example, "origin")
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Remote URL if present, otherwise `None`
-
-
-
-### status
-
-```python
-def status(path: str,
-           envs: Optional[Dict[str, str]] = None,
-           user: Optional[str] = None,
-           cwd: Optional[str] = None,
-           timeout: Optional[float] = None,
-           request_timeout: Optional[float] = None) -> GitStatus
-```
-
-Get repository status information.
-
-**Arguments**:
-
-- `path`: Repository path
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Parsed git status
-
-
-
-### branches
-
-```python
-def branches(path: str,
-             envs: Optional[Dict[str, str]] = None,
-             user: Optional[str] = None,
-             cwd: Optional[str] = None,
-             timeout: Optional[float] = None,
-             request_timeout: Optional[float] = None) -> GitBranches
-```
-
-List branches in a repository.
-
-**Arguments**:
-
-- `path`: Repository path
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Parsed branch list
-
-
-
-### create\_branch
-
-```python
-def create_branch(path: str,
-                  branch: str,
-                  envs: Optional[Dict[str, str]] = None,
-                  user: Optional[str] = None,
-                  cwd: Optional[str] = None,
-                  timeout: Optional[float] = None,
-                  request_timeout: Optional[float] = None)
-```
-
-Create and check out a new branch.
-
-**Arguments**:
-
-- `path`: Repository path
-- `branch`: Branch name to create
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### checkout\_branch
-
-```python
-def checkout_branch(path: str,
-                    branch: str,
-                    envs: Optional[Dict[str, str]] = None,
-                    user: Optional[str] = None,
-                    cwd: Optional[str] = None,
-                    timeout: Optional[float] = None,
-                    request_timeout: Optional[float] = None)
-```
-
-Check out an existing branch.
-
-**Arguments**:
-
-- `path`: Repository path
-- `branch`: Branch name to check out
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### delete\_branch
-
-```python
-def delete_branch(path: str,
-                  branch: str,
-                  force: bool = False,
-                  envs: Optional[Dict[str, str]] = None,
-                  user: Optional[str] = None,
-                  cwd: Optional[str] = None,
-                  timeout: Optional[float] = None,
-                  request_timeout: Optional[float] = None)
-```
-
-Delete a branch.
-
-**Arguments**:
-
-- `path`: Repository path
-- `branch`: Branch name to delete
-- `force`: Force deletion with `-D` when `True`
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### add
-
-```python
-def add(path: str,
-        files: Optional[List[str]] = None,
-        all: bool = True,
-        envs: Optional[Dict[str, str]] = None,
-        user: Optional[str] = None,
-        cwd: Optional[str] = None,
-        timeout: Optional[float] = None,
-        request_timeout: Optional[float] = None)
-```
-
-Stage files for commit.
-
-**Arguments**:
-
-- `path`: Repository path
-- `files`: Files to add; when omitted, adds the current directory
-- `all`: When `True` and `files` is omitted, stage all changes
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### commit
-
-```python
-def commit(path: str,
-           message: str,
-           author_name: Optional[str] = None,
-           author_email: Optional[str] = None,
-           allow_empty: bool = False,
-           envs: Optional[Dict[str, str]] = None,
-           user: Optional[str] = None,
-           cwd: Optional[str] = None,
-           timeout: Optional[float] = None,
-           request_timeout: Optional[float] = None)
-```
-
-Create a commit in the repository.
-
-**Arguments**:
-
-- `path`: Repository path
-- `message`: Commit message
-- `author_name`: Commit author name
-- `author_email`: Commit author email
-- `allow_empty`: Allow empty commits when `True`
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### reset
-
-```python
-def reset(path: str,
-          mode: Optional[GitResetMode] = None,
-          target: Optional[str] = None,
-          paths: Optional[List[str]] = None,
-          envs: Optional[Dict[str, str]] = None,
-          user: Optional[str] = None,
-          cwd: Optional[str] = None,
-          timeout: Optional[float] = None,
-          request_timeout: Optional[float] = None)
-```
-
-Reset the current HEAD to a specified state.
-
-**Arguments**:
-
-- `path`: Repository path
-- `mode`: Reset mode (soft, mixed, hard, merge, keep)
-- `target`: Commit, branch, or ref to reset to (defaults to HEAD)
-- `paths`: Paths to reset
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### restore
-
-```python
-def restore(path: str,
-            paths: List[str],
-            staged: Optional[bool] = None,
-            worktree: Optional[bool] = None,
-            source: Optional[str] = None,
-            envs: Optional[Dict[str, str]] = None,
-            user: Optional[str] = None,
-            cwd: Optional[str] = None,
-            timeout: Optional[float] = None,
-            request_timeout: Optional[float] = None)
-```
-
-Restore working tree files or unstage changes.
-
-**Arguments**:
-
-- `path`: Repository path
-- `paths`: Paths to restore (use ["."] for all)
-- `staged`: When True, restore the index (unstage)
-- `worktree`: When True, restore working tree files
-- `source`: Restore from the given source (commit, branch, or ref)
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### push
-
-```python
-def push(path: str,
-         remote: Optional[str] = None,
-         branch: Optional[str] = None,
-         set_upstream: bool = True,
-         username: Optional[str] = None,
-         password: Optional[str] = None,
-         envs: Optional[Dict[str, str]] = None,
-         user: Optional[str] = None,
-         cwd: Optional[str] = None,
-         timeout: Optional[float] = None,
-         request_timeout: Optional[float] = None)
-```
-
-Push commits to a remote.
-
-**Arguments**:
-
-- `path`: Repository path
-- `remote`: Remote name, e.g. `origin`
-- `branch`: Branch name to push
-- `set_upstream`: Set upstream tracking when `True`
-- `username`: Username for HTTP(S) authentication
-- `password`: Password or token for HTTP(S) authentication
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### pull
-
-```python
-def pull(path: str,
-         remote: Optional[str] = None,
-         branch: Optional[str] = None,
-         username: Optional[str] = None,
-         password: Optional[str] = None,
-         envs: Optional[Dict[str, str]] = None,
-         user: Optional[str] = None,
-         cwd: Optional[str] = None,
-         timeout: Optional[float] = None,
-         request_timeout: Optional[float] = None)
-```
-
-Pull changes from a remote.
-
-**Arguments**:
-
-- `path`: Repository path
-- `remote`: Remote name, e.g. `origin`
-- `branch`: Branch name to pull
-- `username`: Username for HTTP(S) authentication
-- `password`: Password or token for HTTP(S) authentication
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### set\_config
-
-```python
-def set_config(key: str,
-               value: str,
-               scope: str = "global",
-               path: Optional[str] = None,
-               envs: Optional[Dict[str, str]] = None,
-               user: Optional[str] = None,
-               cwd: Optional[str] = None,
-               timeout: Optional[float] = None,
-               request_timeout: Optional[float] = None)
-```
-
-Set a git config value.
-
-Use `scope="local"` together with `path` to configure a specific repository.
-
-**Arguments**:
-
-- `key`: Git config key (e.g. `pull.rebase`)
-- `value`: Git config value
-- `scope`: Config scope: `global`, `local`, or `system`
-- `path`: Repository path required when `scope` is `local`
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### get\_config
-
-```python
-def get_config(key: str,
-               scope: str = "global",
-               path: Optional[str] = None,
-               envs: Optional[Dict[str, str]] = None,
-               user: Optional[str] = None,
-               cwd: Optional[str] = None,
-               timeout: Optional[float] = None,
-               request_timeout: Optional[float] = None) -> Optional[str]
-```
-
-Get a git config value.
-
-Returns `None` when the key is not set in the requested scope.
-
-**Arguments**:
-
-- `key`: Git config key (e.g. `pull.rebase`)
-- `scope`: Config scope: `global`, `local`, or `system`
-- `path`: Repository path required when `scope` is `local`
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Config value if present, otherwise `None`
-
-
-
-### dangerously\_authenticate
-
-```python
-def dangerously_authenticate(username: str,
-                             password: str,
-                             host: str = "github.com",
-                             protocol: str = "https",
-                             envs: Optional[Dict[str, str]] = None,
-                             user: Optional[str] = None,
-                             cwd: Optional[str] = None,
-                             timeout: Optional[float] = None,
-                             request_timeout: Optional[float] = None)
-```
-
-Dangerously authenticate git globally via the credential helper.
-
-This persists credentials in the credential store and may be accessible to agents running on the sandbox.
-Prefer short-lived credentials when possible.
-
-**Arguments**:
-
-- `username`: Username for HTTP(S) authentication
-- `password`: Password or token for HTTP(S) authentication
-- `host`: Host to authenticate for, defaults to `github.com`
-- `protocol`: Protocol to authenticate for, defaults to `https`
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
-
-
-
-### configure\_user
-
-```python
-def configure_user(name: str,
-                   email: str,
-                   scope: str = "global",
-                   path: Optional[str] = None,
-                   envs: Optional[Dict[str, str]] = None,
-                   user: Optional[str] = None,
-                   cwd: Optional[str] = None,
-                   timeout: Optional[float] = None,
-                   request_timeout: Optional[float] = None)
-```
-
-Configure git user name and email.
-
-**Arguments**:
-
-- `name`: Git user name
-- `email`: Git user email
-- `scope`: Config scope: `global`, `local`, or `system`
-- `path`: Repository path required when `scope` is `local`
-- `envs`: Environment variables used for the command
-- `user`: User to run the command as
-- `cwd`: Working directory to run the command
-- `timeout`: Timeout for the command connection in **seconds**
-- `request_timeout`: Timeout for the request in **seconds**
-
-**Returns**:
-
-Command result from the command runner
+Returns the next token to use for pagination.
 
 
 
@@ -2596,3 +2643,93 @@ and `paused` states. To filter by state, pass `query=SandboxQuery(state=[...])`.
 **Returns**:
 
 A `SandboxPaginator` that yields pages of sandboxes (running and paused by default). Iterate pages via `paginator.next_items()` while `paginator.has_next` is True.
+
+
+
+### sandbox\_id
+
+```python
+@property
+def sandbox_id() -> str
+```
+
+Unique identifier of the sandbox.
+
+
+
+### download\_url
+
+```python
+def download_url(path: str,
+                 user: Optional[str] = None,
+                 use_signature_expiration: Optional[int] = None) -> str
+```
+
+Get the URL to download a file from the sandbox.
+
+**Arguments**:
+
+- `path`: Path to the file to download
+- `user`: User to download the file as
+- `use_signature_expiration`: Expiration time for the signed URL in seconds
+
+**Returns**:
+
+URL for downloading file
+
+
+
+### upload\_url
+
+```python
+def upload_url(path: str,
+               user: Optional[str] = None,
+               use_signature_expiration: Optional[int] = None) -> str
+```
+
+Get the URL to upload a file to the sandbox.
+
+You have to send a POST request to this URL with the file as multipart/form-data.
+
+**Arguments**:
+
+- `path`: Path to the file to upload
+- `user`: User to upload the file as
+- `use_signature_expiration`: Expiration time for the signed URL in seconds
+
+**Returns**:
+
+URL for uploading file
+
+
+
+### get\_host
+
+```python
+def get_host(port: int) -> str
+```
+
+Get the host address to connect to the sandbox.
+
+You can then use this address to connect to the sandbox port from outside the sandbox via HTTP or WebSocket.
+
+**Arguments**:
+
+- `port`: Port to connect to
+
+**Returns**:
+
+Host address to connect to
+
+
+
+### get\_mcp\_url
+
+```python
+def get_mcp_url() -> str
+```
+
+Get the MCP URL for the sandbox.
+
+:returns MCP URL for the sandbox.
+

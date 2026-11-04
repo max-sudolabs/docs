@@ -89,7 +89,8 @@ async function generateVersion(
       generatedDocsDir = await generatePydoc(
         sdkDir,
         resolvedConfig,
-        installResult.usePoetryRun
+        installResult.usePoetryRun,
+        context.configsDir
       );
       break;
     }
