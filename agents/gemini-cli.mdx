@@ -1,0 +1,343 @@
+---
+title: "Gemini CLI"
+description: "Run Google Gemini CLI in a secure E2B sandbox with full filesystem, terminal, and git access."
+icon: "/images/icons/gemini-cli.png"
+"og:image": "/images/og/generated/agents/gemini-cli.png"
+---
+
+[Gemini CLI](https://github.com/google-gemini/gemini-cli) is Google's open-source coding agent for the terminal. E2B provides a pre-built `gemini` template with Gemini CLI already installed.
+
+<Note>
+Since June 18, 2026, Gemini CLI no longer serves free-tier and Google AI Pro and Ultra users who sign in with a Google account; it remains available with paid Gemini API keys, Vertex AI, and enterprise accounts ([announcement](https://developers.googleblog.com/an-important-update-transitioning-gemini-cli-to-antigravity-cli/)). If you sign in with a Google account, use [Antigravity CLI](/agents/antigravity-cli) instead.
+</Note>
+
+## Authentication
+
+Gemini CLI authenticates with the `GEMINI_API_KEY` environment variable. Create a key in [Google AI Studio](https://aistudio.google.com/apikey) and pass it to the sandbox. Without credentials, headless runs exit immediately with an error instead of waiting for a sign-in; `GOOGLE_API_KEY` alone is not enough.
+
+To use Vertex AI, set `GOOGLE_GENAI_USE_VERTEXAI=true`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`, and either `GOOGLE_API_KEY` or `GOOGLE_APPLICATION_CREDENTIALS` instead; a service account key file has to be uploaded to the sandbox first. See the [Gemini CLI authentication guide](https://geminicli.com/docs/get-started/authentication) for details.
+
+## CLI
+
+Create a sandbox with the [E2B CLI](/cli) and pass your API key to the terminal session.
+
+```bash
+e2b sbx create gemini -e GEMINI_API_KEY=$GEMINI_API_KEY
+```
+
+Once inside the sandbox, start Gemini CLI. On the first start in a folder, it asks whether to trust that folder.
+
+```bash
+gemini
+```
+
+## Run headless
+
+Use `-p` for non-interactive mode, `--yolo` to auto-approve all tool calls, and `--skip-trust` to trust the working directory for the run. A fresh sandbox has no trusted folders, so without `--skip-trust` a headless run exits with an error and `--yolo` is ignored. Without `--yolo`, headless runs get no tools that edit files or run commands: the agent only reports that it cannot do the task, and the run still exits with code 0.
+
+Agent runs often take longer than the default command timeout, so pass `timeoutMs: 0` (`timeout=0` in Python) to wait until the run completes, and give the sandbox enough lifetime. When the API returns rate-limit errors, Gemini CLI retries with backoff, which can add minutes to a run.
+
+<Note>
+Trusting a folder lets Gemini CLI load its project configuration: `.gemini/settings.json`, `.env` files, MCP servers, hooks, and custom commands. Pass `--skip-trust` only for code you are willing to run with the sandbox's credentials.
+
+Auto-approving tool calls is contained by the sandbox: the agent cannot touch your host machine, local files, or credentials. It can still make outbound network requests — internet access is enabled by default. To limit where an auto-approved agent can connect, configure [outbound network rules](/network/internet-access) (`allowInternetAccess`, plus allow/deny lists by CIDR or hostname). Hostname rules apply to HTTP(S) traffic only; use CIDR rules for other protocols.
+</Note>
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('gemini', {
+  envs: { GEMINI_API_KEY: process.env.GEMINI_API_KEY! },
+  timeoutMs: 600_000,
+})
+
+const result = await sandbox.commands.run(
+  `gemini --skip-trust --yolo -p "Create a hello world HTTP server in Python"`,
+  { timeoutMs: 0 }
+)
+
+console.log(result.stdout)
+await sandbox.kill()
+```
+```python Python
+import os
+from e2b import Sandbox
+
+sandbox = Sandbox.create("gemini", envs={
+    "GEMINI_API_KEY": os.environ["GEMINI_API_KEY"],
+}, timeout=600)
+
+result = sandbox.commands.run(
+    'gemini --skip-trust --yolo -p "Create a hello world HTTP server in Python"',
+    timeout=0,
+)
+
+print(result.stdout)
+sandbox.kill()
+```
+</CodeGroup>
+
+<Tip>
+By default, Gemini CLI routes each request to a model automatically. To pin a model, pass `-m` (`--model`) or set the `GEMINI_MODEL` environment variable, for example to a Flash model for faster and cheaper runs. See the [Gemini API models](https://ai.google.dev/gemini-api/docs/models) for the models available to your key.
+</Tip>
+
+### Example: work on a cloned repository
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('gemini', {
+  envs: { GEMINI_API_KEY: process.env.GEMINI_API_KEY! },
+  timeoutMs: 900_000,
+})
+
+await sandbox.commands.run(
+  'git clone --depth 1 https://x-access-token:$GITHUB_TOKEN@github.com/your-org/your-repo.git /home/user/repo',
+  { envs: { GITHUB_TOKEN: process.env.GITHUB_TOKEN! } }
+)
+
+const result = await sandbox.commands.run(
+  `cd /home/user/repo && gemini --skip-trust --yolo -p "Add error handling to all API endpoints"`,
+  { timeoutMs: 0, onStdout: (data) => { process.stdout.write(data) } }
+)
+
+const diff = await sandbox.commands.run('cd /home/user/repo && git diff')
+console.log(diff.stdout)
+
+await sandbox.kill()
+```
+```python Python
+import os
+from e2b import Sandbox
+
+sandbox = Sandbox.create("gemini", envs={
+    "GEMINI_API_KEY": os.environ["GEMINI_API_KEY"],
+}, timeout=900)
+
+sandbox.commands.run(
+    "git clone --depth 1 https://x-access-token:$GITHUB_TOKEN@github.com/your-org/your-repo.git /home/user/repo",
+    envs={"GITHUB_TOKEN": os.environ["GITHUB_TOKEN"]},
+)
+
+result = sandbox.commands.run(
+    'cd /home/user/repo && gemini --skip-trust --yolo -p "Add error handling to all API endpoints"',
+    timeout=0,
+    on_stdout=lambda data: print(data, end=""),
+)
+
+diff = sandbox.commands.run("cd /home/user/repo && git diff")
+print(diff.stdout)
+
+sandbox.kill()
+```
+</CodeGroup>
+
+## Streaming events
+
+Use `--output-format stream-json` to get a real-time JSONL event stream: an `init` event with the session ID and model, `message` events for the prompt and response text, `tool_use` and `tool_result` events for tool calls, and a final `result` event with the status and token usage.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('gemini', {
+  envs: { GEMINI_API_KEY: process.env.GEMINI_API_KEY! },
+  timeoutMs: 600_000,
+})
+
+// Output arrives in chunks that can split a JSON line, so buffer until a newline
+let buffer = ''
+const handleOutput = (data: string) => {
+  buffer += data
+  const lines = buffer.split('\n')
+  buffer = lines.pop() ?? ''
+  for (const line of lines.filter(Boolean)) {
+    const event = JSON.parse(line)
+    if (event.type === 'tool_use') {
+      console.log(`[tool] ${event.tool_name}`)
+    } else if (event.type === 'message' && event.role === 'assistant') {
+      process.stdout.write(event.content)
+    } else if (event.type === 'result') {
+      console.log(`\n[done] ${event.status}, ${event.stats.total_tokens} tokens`)
+    }
+  }
+}
+
+await sandbox.commands.run(
+  `gemini --skip-trust --yolo --output-format stream-json -p "Create hello.py that prints hello, then run it"`,
+  { timeoutMs: 0, onStdout: handleOutput }
+)
+
+await sandbox.kill()
+```
+```python Python
+import json
+import os
+from e2b import Sandbox
+
+sandbox = Sandbox.create("gemini", envs={
+    "GEMINI_API_KEY": os.environ["GEMINI_API_KEY"],
+}, timeout=600)
+
+# Output arrives in chunks that can split a JSON line, so buffer until a newline
+buffer = ""
+
+def handle_output(data):
+    global buffer
+    buffer += data
+    *lines, buffer = buffer.split("\n")
+    for line in filter(None, lines):
+        event = json.loads(line)
+        if event["type"] == "tool_use":
+            print(f"[tool] {event['tool_name']}")
+        elif event["type"] == "message" and event["role"] == "assistant":
+            print(event["content"], end="")
+        elif event["type"] == "result":
+            print(f"\n[done] {event['status']}, {event['stats']['total_tokens']} tokens")
+
+sandbox.commands.run(
+    'gemini --skip-trust --yolo --output-format stream-json -p "Create hello.py that prints hello, then run it"',
+    timeout=0,
+    on_stdout=handle_output,
+)
+
+sandbox.kill()
+```
+</CodeGroup>
+
+## Resume a session
+
+Gemini CLI saves sessions per project directory under `~/.gemini` in the sandbox. Run follow-up tasks from the same directory with `--resume latest`, or list sessions with `--list-sessions` and pass an index to `--resume`.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+import { Sandbox } from 'e2b'
+
+const sandbox = await Sandbox.create('gemini', {
+  envs: { GEMINI_API_KEY: process.env.GEMINI_API_KEY! },
+  timeoutMs: 600_000,
+})
+
+await sandbox.files.makeDir('/home/user/app')
+
+// Start a new session
+await sandbox.commands.run(
+  `cd /home/user/app && gemini --skip-trust --yolo -p "Create plan.md with a 3-step plan for a TODO CLI app"`,
+  { timeoutMs: 0 }
+)
+
+// Continue the most recent session in the same directory
+await sandbox.commands.run(
+  `cd /home/user/app && gemini --skip-trust --yolo --resume latest -p "Now implement step 1 of the plan"`,
+  { timeoutMs: 0, onStdout: (data) => { process.stdout.write(data) } }
+)
+
+const files = await sandbox.commands.run('ls /home/user/app')
+console.log(files.stdout)
+
+await sandbox.kill()
+```
+```python Python
+import os
+from e2b import Sandbox
+
+sandbox = Sandbox.create("gemini", envs={
+    "GEMINI_API_KEY": os.environ["GEMINI_API_KEY"],
+}, timeout=600)
+
+sandbox.files.make_dir("/home/user/app")
+
+# Start a new session
+sandbox.commands.run(
+    'cd /home/user/app && gemini --skip-trust --yolo -p "Create plan.md with a 3-step plan for a TODO CLI app"',
+    timeout=0,
+)
+
+# Continue the most recent session in the same directory
+sandbox.commands.run(
+    'cd /home/user/app && gemini --skip-trust --yolo --resume latest -p "Now implement step 1 of the plan"',
+    timeout=0,
+    on_stdout=lambda data: print(data, end=""),
+)
+
+files = sandbox.commands.run("ls /home/user/app")
+print(files.stdout)
+
+sandbox.kill()
+```
+</CodeGroup>
+
+## Build a custom template
+
+If you need to customize the environment (e.g. pre-install dependencies, add config files), build your own template on top of the pre-built `gemini` template.
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+// template.ts
+import { Template } from 'e2b'
+
+export const template = Template()
+  .fromTemplate('gemini')
+```
+```python Python
+# template.py
+from e2b import Template
+
+template = (
+    Template()
+    .from_template("gemini")
+)
+```
+</CodeGroup>
+
+<CodeGroup>
+```typescript JavaScript & TypeScript
+// build.ts
+import { Template, defaultBuildLogger } from 'e2b'
+import { template as geminiTemplate } from './template'
+
+await Template.build(geminiTemplate, 'my-gemini', {
+  cpuCount: 2,
+  memoryMB: 2048,
+  onBuildLogs: defaultBuildLogger(),
+})
+```
+```python Python
+# build.py
+from e2b import Template, default_build_logger
+from template import template as gemini_template
+
+Template.build(gemini_template, "my-gemini",
+    cpu_count=2,
+    memory_mb=2048,
+    on_build_logs=default_build_logger(),
+)
+```
+</CodeGroup>
+
+Run the build script to create the template.
+
+<CodeGroup>
+```bash JavaScript & TypeScript
+npx tsx build.ts
+```
+```bash Python
+python build.py
+```
+</CodeGroup>
+
+## Related guides
+
+<CardGroup cols={2}>
+  <Card title="Cookbook example" icon="book-open" href="https://github.com/e2b-dev/e2b-cookbook/tree/main/examples/gemini-cli-in-sandbox-js">
+    Gemini CLI fixing a failing test in a sandbox, in TypeScript and Python
+  </Card>
+  <Card title="Sandbox persistence" icon="clock" href="/sandbox/persistence">
+    Auto-pause, resume, and manage sandbox lifecycle
+  </Card>
+  <Card title="SSH access" icon="terminal" href="/sandbox/ssh-access">
+    Connect to the sandbox via SSH for interactive sessions
+  </Card>
+</CardGroup>

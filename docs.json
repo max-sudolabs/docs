@@ -248,6 +248,7 @@
               "agents/devin",
               "agents/devin-outposts",
               "agents/droid",
+              "agents/gemini-cli",
               "agents/grok",
               "agents/muse",
               "agents/pi",
